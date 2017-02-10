@@ -7,6 +7,10 @@ php:
 os:
   - linux
 
+env:
+  - COMPOSER_FLAGS="--prefer-lowest"
+  - COMPOSER_FLAGS=""
+
 matrix:
   include:
     - php: 7.0
