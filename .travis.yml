@@ -17,6 +17,10 @@ matrix:
   allow_failures:
     - php: nightly
 
+cache:
+  directories:
+    - $HOME/.composer/cache
+
 before_script:
   - travis_retry composer self-update
   - travis_retry composer update --optimize-autoloader --prefer-dist --prefer-stable --no-progress --no-interaction $PREFER_LOWEST
