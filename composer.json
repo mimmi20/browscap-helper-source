@@ -3,7 +3,7 @@
   "description": "the source interface for the browscap helper",
   "require": {
     "php": "^7.0",
-    "mimmi20/ua-result": "~3.1.0"
+    "mimmi20/ua-result": "~3.1.3"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^2.9",
