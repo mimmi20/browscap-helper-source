@@ -11,17 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
-/**
- * Source interface
- *
- * @author Thomas Mueller <mimmi20@live.de>
- */
-interface SourceInterface
+class SourceException extends \UnexpectedValueException
 {
-    /**
-     * @param int $limit
-     *
-     * @return iterable
-     */
-    public function getUserAgents(int $limit = 0): iterable;
+    // nothing to do here
 }
