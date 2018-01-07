@@ -11,7 +11,6 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
-use Psr\SimpleCache\CacheInterface as PsrCacheInterface;
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
@@ -35,7 +34,7 @@ class PiwikSource implements SourceInterface
     private $jsonParser;
 
     /**
-     * @param \Psr\Log\LoggerInterface          $logger
+     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {

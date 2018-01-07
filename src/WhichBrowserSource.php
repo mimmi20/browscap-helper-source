@@ -36,7 +36,7 @@ class WhichBrowserSource implements SourceInterface
     private $jsonParser;
 
     /**
-     * @param \Psr\Log\LoggerInterface          $logger
+     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {

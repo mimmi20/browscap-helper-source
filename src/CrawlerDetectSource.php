@@ -12,10 +12,8 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use FileLoader\Loader;
-use Psr\SimpleCache\CacheInterface as PsrCacheInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class DirectorySource
@@ -35,7 +33,7 @@ class CrawlerDetectSource implements SourceInterface
     private $loader;
 
     /**
-     * @param \Psr\Log\LoggerInterface          $logger
+     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
@@ -46,8 +44,9 @@ class CrawlerDetectSource implements SourceInterface
     /**
      * @param int $limit
      *
-     * @return iterable|string[]
      * @throws \FileLoader\Exception
+     *
+     * @return iterable|string[]
      */
     public function getUserAgents(int $limit = 0): iterable
     {
@@ -68,8 +67,9 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
-     * @return iterable|string[]
      * @throws \FileLoader\Exception
+     *
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {
