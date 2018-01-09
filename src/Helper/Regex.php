@@ -26,23 +26,23 @@ class Regex
     public function getRegex(): string
     {
         return '/^'
-            . '(?P<remotehost>\S+)'             // remote host (IP)
+            . '(?P<remotehost>\S+)'              // remote host (IP)
             . '\s+'
-            . '(?P<logname>\S+)'                // remote logname
+            . '(?P<logname>\S+)'                 // remote logname
             . '\s+'
-            . '(?P<user>\S+)'                   // remote user
-            . '.*'
+            . '(?P<user>\S+)'                    // remote user
+            . '[^\[]+'
             . '\[(?P<time>[^\]]+)\]'             // date/time
             . '[^"]+'
-            . '\"(?P<http>.*)\"'                // Verb(GET|POST|HEAD) Path HTTP Version
+            . '\"(?P<http>[^"]+)\"'              // Verb(GET|POST|HEAD) Path HTTP Version
             . '\s+'
-            . '(?P<status>.*)'                  // Status
+            . '(?P<status>.*)'                   // Status
             . '\s+'
-            . '(?P<length>.*)'                  // Length (include Header)
+            . '(?P<length>.*)'                   // Length (include Header)
             . '[^"]+'
-            . '\"(?P<referrer>.*)\"'            // Referrer
+            . '\"(?P<referrer>[^"]+)\"'          // Referrer
             . '[^"]+'
-            . '\"(?P<userAgentString>.*)\".*'   // User Agent
+            . '\"(?P<userAgentString>[^"]+)\".*' // User Agent
             . '$/x';
     }
 }
