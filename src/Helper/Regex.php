@@ -11,13 +11,6 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source\Helper;
 
-/**
- * Class DiffCommand
- *
- * @category   Browscap
- *
- * @author     James Titcumb <james@asgrim.com>
- */
 class Regex
 {
     /**
@@ -34,15 +27,15 @@ class Regex
             . '[^\[]+'
             . '\[(?P<time>[^\]]+)\]'             // date/time
             . '[^"]+'
-            . '\"(?P<http>[^"]+)\"'              // Verb(GET|POST|HEAD) Path HTTP Version
+            . '\"(?P<http>.*)\"'                 // Verb(GET|POST|HEAD) Path HTTP Version
             . '\s+'
-            . '(?P<status>.*)'                   // Status
-            . '\s+'
-            . '(?P<length>.*)'                   // Length (include Header)
+            . '(?P<status>\d+)'                  // Status
+            . '\D+'
+            . '(?P<length>\d+)'                  // Length (include Header)
+            . '[^\d"]+'
+            . '\"(?P<referrer>[^"]*)\"'          // Referrer
             . '[^"]+'
-            . '\"(?P<referrer>[^"]+)\"'          // Referrer
-            . '[^"]+'
-            . '\"(?P<userAgentString>[^"]+)\".*' // User Agent
+            . '\"(?P<userAgentString>[^"]*)\".*' // User Agent
             . '$/x';
     }
 }

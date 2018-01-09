@@ -15,11 +15,6 @@ use FileLoader\Loader;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-/**
- * Class DirectorySource
- *
- * @author  Thomas Mueller <mimmi20@live.de>
- */
 class CrawlerDetectSource implements SourceInterface
 {
     /**

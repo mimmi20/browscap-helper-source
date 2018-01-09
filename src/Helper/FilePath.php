@@ -11,13 +11,6 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source\Helper;
 
-/**
- * Class DiffCommand
- *
- * @category   Browscap
- *
- * @author     James Titcumb <james@asgrim.com>
- */
 class FilePath
 {
     /**

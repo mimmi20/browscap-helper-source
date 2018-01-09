@@ -11,11 +11,6 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
-/**
- * Class DirectorySource
- *
- * @author  Thomas Mueller <mimmi20@live.de>
- */
 class CollectionSource implements SourceInterface
 {
     /**

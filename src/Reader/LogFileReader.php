@@ -15,13 +15,6 @@ use BrowscapHelper\Source\Helper\Regex;
 use FileLoader\Loader;
 use Psr\Log\LoggerInterface;
 
-/**
- * Class DiffCommand
- *
- * @category   Browscap
- *
- * @author     James Titcumb <james@asgrim.com>
- */
 class LogFileReader implements ReaderInterface
 {
     /**

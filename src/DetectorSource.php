@@ -16,11 +16,6 @@ use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 
-/**
- * Class DirectorySource
- *
- * @author  Thomas Mueller <mimmi20@live.de>
- */
 class DetectorSource implements SourceInterface
 {
     /**

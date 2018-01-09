@@ -13,11 +13,6 @@ namespace BrowscapHelper\Source;
 
 use Psr\Log\LoggerInterface;
 
-/**
- * Class DirectorySource
- *
- * @author  Thomas Mueller <mimmi20@live.de>
- */
 class PdoSource implements SourceInterface
 {
     /**
