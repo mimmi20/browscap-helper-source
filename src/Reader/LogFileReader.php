@@ -15,13 +15,6 @@ use BrowscapHelper\Source\Helper\Regex;
 use FileLoader\Loader;
 use Psr\Log\LoggerInterface;
 
-/**
- * Class DiffCommand
- *
- * @category   Browscap
- *
- * @author     James Titcumb <james@asgrim.com>
- */
 class LogFileReader implements ReaderInterface
 {
     /**
@@ -63,7 +56,7 @@ class LogFileReader implements ReaderInterface
         $regex = (new Regex())->getRegex();
 
         while (!$stream->eof()) {
-            $line = $stream->read(8192);
+            $line = $stream->read(16364);
 
             if (empty($line)) {
                 continue;
@@ -72,7 +65,7 @@ class LogFileReader implements ReaderInterface
             $lineMatches = [];
 
             if (!preg_match($regex, $line, $lineMatches)) {
-                $logger->warning('no useragent found in line "' . $line . '"');
+                $logger->error('no useragent found in line "' . $line . '" used regex: "' . $regex . '"');
 
                 continue;
             }

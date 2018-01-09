@@ -13,13 +13,6 @@ namespace BrowscapHelper\Source\Reader;
 
 use Psr\Log\LoggerInterface;
 
-/**
- * Class DiffCommand
- *
- * @category   Browscap
- *
- * @author     James Titcumb <james@asgrim.com>
- */
 interface ReaderInterface
 {
     /**
