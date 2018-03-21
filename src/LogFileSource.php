@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -40,8 +40,6 @@ class LogFileSource implements SourceInterface
 
     /**
      * @param int $limit
-     *
-     * @throws \FileLoader\Exception
      *
      * @return iterable|string[]
      */
@@ -114,13 +112,11 @@ class LogFileSource implements SourceInterface
     }
 
     /**
-     * @throws \FileLoader\Exception
-     *
      * @return iterable|string[]
      */
     private function getAgents(): iterable
     {
-        $reader = new LogFileReader();
+        $reader = new LogFileReader($this->logger);
 
         /*******************************************************************************
          * loading files
@@ -129,7 +125,7 @@ class LogFileSource implements SourceInterface
         foreach ($this->loadFromPath() as $filepath) {
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $reader->setLocalFile($filepath);
+            $reader->addLocalFile($filepath);
 
             foreach ($reader->getAgents($this->logger) as $agentOfLine) {
                 yield trim($agentOfLine);

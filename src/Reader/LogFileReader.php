@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,29 +12,34 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source\Reader;
 
 use BrowscapHelper\Source\Helper\Regex;
-use FileLoader\Loader;
 use Psr\Log\LoggerInterface;
 
 class LogFileReader implements ReaderInterface
 {
     /**
-     * @var \FileLoader\Loader
+     * @var array
      */
-    private $loader;
+    private $files = [];
 
-    public function __construct()
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @param \Psr\Log\LoggerInterface $logger
+     */
+    public function __construct(LoggerInterface $logger)
     {
-        $this->loader = new Loader();
+        $this->logger = $logger;
     }
 
     /**
      * @param string $file
-     *
-     * @throws \FileLoader\Exception
      */
-    public function setLocalFile(string $file): void
+    public function addLocalFile(string $file): void
     {
-        $this->loader->setLocalFile($file);
+        $this->files[] = $file;
     }
 
     /**
@@ -44,43 +49,48 @@ class LogFileReader implements ReaderInterface
      */
     public function getAgents(LoggerInterface $logger): iterable
     {
-        /** @var \GuzzleHttp\Psr7\Response $response */
-        $response = $this->loader->load();
-
-        /** @var \FileLoader\Psr7\Stream $stream */
-        $stream = $response->getBody();
-
-        $stream->read(1);
-        $stream->rewind();
-
         $regex = (new Regex())->getRegex();
 
-        while (!$stream->eof()) {
-            $line = $stream->read(16364);
+        foreach ($this->files as $file) {
+            $handle = @fopen($file, 'r');
 
-            if (empty($line)) {
-                continue;
+            $i = 1;
+
+            while (!feof($handle)) {
+                $line = fgetss($handle, 65535);
+
+                if (false === $line) {
+                    $this->logger->emergency(new \RuntimeException('reading file ' . $file . ' caused an error on line ' . $i));
+                    continue;
+                }
+                ++$i;
+
+                if (empty($line)) {
+                    continue;
+                }
+
+                $lineMatches = [];
+
+                if (!preg_match($regex, $line, $lineMatches)) {
+                    $logger->error('no useragent found in line "' . $line . '" used regex: "' . $regex . '"');
+
+                    continue;
+                }
+
+                if (isset($lineMatches['userAgentString'])) {
+                    $agentOfLine = trim($lineMatches['userAgentString']);
+                } else {
+                    $agentOfLine = trim($this->extractAgent($line));
+                }
+
+                if (!is_string($agentOfLine)) {
+                    continue;
+                }
+
+                yield $agentOfLine;
             }
 
-            $lineMatches = [];
-
-            if (!preg_match($regex, $line, $lineMatches)) {
-                $logger->error('no useragent found in line "' . $line . '" used regex: "' . $regex . '"');
-
-                continue;
-            }
-
-            if (isset($lineMatches['userAgentString'])) {
-                $agentOfLine = trim($lineMatches['userAgentString']);
-            } else {
-                $agentOfLine = trim($this->extractAgent($line));
-            }
-
-            if (!is_string($agentOfLine)) {
-                continue;
-            }
-
-            yield $agentOfLine;
+            fclose($handle);
         }
     }
 
