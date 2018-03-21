@@ -76,8 +76,7 @@ class DetectorSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.json');
         $finder->ignoreDotFiles(true);
@@ -104,7 +103,7 @@ class DetectorSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $content = file_get_contents($filepath);
+            $content = $file->getContents();
 
             if ('' === $content || PHP_EOL === $content) {
                 $this->logger->critical('    file [' . $filepath . '] is empty');
@@ -129,18 +128,7 @@ class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                if (!isset($test['ua'])) {
-                    continue;
-                }
-
-                $agent = trim($test['ua']);
-
-                if (array_key_exists($agent, $allTests)) {
-                    continue;
-                }
-
                 yield (object) $test;
-                $allTests[$agent] = 1;
             }
         }
     }

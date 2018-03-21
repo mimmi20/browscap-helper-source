@@ -77,18 +77,6 @@ class MobileDetectSource implements SourceInterface
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
-
-                continue;
-            }
-
-            if ('php' !== $file->getExtension()) {
-                $this->logger->emergency('wrong file extension [' . $file->getExtension() . '] found with finder');
-
-                continue;
-            }
-
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));

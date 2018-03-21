@@ -82,22 +82,10 @@ class YzalisSource implements SourceInterface
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
-
-                continue;
-            }
-
-            if ('yml' !== $file->getExtension()) {
-                $this->logger->emergency('wrong file extension [' . $file->getExtension() . '] found with finder');
-
-                continue;
-            }
-
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-            $data = Yaml::parse(file_get_contents($filepath));
+            $data = Yaml::parse($file->getContents());
 
             if (!is_array($data)) {
                 continue;

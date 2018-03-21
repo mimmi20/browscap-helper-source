@@ -47,7 +47,7 @@ class LogFileSource implements SourceInterface
     {
         $counter = 0;
 
-        foreach ($this->getAgents() as $agent) {
+        foreach ($this->loadFromPath() as $agent) {
             if ($limit && $counter >= $limit) {
                 return;
             }
@@ -70,6 +70,14 @@ class LogFileSource implements SourceInterface
     {
         $finder = new Finder();
         $finder->files();
+        $finder->notName('*.filepart');
+        $finder->notName('*.sql');
+        $finder->notName('*.rename');
+        $finder->notName('*.txt');
+        $finder->notName('*.zip');
+        $finder->notName('*.rar');
+        $finder->notName('*.php');
+        $finder->notName('*.gitkeep');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
@@ -77,53 +85,17 @@ class LogFileSource implements SourceInterface
         $finder->in($this->sourcesDirectory);
 
         $filepathHelper = new FilePath();
-        $fileCounter    = 0;
+        $reader         = new LogFileReader($this->logger);
 
         foreach ($finder as $file) {
             /* @var \Symfony\Component\Finder\SplFileInfo $file */
-            ++$fileCounter;
-
             $this->logger->info('    reading file ' . $file->getPathname());
 
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
+            $filepath = $filepathHelper->getPath($file);
 
+            if (null === $filepath) {
                 continue;
             }
-
-            if (!$file->isReadable()) {
-                $this->logger->emergency('file not readable');
-
-                continue;
-            }
-
-            $excludedExtensions = ['filepart', 'sql', 'rename', 'txt', 'zip', 'rar', 'php', 'gitkeep'];
-
-            if (in_array($file->getExtension(), $excludedExtensions)) {
-                continue;
-            }
-
-            if (null === ($filepath = $filepathHelper->getPath($file))) {
-                continue;
-            }
-
-            yield $filepath;
-        }
-    }
-
-    /**
-     * @return iterable|string[]
-     */
-    private function getAgents(): iterable
-    {
-        $reader = new LogFileReader($this->logger);
-
-        /*******************************************************************************
-         * loading files
-         ******************************************************************************/
-
-        foreach ($this->loadFromPath() as $filepath) {
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
             $reader->addLocalFile($filepath);
 
