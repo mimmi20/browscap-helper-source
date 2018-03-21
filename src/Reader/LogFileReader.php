@@ -57,7 +57,7 @@ class LogFileReader implements ReaderInterface
             $i = 1;
 
             while (!feof($handle)) {
-                $line = fgetss($handle, 65535);
+                $line = fgets($handle, 65535);
 
                 if (false === $line) {
                     $this->logger->emergency(new \RuntimeException('reading file ' . $file . ' caused an error on line ' . $i));

@@ -86,7 +86,7 @@ class TxtFileSource implements SourceInterface
             $i = 1;
 
             while (!feof($handle)) {
-                $line = fgetss($handle, 65535);
+                $line = fgets($handle, 65535);
 
                 if (false === $line) {
                     $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error on line ' . $i));
