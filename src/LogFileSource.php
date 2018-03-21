@@ -89,8 +89,6 @@ class LogFileSource implements SourceInterface
 
         foreach ($finder as $file) {
             /* @var \Symfony\Component\Finder\SplFileInfo $file */
-            $this->logger->info('    reading file ' . $file->getPathname());
-
             $filepath = $filepathHelper->getPath($file);
 
             if (null === $filepath) {
@@ -98,10 +96,10 @@ class LogFileSource implements SourceInterface
             }
 
             $reader->addLocalFile($filepath);
+        }
 
-            foreach ($reader->getAgents($this->logger) as $agentOfLine) {
-                yield trim($agentOfLine);
-            }
+        foreach ($reader->getAgents($this->logger) as $agentOfLine) {
+            yield $agentOfLine;
         }
     }
 }

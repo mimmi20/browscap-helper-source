@@ -52,6 +52,8 @@ class LogFileReader implements ReaderInterface
         $regex = (new Regex())->getRegex();
 
         foreach ($this->files as $file) {
+            $this->logger->info('    reading file ' . str_pad($file, 100, ' ', STR_PAD_RIGHT));
+
             $handle = @fopen($file, 'r');
 
             $i = 1;
