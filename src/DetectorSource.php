@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -76,8 +76,7 @@ class DetectorSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.json');
         $finder->ignoreDotFiles(true);
@@ -88,23 +87,11 @@ class DetectorSource implements SourceInterface
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
-
-                continue;
-            }
-
-            if ('json' !== $file->getExtension()) {
-                $this->logger->emergency('wrong file extension [' . $file->getExtension() . '] found with finder');
-
-                continue;
-            }
-
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $content = file_get_contents($filepath);
+            $content = $file->getContents();
 
             if ('' === $content || PHP_EOL === $content) {
                 $this->logger->critical('    file [' . $filepath . '] is empty');
@@ -129,18 +116,7 @@ class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                if (!isset($test['ua'])) {
-                    continue;
-                }
-
-                $agent = trim($test['ua']);
-
-                if (array_key_exists($agent, $allTests)) {
-                    continue;
-                }
-
                 yield (object) $test;
-                $allTests[$agent] = 1;
             }
         }
     }

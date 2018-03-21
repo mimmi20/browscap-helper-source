@@ -19,7 +19,6 @@ cache:
 
 stages:
   - composer validate
-  - check coding style
   - static code analysis
 
 before_install:
@@ -43,12 +42,12 @@ jobs:
       install: skip
       script: composer validate
 
-    - stage: check coding style
+    - stage: static code analysis
       php: 7.1
       env: TEST=phpcs
       script: vendor/bin/phpcs --colors
 
-    - stage: check coding style
+    - stage: static code analysis
       php: 7.1
       env: TEST=php-cs-fixer
       script: vendor/bin/php-cs-fixer fix --dry-run -vv

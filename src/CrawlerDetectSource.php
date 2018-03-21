@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -11,7 +11,6 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
-use FileLoader\Loader;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -23,23 +22,15 @@ class CrawlerDetectSource implements SourceInterface
     private $logger;
 
     /**
-     * @var \FileLoader\Loader
-     */
-    private $loader;
-
-    /**
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->loader = new Loader();
     }
 
     /**
      * @param int $limit
-     *
-     * @throws \FileLoader\Exception
      *
      * @return iterable|string[]
      */
@@ -62,8 +53,6 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
-     * @throws \FileLoader\Exception
-     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -89,48 +78,20 @@ class CrawlerDetectSource implements SourceInterface
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
-
-                continue;
-            }
-
-            if ('txt' !== $file->getExtension()) {
-                $this->logger->emergency('wrong file extension [' . $file->getExtension() . '] found with finder');
-
-                continue;
-            }
-
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-            $this->loader->setLocalFile($file->getPathname());
 
-            /** @var \GuzzleHttp\Psr7\Response $response */
-            $response = $this->loader->load();
-
-            /** @var \FileLoader\Psr7\Stream $stream */
-            $stream = $response->getBody();
-
-            try {
-                $stream->read(1);
-            } catch (\Throwable $e) {
-                $this->logger->emergency(new \RuntimeException('reading file ' . $file->getPathname() . ' caused an error on line 0', 0, $e));
-            }
-
-            try {
-                $stream->rewind();
-            } catch (\Throwable $e) {
-                $this->logger->emergency(new \RuntimeException('rewinding file ' . $file->getPathname() . ' caused an error on line 0', 0, $e));
-            }
+            $handle = @fopen($filepath, 'r');
 
             $i = 1;
 
-            while (!$stream->eof()) {
-                try {
-                    $line = $stream->read(65535);
-                } catch (\Throwable $e) {
-                    $this->logger->emergency(new \RuntimeException('reading file ' . $file->getPathname() . ' caused an error on line ' . $i, 0, $e));
+            while (!feof($handle)) {
+                $line = fgets($handle, 65535);
+
+                if (false === $line) {
+                    $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error on line ' . $i));
+                    continue;
                 }
                 ++$i;
 
@@ -147,6 +108,8 @@ class CrawlerDetectSource implements SourceInterface
                 yield $line;
                 $allLines[$line] = 1;
             }
+
+            fclose($handle);
         }
     }
 }

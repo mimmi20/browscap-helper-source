@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -100,22 +100,10 @@ class WootheeSource implements SourceInterface
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
-
-                continue;
-            }
-
-            if ('yaml' !== $file->getExtension()) {
-                $this->logger->emergency('wrong file extension [' . $file->getExtension() . '] found with finder');
-
-                continue;
-            }
-
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-            $data = Yaml::parse(file_get_contents($filepath));
+            $data = Yaml::parse($file->getContents());
 
             if (!is_array($data)) {
                 continue;

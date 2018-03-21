@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2017, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -41,15 +41,13 @@ class LogFileSource implements SourceInterface
     /**
      * @param int $limit
      *
-     * @throws \FileLoader\Exception
-     *
      * @return iterable|string[]
      */
     public function getUserAgents(int $limit = 0): iterable
     {
         $counter = 0;
 
-        foreach ($this->getAgents() as $agent) {
+        foreach ($this->loadFromPath() as $agent) {
             if ($limit && $counter >= $limit) {
                 return;
             }
@@ -72,6 +70,14 @@ class LogFileSource implements SourceInterface
     {
         $finder = new Finder();
         $finder->files();
+        $finder->notName('*.filepart');
+        $finder->notName('*.sql');
+        $finder->notName('*.rename');
+        $finder->notName('*.txt');
+        $finder->notName('*.zip');
+        $finder->notName('*.rar');
+        $finder->notName('*.php');
+        $finder->notName('*.gitkeep');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
@@ -79,61 +85,21 @@ class LogFileSource implements SourceInterface
         $finder->in($this->sourcesDirectory);
 
         $filepathHelper = new FilePath();
-        $fileCounter    = 0;
+        $reader         = new LogFileReader($this->logger);
 
         foreach ($finder as $file) {
             /* @var \Symfony\Component\Finder\SplFileInfo $file */
-            ++$fileCounter;
+            $filepath = $filepathHelper->getPath($file);
 
-            $this->logger->info('    reading file ' . $file->getPathname());
-
-            if (!$file->isFile()) {
-                $this->logger->emergency('not-files selected with finder');
-
+            if (null === $filepath) {
                 continue;
             }
 
-            if (!$file->isReadable()) {
-                $this->logger->emergency('file not readable');
-
-                continue;
-            }
-
-            $excludedExtensions = ['filepart', 'sql', 'rename', 'txt', 'zip', 'rar', 'php', 'gitkeep'];
-
-            if (in_array($file->getExtension(), $excludedExtensions)) {
-                continue;
-            }
-
-            if (null === ($filepath = $filepathHelper->getPath($file))) {
-                continue;
-            }
-
-            yield $filepath;
+            $reader->addLocalFile($filepath);
         }
-    }
 
-    /**
-     * @throws \FileLoader\Exception
-     *
-     * @return iterable|string[]
-     */
-    private function getAgents(): iterable
-    {
-        $reader = new LogFileReader();
-
-        /*******************************************************************************
-         * loading files
-         ******************************************************************************/
-
-        foreach ($this->loadFromPath() as $filepath) {
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $reader->setLocalFile($filepath);
-
-            foreach ($reader->getAgents($this->logger) as $agentOfLine) {
-                yield trim($agentOfLine);
-            }
+        foreach ($reader->getAgents($this->logger) as $agentOfLine) {
+            yield $agentOfLine;
         }
     }
 }
