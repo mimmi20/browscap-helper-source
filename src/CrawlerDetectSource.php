@@ -57,7 +57,7 @@ class CrawlerDetectSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/jaybizzle/crawler-detect/tests/';
+        $path = 'vendor/jaybizzle/crawler-detect/tests';
 
         if (!file_exists($path)) {
             return;
