@@ -102,6 +102,7 @@ class PiwikSource implements SourceInterface
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
             $data = \Spyc::YAMLLoadString($file->getContents());
 
             if (!is_array($data)) {

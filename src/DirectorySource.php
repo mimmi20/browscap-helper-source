@@ -93,14 +93,17 @@ class DirectorySource implements SourceInterface
 
             $handle = @fopen($fullPath, 'r');
 
+            if (false === $handle) {
+                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
+                continue;
+            }
+
             $i = 1;
 
             while (!feof($handle)) {
                 $line = fgets($handle, 65535);
 
                 if (false === $line) {
-                    $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error on line ' . $i));
-
                     continue;
                 }
                 ++$i;

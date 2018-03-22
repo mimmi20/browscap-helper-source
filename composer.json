@@ -15,26 +15,36 @@
   ],
   "require": {
     "php": "^7.1",
-    "browscap/browscap": "^6.0.28",
-    "jaybizzle/crawler-detect": "*",
-    "mimmi20/browser-detector": "~3.1.5",
-    "mimmi20/browser-detector-tests": "~2.0.12",
-    "mimmi20/ua-result": "~5.2.1",
-    "mobiledetect/mobiledetectlib": "*",
     "mustangostang/spyc": "*",
-    "piwik/device-detector": "*",
     "symfony/finder": "^3.3 || ^4.0",
-    "symfony/yaml": "^3.3 || ^4.0",
+    "symfony/yaml": "^3.3 || ^4.0"
+  },
+  "require-dev": {
+    "browscap/browscap": "^6.0.28",
+    "friendsofphp/php-cs-fixer": "^2.11",
+    "jaybizzle/crawler-detect": "*",
+    "localheinz/composer-normalize": "^0.6.0",
+    "mimmi20/browser-detector-tests": "~2.0.12",
+    "mobiledetect/mobiledetectlib": "*",
+    "phpstan/phpstan": "^0.9",
+    "piwik/device-detector": "*",
+    "squizlabs/php_codesniffer": "^3.2",
     "ua-parser/uap-php": "*",
     "whichbrowser/parser": "*",
     "woothee/woothee-testset": "*",
     "yzalis/ua-parser": "*"
   },
-  "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.10 || ^3.0",
-    "localheinz/composer-normalize": "^0.6.0",
-    "phpstan/phpstan": "^0.9",
-    "squizlabs/php_codesniffer": "^3.2"
+  "suggest": {
+    "browscap/browscap": "To read these useragents",
+    "jaybizzle/crawler-detect": "To read these useragents",
+    "mimmi20/browser-detector-tests": "To read these useragents",
+    "mobiledetect/mobiledetectlib": "To read these useragents",
+    "mongodb/mongodb": "To read these useragents",
+    "piwik/device-detector": "To read these useragents",
+    "ua-parser/uap-php": "To read these useragents",
+    "whichbrowser/parser": "To read these useragents",
+    "woothee/woothee-testset": "To read these useragents",
+    "yzalis/ua-parser": "To read these useragents"
   },
   "autoload": {
     "psr-4": {
