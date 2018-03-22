@@ -57,7 +57,7 @@ class CrawlerDetectSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/jaybizzle/crawler-detect/tests/';
+        $path = 'vendor/jaybizzle/crawler-detect/tests';
 
         if (!file_exists($path)) {
             return;
@@ -84,13 +84,17 @@ class CrawlerDetectSource implements SourceInterface
 
             $handle = @fopen($filepath, 'r');
 
+            if (false === $handle) {
+                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
+                continue;
+            }
+
             $i = 1;
 
             while (!feof($handle)) {
                 $line = fgets($handle, 65535);
 
                 if (false === $line) {
-                    $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error on line ' . $i));
                     continue;
                 }
                 ++$i;

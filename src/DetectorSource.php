@@ -94,7 +94,6 @@ class DetectorSource implements SourceInterface
             $content = $file->getContents();
 
             if ('' === $content || PHP_EOL === $content) {
-                $this->logger->critical('    file [' . $filepath . '] is empty');
                 unlink($filepath);
 
                 continue;
