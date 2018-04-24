@@ -33,37 +33,22 @@ class CollectionSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter   = 0;
-        $allAgents = [];
-
         foreach ($this->collection as $source) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
+            yield from $source->getUserAgents();
+        }
+    }
 
-            foreach ($source->getUserAgents($limit) as $ua) {
-                if ($limit && $counter >= $limit) {
-                    return;
-                }
-
-                if (empty($ua)) {
-                    continue;
-                }
-
-                if (array_key_exists($ua, $allAgents)) {
-                    continue;
-                }
-
-                yield $ua;
-                $allAgents[$ua] = 1;
-                ++$counter;
-            }
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->collection as $source) {
+            yield from $source->getHeaders();
         }
     }
 }

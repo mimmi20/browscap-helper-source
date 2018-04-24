@@ -39,32 +39,25 @@ class DetectorSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $test) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($test->ua);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield 'user-agent' => $agent;
         }
     }
 
     /**
-     * @return iterable|\stdClass[]
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {
@@ -115,7 +108,13 @@ class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                yield (object) $test;
+                $agent = trim($test->ua);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent;
             }
         }
     }

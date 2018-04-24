@@ -89,7 +89,7 @@ class LogFileReader implements ReaderInterface
                     $agentOfLine = trim($this->extractAgent($line));
                 }
 
-                if (!is_string($agentOfLine)) {
+                if (!is_string($agentOfLine) || empty($agentOfLine)) {
                     continue;
                 }
 

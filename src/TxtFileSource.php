@@ -37,27 +37,20 @@ class TxtFileSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $line) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($line);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield 'user-agent' => $agent;
         }
     }
 
@@ -104,7 +97,7 @@ class TxtFileSource implements SourceInterface
 
                 $line = trim($line);
 
-                if (array_key_exists($line, $allLines)) {
+                if (empty($line) || array_key_exists($line, $allLines)) {
                     continue;
                 }
 

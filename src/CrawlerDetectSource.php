@@ -30,25 +30,20 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
         foreach ($this->loadFromPath() as $agent) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+            yield 'user-agent' => $agent;
         }
     }
 
@@ -105,7 +100,7 @@ class CrawlerDetectSource implements SourceInterface
 
                 $line = trim($line);
 
-                if (array_key_exists($line, $allLines)) {
+                if (empty($line) || array_key_exists($line, $allLines)) {
                     continue;
                 }
 

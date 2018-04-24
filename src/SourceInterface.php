@@ -14,9 +14,12 @@ namespace BrowscapHelper\Source;
 interface SourceInterface
 {
     /**
-     * @param int $limit
-     *
-     * @return iterable
+     * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable;
+    public function getUserAgents(): iterable;
+
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable;
 }

@@ -41,43 +41,47 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
-
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            try {
-                $row = $this->jsonParser->parse(
-                    $row,
-                    JsonParser::DETECT_KEY_CONFLICTS
-                );
-            } catch (ParsingException $e) {
-                $this->logger->critical(new \Exception('    parsing file content failed', 0, $e));
-
+        foreach ($this->loadFromPath() as $headers) {
+            if (empty($headers)) {
                 continue;
             }
 
-            $agent = trim($row->{'User-Agent'});
+            $agent = trim($headers['User-Agent']);
 
             if (empty($agent)) {
                 continue;
             }
 
             yield $agent;
-            ++$counter;
         }
     }
 
     /**
-     * @return iterable|string[]
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $headers) {
+            if (empty($headers)) {
+                continue;
+            }
+
+            $lowerHeaders = [];
+
+            foreach ($headers as $header => $value) {
+                $lowerHeaders[strtolower($header)] = $value;
+            }
+
+            yield $lowerHeaders;
+        }
+    }
+
+    /**
+     * @return iterable|array[]
      */
     private function loadFromPath(): iterable
     {
@@ -112,21 +116,13 @@ class WhichBrowserSource implements SourceInterface
             }
 
             foreach ($data as $row) {
-                $agent = $this->getAgentFromRow($row);
+                $headers = $this->getHeadersFromRow($row);
 
-                if (empty($agent)) {
+                if (empty($headers)) {
                     continue;
                 }
 
-                if (array_key_exists($agent, $allTests)) {
-                    continue;
-                }
-
-                unset($row['headers']);
-                $row['User-Agent'] = $agent;
-
-                yield json_encode($row, JSON_FORCE_OBJECT);
-                $allTests[$agent] = 1;
+                yield $headers;
             }
         }
     }
@@ -134,15 +130,15 @@ class WhichBrowserSource implements SourceInterface
     /**
      * @param array $row
      *
-     * @return string
+     * @return array
      */
-    private function getAgentFromRow(array $row): string
+    private function getHeadersFromRow(array $row): array
     {
         $headers = [];
 
         if (isset($row['headers'])) {
-            if (isset($row['headers']['User-Agent'])) {
-                return $row['headers']['User-Agent'];
+            if (isset($row['headers']) && is_array($row['headers'])) {
+                return $row['headers'];
             }
 
             if (class_exists(Header::class)) {
@@ -152,14 +148,14 @@ class WhichBrowserSource implements SourceInterface
                 // pecl_http version 1.x
                 $headers = \http_parse_headers($row['headers']);
             } else {
-                return '';
+                return [];
             }
         }
 
-        if (isset($headers['User-Agent'])) {
-            return $headers['User-Agent'];
+        if (is_array($headers)) {
+            return $headers;
         }
 
-        return '';
+        return [];
     }
 }

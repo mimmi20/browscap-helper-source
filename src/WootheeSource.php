@@ -46,32 +46,16 @@ class WootheeSource implements SourceInterface
      */
     public function getUserAgents(int $limit = 0): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            try {
-                $row = $this->jsonParser->parse(
-                    $row,
-                    JsonParser::DETECT_KEY_CONFLICTS
-                );
-            } catch (ParsingException $e) {
-                $this->logger->critical(new \Exception('    parsing file content failed', 0, $e));
-
-                continue;
-            }
-
-            $agent = trim($row->target);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield 'user-agent' => $agent;
         }
     }
 
@@ -111,16 +95,14 @@ class WootheeSource implements SourceInterface
             }
 
             foreach ($data as $row) {
-                if (empty($row['target'])) {
+                $agent = trim($row['target']);
+
+                if (empty($agent) || array_key_exists($agent, $allTests)) {
                     continue;
                 }
 
-                if (array_key_exists($row['target'], $allTests)) {
-                    continue;
-                }
-
-                yield json_encode($row, JSON_FORCE_OBJECT);
-                $allTests[$row['target']] = 1;
+                yield $agent;
+                $allTests[$agent] = 1;
             }
         }
     }

@@ -30,25 +30,20 @@ class MobileDetectSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
         foreach ($this->loadFromPath() as $agent) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+            yield 'user-agent' => $agent;
         }
     }
 
@@ -91,7 +86,7 @@ class MobileDetectSource implements SourceInterface
             foreach (array_keys($data[$key]) as $agent) {
                 $agent = trim($agent);
 
-                if (array_key_exists($agent, $allTests)) {
+                if (empty($agent) || array_key_exists($agent, $allTests)) {
                     continue;
                 }
 

@@ -14,8 +14,13 @@ namespace BrowscapHelper\Source;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class BrowscapSource implements SourceInterface
+class Y implements SourceInterface
 {
+    /**
+     * @var string
+     */
+    private $dir;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -23,20 +28,29 @@ class BrowscapSource implements SourceInterface
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
+     * @param string                   $dir
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, string $dir)
     {
         $this->logger = $logger;
+        $this->dir    = $dir;
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        $counter = 0;
+
+        foreach ($this->loadFromPath() as $headers) {
+            if (empty($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+            ++$counter;
+        }
     }
 
     /**
@@ -44,59 +58,37 @@ class BrowscapSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield 'user-agent' => $agent;
-        }
+        yield from $this->loadFromPath();
     }
 
     /**
-     * @return string[]|iterable
+     * @return iterable|array[]
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/browscap/browscap/tests/issues';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $allTests = [];
+        $allLines = [];
         $finder   = new Finder();
         $finder->files();
-        $finder->name('*.php');
+        $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $finder->in($this->dir);
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-            $data = include $filepath;
+
+            $data = Yaml::parse($file->getContents());
 
             if (!is_array($data)) {
                 continue;
             }
 
-            foreach ($data as $row) {
-                if (!array_key_exists('ua', $row)) {
-                    continue;
-                }
-
-                $agent = trim($row['ua']);
-
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
-                    continue;
-                }
-
-                yield $agent;
-                $allTests[$agent] = 1;
-            }
+            yield $data;
         }
     }
 }

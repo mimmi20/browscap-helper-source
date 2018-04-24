@@ -24,53 +24,28 @@ class PiwikSource implements SourceInterface
     private $logger;
 
     /**
-     * @var \Seld\JsonLint\JsonParser
-     */
-    private $jsonParser;
-
-    /**
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-
-        $this->jsonParser = new JsonParser();
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            try {
-                $row = $this->jsonParser->parse(
-                    $row,
-                    JsonParser::DETECT_KEY_CONFLICTS
-                );
-            } catch (ParsingException $e) {
-                $this->logger->critical(new \Exception('    parsing file content failed', 0, $e));
-
-                continue;
-            }
-
-            $agent = trim($row->user_agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield 'user-agent' => $agent;
         }
     }
 
@@ -116,11 +91,11 @@ class PiwikSource implements SourceInterface
 
                 $agent = trim($row['user_agent']);
 
-                if (array_key_exists($agent, $allTests)) {
+                if (empty($agent) || array_key_exists($agent, $allTests)) {
                     continue;
                 }
 
-                yield json_encode($row, JSON_FORCE_OBJECT);
+                yield $agent;
                 $allTests[$agent] = 1;
             }
         }

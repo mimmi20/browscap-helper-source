@@ -31,32 +31,25 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($row['user_agent_string']);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|array[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield 'user-agent' => $agent;
         }
     }
 
     /**
-     * @return array[]|iterable
+     * @return string[]|iterable
      */
     private function loadFromPath(): iterable
     {
@@ -101,11 +94,11 @@ class UapCoreSource implements SourceInterface
 
                 $agent = trim($row['user_agent_string']);
 
-                if (array_key_exists($agent, $allTests)) {
+                if (empty($agent) || array_key_exists($agent, $allTests)) {
                     continue;
                 }
 
-                yield $row;
+                yield $agent;
                 $allTests[$agent] = 1;
             }
         }
