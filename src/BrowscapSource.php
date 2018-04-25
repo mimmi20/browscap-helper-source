@@ -40,7 +40,7 @@ class BrowscapSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
@@ -50,7 +50,7 @@ class BrowscapSource implements SourceInterface
     }
 
     /**
-     * @return string[]|iterable
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {

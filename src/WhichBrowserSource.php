@@ -14,7 +14,6 @@ namespace BrowscapHelper\Source;
 use http\Header;
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
@@ -61,7 +60,7 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
@@ -73,7 +72,7 @@ class WhichBrowserSource implements SourceInterface
             $lowerHeaders = [];
 
             foreach ($headers as $header => $value) {
-                $lowerHeaders[strtolower($header)] = $value;
+                $lowerHeaders[mb_strtolower($header)] = $value;
             }
 
             yield $lowerHeaders;
@@ -81,7 +80,7 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {

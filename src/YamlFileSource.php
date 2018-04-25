@@ -13,8 +13,9 @@ namespace BrowscapHelper\Source;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Yaml\Yaml;
 
-class Y implements SourceInterface
+class YamlFileSource implements SourceInterface
 {
     /**
      * @var string
@@ -54,7 +55,7 @@ class Y implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
@@ -62,7 +63,7 @@ class Y implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {

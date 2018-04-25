@@ -13,7 +13,6 @@ namespace BrowscapHelper\Source;
 
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
@@ -50,7 +49,7 @@ class WootheeSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
@@ -95,6 +94,10 @@ class WootheeSource implements SourceInterface
             }
 
             foreach ($data as $row) {
+                if (!array_key_exists('target', $row) || empty($row['target'])) {
+                    continue;
+                }
+
                 $agent = trim($row['target']);
 
                 if (empty($agent) || array_key_exists($agent, $allTests)) {

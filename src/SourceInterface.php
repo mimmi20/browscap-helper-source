@@ -19,7 +19,7 @@ interface SourceInterface
     public function getUserAgents(): iterable;
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable;
 }

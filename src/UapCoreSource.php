@@ -39,7 +39,7 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
@@ -49,7 +49,7 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @return string[]|iterable
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {

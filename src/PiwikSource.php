@@ -12,8 +12,6 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use Psr\Log\LoggerInterface;
-use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 
 class PiwikSource implements SourceInterface
@@ -40,7 +38,7 @@ class PiwikSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
