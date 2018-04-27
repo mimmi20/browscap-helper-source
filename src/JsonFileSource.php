@@ -12,10 +12,12 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use Psr\Log\LoggerInterface;
+use Seld\JsonLint\JsonParser;
+use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
-class YamlFileSource implements SourceInterface
+class JsonFileSource implements SourceInterface
 {
     /**
      * @var string
@@ -69,12 +71,14 @@ class YamlFileSource implements SourceInterface
     {
         $finder   = new Finder();
         $finder->files();
-        $finder->name('*.yaml');
+        $finder->name('*.json');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
         $finder->in($this->dir);
+
+        $jsonParser = new JsonParser();
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -82,7 +86,17 @@ class YamlFileSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $data = Yaml::parse($file->getContents());
+            try {
+                $data = $jsonParser->parse(
+                    $file->getContents(),
+                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                );
+            } catch (ParsingException $e) {
+                $this->logger->error(
+                    new \Exception(sprintf('file %s contains invalid json.', $file->getPathname()), 0, $e)
+                );
+                continue;
+            }
 
             if (!is_array($data)) {
                 continue;
