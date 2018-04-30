@@ -102,7 +102,7 @@ class JsonFileSource implements SourceInterface
                 continue;
             }
 
-            yield $data;
+            yield from $data;
         }
     }
 }

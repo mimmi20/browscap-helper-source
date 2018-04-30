@@ -88,7 +88,7 @@ class YamlFileSource implements SourceInterface
                 continue;
             }
 
-            yield $data;
+            yield from $data;
         }
     }
 }
