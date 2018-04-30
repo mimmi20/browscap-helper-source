@@ -15,7 +15,6 @@ use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Yaml;
 
 class JsonFileSource implements SourceInterface
 {
@@ -69,7 +68,7 @@ class JsonFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.json');
         $finder->ignoreDotFiles(true);

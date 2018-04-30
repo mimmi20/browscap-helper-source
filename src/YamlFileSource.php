@@ -67,7 +67,7 @@ class YamlFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
