@@ -53,7 +53,7 @@ class UapCoreSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/thadafinser/uap-core/tests';
+        $path = 'vendor/ua-parser/uap-core/tests';
 
         if (!file_exists($path)) {
             return;
