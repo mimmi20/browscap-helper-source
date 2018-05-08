@@ -44,7 +44,7 @@ class UapCoreSource implements SourceInterface
     public function getHeaders(): iterable
     {
         foreach ($this->loadFromPath() as $agent) {
-            yield 'user-agent' => $agent;
+            yield ['user-agent' => $agent];
         }
     }
 

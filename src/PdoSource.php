@@ -49,7 +49,7 @@ class PdoSource implements SourceInterface
     public function getHeaders(): iterable
     {
         foreach ($this->getAgents() as $agent) {
-            yield 'user-agent' => $agent;
+            yield ['user-agent' => $agent];
         }
     }
 
