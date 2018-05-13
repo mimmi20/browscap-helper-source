@@ -43,7 +43,7 @@ class CollectionSource implements SourceInterface
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     public function getHeaders(): iterable
     {

@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
@@ -56,11 +57,13 @@ class JsonFileSource implements SourceInterface
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     public function getHeaders(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers) {
+            yield (string) UserAgent::fromHeaderArray($headers);
+        }
     }
 
     /**

@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use http\Header;
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
@@ -60,7 +61,7 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     public function getHeaders(): iterable
     {
@@ -75,7 +76,7 @@ class WhichBrowserSource implements SourceInterface
                 $lowerHeaders[mb_strtolower($header)] = $value;
             }
 
-            yield $lowerHeaders;
+            yield (string) UserAgent::fromHeaderArray($lowerHeaders);
         }
     }
 

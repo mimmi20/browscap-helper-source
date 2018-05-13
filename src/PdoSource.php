@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 
 class PdoSource implements SourceInterface
@@ -44,12 +45,12 @@ class PdoSource implements SourceInterface
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     public function getHeaders(): iterable
     {
         foreach ($this->getAgents() as $agent) {
-            yield ['user-agent' => $agent];
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 

@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
@@ -42,24 +43,23 @@ class YamlFileSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        $counter = 0;
-
         foreach ($this->loadFromPath() as $headers) {
             if (empty($headers['user-agent'])) {
                 continue;
             }
 
             yield $headers['user-agent'];
-            ++$counter;
         }
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     public function getHeaders(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers) {
+            yield (string) UserAgent::fromHeaderArray($headers);
+        }
     }
 
     /**
