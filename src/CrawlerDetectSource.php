@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -30,25 +31,20 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
         foreach ($this->loadFromPath() as $agent) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
@@ -65,8 +61,7 @@ class CrawlerDetectSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allLines = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('crawlers.txt');
         $finder->name('devices.txt');
@@ -105,12 +100,11 @@ class CrawlerDetectSource implements SourceInterface
 
                 $line = trim($line);
 
-                if (array_key_exists($line, $allLines)) {
+                if (empty($line)) {
                     continue;
                 }
 
                 yield $line;
-                $allLines[$line] = 1;
             }
 
             fclose($handle);

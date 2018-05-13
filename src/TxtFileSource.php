@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -37,27 +38,20 @@ class TxtFileSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $line) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($line);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
@@ -66,8 +60,7 @@ class TxtFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $allLines = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.txt');
         $finder->ignoreDotFiles(true);
@@ -104,12 +97,11 @@ class TxtFileSource implements SourceInterface
 
                 $line = trim($line);
 
-                if (array_key_exists($line, $allLines)) {
+                if (empty($line)) {
                     continue;
                 }
 
                 yield $line;
-                $allLines[$line] = 1;
             }
 
             fclose($handle);

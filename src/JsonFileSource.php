@@ -13,10 +13,17 @@ namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
+use Seld\JsonLint\JsonParser;
+use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 
-class PiwikSource implements SourceInterface
+class JsonFileSource implements SourceInterface
 {
+    /**
+     * @var string
+     */
+    private $dir;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -24,10 +31,12 @@ class PiwikSource implements SourceInterface
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
+     * @param string                   $dir
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, string $dir)
     {
         $this->logger = $logger;
+        $this->dir    = $dir;
     }
 
     /**
@@ -35,7 +44,16 @@ class PiwikSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        $counter = 0;
+
+        foreach ($this->loadFromPath() as $headers) {
+            if (empty($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+            ++$counter;
+        }
     }
 
     /**
@@ -43,32 +61,26 @@ class PiwikSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers) {
+            yield (string) UserAgent::fromHeaderArray($headers);
         }
     }
 
     /**
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/piwik/device-detector/Tests/fixtures';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
         $finder = new Finder();
         $finder->files();
-        $finder->name('*.yml');
+        $finder->name('*.json');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $finder->in($this->dir);
+
+        $jsonParser = new JsonParser();
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -76,25 +88,23 @@ class PiwikSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $data = \Spyc::YAMLLoadString($file->getContents());
+            try {
+                $data = $jsonParser->parse(
+                    $file->getContents(),
+                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                );
+            } catch (ParsingException $e) {
+                $this->logger->error(
+                    new \Exception(sprintf('file %s contains invalid json.', $file->getPathname()), 0, $e)
+                );
+                continue;
+            }
 
             if (!is_array($data)) {
                 continue;
             }
 
-            foreach ($data as $row) {
-                if (empty($row['user_agent'])) {
-                    continue;
-                }
-
-                $agent = trim($row['user_agent']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent;
-            }
+            yield from $data;
         }
     }
 }

@@ -11,9 +11,9 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
@@ -46,32 +46,16 @@ class WootheeSource implements SourceInterface
      */
     public function getUserAgents(int $limit = 0): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            try {
-                $row = $this->jsonParser->parse(
-                    $row,
-                    JsonParser::DETECT_KEY_CONFLICTS
-                );
-            } catch (ParsingException $e) {
-                $this->logger->critical(new \Exception('    parsing file content failed', 0, $e));
-
-                continue;
-            }
-
-            $agent = trim($row->target);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
@@ -88,8 +72,7 @@ class WootheeSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
@@ -111,16 +94,17 @@ class WootheeSource implements SourceInterface
             }
 
             foreach ($data as $row) {
-                if (empty($row['target'])) {
+                if (!array_key_exists('target', $row) || empty($row['target'])) {
                     continue;
                 }
 
-                if (array_key_exists($row['target'], $allTests)) {
+                $agent = trim($row['target']);
+
+                if (empty($agent)) {
                     continue;
                 }
 
-                yield json_encode($row, JSON_FORCE_OBJECT);
-                $allTests[$row['target']] = 1;
+                yield $agent;
             }
         }
     }

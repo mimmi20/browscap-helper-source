@@ -13,10 +13,17 @@ namespace BrowscapHelper\Source;
 
 interface SourceInterface
 {
+    public const DELIMETER_HEADER = '{{::==::}}';
+
+    public const DELIMETER_HEADER_ROW = '::==::';
+
     /**
-     * @param int $limit
-     *
-     * @return iterable
+     * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable;
+    public function getUserAgents(): iterable;
+
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable;
 }

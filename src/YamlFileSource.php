@@ -14,9 +14,15 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Yaml\Yaml;
 
-class PiwikSource implements SourceInterface
+class YamlFileSource implements SourceInterface
 {
+    /**
+     * @var string
+     */
+    private $dir;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -24,10 +30,12 @@ class PiwikSource implements SourceInterface
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
+     * @param string                   $dir
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, string $dir)
     {
         $this->logger = $logger;
+        $this->dir    = $dir;
     }
 
     /**
@@ -35,7 +43,13 @@ class PiwikSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers) {
+            if (empty($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -43,32 +57,24 @@ class PiwikSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers) {
+            yield (string) UserAgent::fromHeaderArray($headers);
         }
     }
 
     /**
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/piwik/device-detector/Tests/fixtures';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
         $finder = new Finder();
         $finder->files();
-        $finder->name('*.yml');
+        $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $finder->in($this->dir);
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -76,25 +82,13 @@ class PiwikSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $data = \Spyc::YAMLLoadString($file->getContents());
+            $data = Yaml::parse($file->getContents());
 
             if (!is_array($data)) {
                 continue;
             }
 
-            foreach ($data as $row) {
-                if (empty($row['user_agent'])) {
-                    continue;
-                }
-
-                $agent = trim($row['user_agent']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent;
-            }
+            yield from $data;
         }
     }
 }

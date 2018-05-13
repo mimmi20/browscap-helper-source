@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -36,26 +37,21 @@ class BrowscapSource implements SourceInterface
      */
     public function getUserAgents(int $limit = 0): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($row['ua']);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {
@@ -67,8 +63,7 @@ class BrowscapSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.php');
         $finder->ignoreDotFiles(true);
@@ -95,12 +90,11 @@ class BrowscapSource implements SourceInterface
 
                 $agent = trim($row['ua']);
 
-                if (array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
-                yield $row;
-                $allTests[$agent] = 1;
+                yield $agent;
             }
         }
     }

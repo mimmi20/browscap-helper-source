@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
@@ -39,32 +40,25 @@ class DetectorSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $test) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($test->ua);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
     /**
-     * @return iterable|\stdClass[]
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {
@@ -115,7 +109,13 @@ class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                yield (object) $test;
+                $agent = trim($test->ua);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent;
             }
         }
     }

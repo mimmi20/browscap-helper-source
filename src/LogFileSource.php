@@ -13,6 +13,7 @@ namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Helper\FilePath;
 use BrowscapHelper\Source\Reader\LogFileReader;
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -39,27 +40,20 @@ class LogFileSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
         foreach ($this->loadFromPath() as $agent) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
@@ -98,8 +92,6 @@ class LogFileSource implements SourceInterface
             $reader->addLocalFile($filepath);
         }
 
-        foreach ($reader->getAgents($this->logger) as $agentOfLine) {
-            yield $agentOfLine;
-        }
+        yield from $reader->getAgents($this->logger);
     }
 }

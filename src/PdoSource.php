@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 
 class PdoSource implements SourceInterface
@@ -36,29 +37,29 @@ class PdoSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        foreach ($this->getAgents($limit) as $agent) {
-            yield $agent;
+        yield from $this->getAgents();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->getAgents() as $agent) {
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    private function getAgents(int $limit = 0): iterable
+    private function getAgents(): iterable
     {
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
-
-        if ($limit) {
-            $sql .= ' LIMIT ' . $limit;
-        }
 
         $driverOptions = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
 
@@ -67,7 +68,13 @@ class PdoSource implements SourceInterface
         $stmt->execute();
 
         while ($row = $stmt->fetch(\PDO::FETCH_OBJ)) {
-            yield trim($row->agent);
+            $agent = trim($row->agent);
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent;
         }
     }
 }

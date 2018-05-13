@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
@@ -31,25 +32,20 @@ class YzalisSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
         foreach ($this->loadFromPath() as $agent) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
@@ -66,8 +62,7 @@ class YzalisSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('browsers.yml');
         $finder->name('devices.yml');
@@ -99,12 +94,11 @@ class YzalisSource implements SourceInterface
 
                 $agent = trim($row[0]);
 
-                if (array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }

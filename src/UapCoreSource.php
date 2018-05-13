@@ -11,6 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
@@ -31,36 +32,29 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @param int $limit
-     *
      * @return iterable|string[]
      */
-    public function getUserAgents(int $limit = 0): iterable
+    public function getUserAgents(): iterable
     {
-        $counter = 0;
+        yield from $this->loadFromPath();
+    }
 
-        foreach ($this->loadFromPath() as $row) {
-            if ($limit && $counter >= $limit) {
-                return;
-            }
-
-            $agent = trim($row['user_agent_string']);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
-            ++$counter;
+    /**
+     * @return iterable|string[]
+     */
+    public function getHeaders(): iterable
+    {
+        foreach ($this->loadFromPath() as $agent) {
+            yield (string) UserAgent::fromUseragent($agent);
         }
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable|string[]
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/thadafinser/uap-core/tests';
+        $path = 'vendor/ua-parser/uap-core/tests';
 
         if (!file_exists($path)) {
             return;
@@ -68,8 +62,7 @@ class UapCoreSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
@@ -77,6 +70,10 @@ class UapCoreSource implements SourceInterface
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
         $finder->in($path);
+
+        if (file_exists('vendor/ua-parser/uap-core/test_resources')) {
+            $finder->in('vendor/ua-parser/uap-core/test_resources');
+        }
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -101,12 +98,11 @@ class UapCoreSource implements SourceInterface
 
                 $agent = trim($row['user_agent_string']);
 
-                if (array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
-                yield $row;
-                $allTests[$agent] = 1;
+                yield $agent;
             }
         }
     }
