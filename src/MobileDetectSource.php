@@ -61,8 +61,7 @@ class MobileDetectSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.php');
         $finder->ignoreDotFiles(true);
@@ -87,12 +86,11 @@ class MobileDetectSource implements SourceInterface
             foreach (array_keys($data[$key]) as $agent) {
                 $agent = trim($agent);
 
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }

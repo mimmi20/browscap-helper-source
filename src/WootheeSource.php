@@ -72,8 +72,7 @@ class WootheeSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
@@ -101,12 +100,11 @@ class WootheeSource implements SourceInterface
 
                 $agent = trim($row['target']);
 
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }

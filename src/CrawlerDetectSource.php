@@ -61,8 +61,7 @@ class CrawlerDetectSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allLines = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('crawlers.txt');
         $finder->name('devices.txt');
@@ -101,12 +100,11 @@ class CrawlerDetectSource implements SourceInterface
 
                 $line = trim($line);
 
-                if (empty($line) || array_key_exists($line, $allLines)) {
+                if (empty($line)) {
                     continue;
                 }
 
                 yield $line;
-                $allLines[$line] = 1;
             }
 
             fclose($handle);

@@ -61,8 +61,7 @@ class PiwikSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yml');
         $finder->ignoreDotFiles(true);
@@ -90,12 +89,11 @@ class PiwikSource implements SourceInterface
 
                 $agent = trim($row['user_agent']);
 
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }

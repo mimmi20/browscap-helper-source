@@ -93,8 +93,7 @@ class WhichBrowserSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);

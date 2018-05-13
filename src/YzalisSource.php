@@ -62,8 +62,7 @@ class YzalisSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('browsers.yml');
         $finder->name('devices.yml');
@@ -95,12 +94,11 @@ class YzalisSource implements SourceInterface
 
                 $agent = trim($row[0]);
 
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }

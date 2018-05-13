@@ -62,8 +62,7 @@ class UapCoreSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.yaml');
         $finder->ignoreDotFiles(true);
@@ -71,6 +70,10 @@ class UapCoreSource implements SourceInterface
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
         $finder->in($path);
+
+        if (file_exists('vendor/ua-parser/uap-core/test_resources')) {
+            $finder->in('vendor/ua-parser/uap-core/test_resources');
+        }
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -95,12 +98,11 @@ class UapCoreSource implements SourceInterface
 
                 $agent = trim($row['user_agent_string']);
 
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }

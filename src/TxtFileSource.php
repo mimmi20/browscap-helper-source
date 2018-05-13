@@ -60,8 +60,7 @@ class TxtFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $allLines = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.txt');
         $finder->ignoreDotFiles(true);
@@ -98,12 +97,11 @@ class TxtFileSource implements SourceInterface
 
                 $line = trim($line);
 
-                if (empty($line) || array_key_exists($line, $allLines)) {
+                if (empty($line)) {
                     continue;
                 }
 
                 yield $line;
-                $allLines[$line] = 1;
             }
 
             fclose($handle);

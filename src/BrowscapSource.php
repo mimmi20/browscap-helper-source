@@ -63,8 +63,7 @@ class BrowscapSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $allTests = [];
-        $finder   = new Finder();
+        $finder = new Finder();
         $finder->files();
         $finder->name('*.php');
         $finder->ignoreDotFiles(true);
@@ -91,12 +90,11 @@ class BrowscapSource implements SourceInterface
 
                 $agent = trim($row['ua']);
 
-                if (empty($agent) || array_key_exists($agent, $allTests)) {
+                if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent;
-                $allTests[$agent] = 1;
             }
         }
     }
