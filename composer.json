@@ -16,35 +16,43 @@
   "require": {
     "php": "^7.1",
     "mustangostang/spyc": "*",
-    "symfony/finder": "^3.3 || ^4.0",
-    "symfony/yaml": "^3.3 || ^4.0"
+    "symfony/finder": "^4.1",
+    "symfony/yaml": "^4.1"
   },
   "require-dev": {
     "browscap/browscap": "dev-master",
-    "friendsofphp/php-cs-fixer": "^2.11",
+    "donatj/phpuseragentparser": "dev-master",
+    "endorphin-studio/browser-detector": "^3.0",
+    "friendsofphp/php-cs-fixer": "^2.12",
     "jaybizzle/crawler-detect": "dev-master",
     "localheinz/composer-normalize": "^0.6.0",
-    "mimmi20/browser-detector-tests": "~2.0.16",
+    "mimmi20/browser-detector-tests": "~2.0.18",
     "mobiledetect/mobiledetectlib": "dev-master",
     "phpstan/phpstan": "^0.9",
     "piwik/device-detector": "dev-master",
+    "sinergi/browser-detector": "dev-master",
     "squizlabs/php_codesniffer": "^3.2",
     "ua-parser/uap-core": "dev-master",
     "whichbrowser/parser": "dev-master",
     "woothee/woothee-testset": "dev-master",
-    "yzalis/ua-parser": "dev-master"
+    "yzalis/ua-parser": "dev-master",
+    "zsxsoft/php-useragent": "dev-master"
   },
   "suggest": {
     "browscap/browscap": "To read these useragents",
+    "donatj/phpuseragentparser": "To read these useragents",
+    "endorphin-studio/browser-detector": "To read these useragents",
     "jaybizzle/crawler-detect": "To read these useragents",
     "mimmi20/browser-detector-tests": "To read these useragents",
     "mobiledetect/mobiledetectlib": "To read these useragents",
     "mongodb/mongodb": "To read these useragents",
     "piwik/device-detector": "To read these useragents",
+    "sinergi/browser-detector": "To read these useragents",
     "ua-parser/uap-core": "To read these useragents",
     "whichbrowser/parser": "To read these useragents",
     "woothee/woothee-testset": "To read these useragents",
-    "yzalis/ua-parser": "To read these useragents"
+    "yzalis/ua-parser": "To read these useragents",
+    "zsxsoft/php-useragent": "To read these useragents"
   },
   "autoload": {
     "psr-4": {
