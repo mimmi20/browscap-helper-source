@@ -31,6 +31,14 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'jaybizzle/crawler-detect';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

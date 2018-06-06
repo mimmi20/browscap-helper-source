@@ -14,7 +14,6 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Yaml;
 
 class SinergiSource implements SourceInterface
 {
@@ -29,6 +28,14 @@ class SinergiSource implements SourceInterface
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'sinergi/browser-detector';
     }
 
     /**
@@ -81,8 +88,8 @@ class SinergiSource implements SourceInterface
 
             foreach ($provider->strings as $string) {
                 foreach ($string as $field) {
-                    $ua = explode("\n", $field->field[6]);
-                    $ua = array_map('trim', $ua);
+                    $ua    = explode("\n", $field->field[6]);
+                    $ua    = array_map('trim', $ua);
                     $agent = trim(implode(' ', $ua));
 
                     if (empty($agent)) {

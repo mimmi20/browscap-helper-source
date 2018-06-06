@@ -14,7 +14,6 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Yaml;
 
 class ZsxsoftSource implements SourceInterface
 {
@@ -29,6 +28,14 @@ class ZsxsoftSource implements SourceInterface
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'zsxsoft/php-useragent';
     }
 
     /**

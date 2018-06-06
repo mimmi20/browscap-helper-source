@@ -20,23 +20,24 @@ use Symfony\Component\Finder\Finder;
 class UaParserJsSource implements SourceInterface
 {
     /**
-     * @var string
-     */
-    private $dir;
-
-    /**
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
-     * @param string                   $dir
      */
-    public function __construct(LoggerInterface $logger, string $dir)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->dir    = $dir;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'ua-parser-js';
     }
 
     /**
@@ -62,6 +63,14 @@ class UaParserJsSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
+        $path = 'node_modules/ua-parser-js/test';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
         $finder = new Finder();
         $finder->files();
         $finder->name('*.json');
@@ -69,7 +78,7 @@ class UaParserJsSource implements SourceInterface
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
+        $finder->in($path);
 
         $jsonParser = new JsonParser();
 

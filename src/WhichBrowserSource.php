@@ -41,6 +41,14 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'whichbrowser/parser';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

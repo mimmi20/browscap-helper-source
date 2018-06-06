@@ -40,6 +40,14 @@ class WootheeSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'woothee/woothee-testset';
+    }
+
+    /**
      * @param int $limit
      *
      * @return iterable|string[]

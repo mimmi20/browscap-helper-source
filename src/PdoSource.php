@@ -37,6 +37,14 @@ class PdoSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'PDO';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

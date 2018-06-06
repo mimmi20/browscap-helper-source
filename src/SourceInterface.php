@@ -26,4 +26,9 @@ interface SourceInterface
      * @return iterable|string[]
      */
     public function getHeaders(): iterable;
+
+    /**
+     * @return string
+     */
+    public function getName(): string;
 }

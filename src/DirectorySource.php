@@ -39,6 +39,14 @@ class DirectorySource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'directory';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -61,6 +69,12 @@ class DirectorySource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
+        if (!file_exists($this->dir)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->dir);
+
         $finder = new Finder();
         $finder->files();
         $finder->ignoreDotFiles(true);

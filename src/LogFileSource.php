@@ -40,6 +40,14 @@ class LogFileSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'log-files';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -62,6 +70,12 @@ class LogFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
+        if (!file_exists($this->sourcesDirectory)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->sourcesDirectory);
+
         $finder = new Finder();
         $finder->files();
         $finder->notName('*.filepart');

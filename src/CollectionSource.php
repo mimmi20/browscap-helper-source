@@ -33,6 +33,14 @@ class CollectionSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'collection';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

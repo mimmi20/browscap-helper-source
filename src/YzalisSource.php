@@ -32,6 +32,14 @@ class YzalisSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'yzalis/ua-parser';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

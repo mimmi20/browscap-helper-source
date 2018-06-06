@@ -40,6 +40,14 @@ class DetectorSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'mimmi20/browser-detector-tests';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

@@ -31,6 +31,14 @@ class MobileDetectSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'mobiledetect/mobiledetectlib';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

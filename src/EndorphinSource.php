@@ -31,6 +31,14 @@ class EndorphinSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'endorphin-studio/browser-detector';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

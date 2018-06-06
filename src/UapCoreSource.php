@@ -32,6 +32,14 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'ua-parser/uap-core';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

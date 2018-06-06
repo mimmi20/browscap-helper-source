@@ -31,6 +31,14 @@ class PiwikSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'piwik/device-detector';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

@@ -40,6 +40,14 @@ class DonatjSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'donatj/phpuseragentparser';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable

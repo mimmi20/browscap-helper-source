@@ -31,6 +31,14 @@ class BrowscapSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'browscap/browscap';
+    }
+
+    /**
      * @param int $limit
      *
      * @return iterable|string[]
