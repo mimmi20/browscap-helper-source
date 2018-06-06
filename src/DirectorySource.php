@@ -65,6 +65,93 @@ class DirectorySource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        if (!file_exists($this->dir)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->dir);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->dir);
+
+        $fileHelper = new FilePath();
+
+        foreach ($finder as $file) {
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $fullPath = $fileHelper->getPath($file);
+
+            if (null === $fullPath) {
+                $this->logger->error('could not detect path for file "' . $filepath . '"');
+
+                continue;
+            }
+
+            $handle = @fopen($fullPath, 'r');
+
+            if (false === $handle) {
+                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
+                continue;
+            }
+
+            $i = 1;
+
+            while (!feof($handle)) {
+                $line = fgets($handle, 65535);
+
+                if (false === $line) {
+                    continue;
+                }
+                ++$i;
+
+                if (empty($line)) {
+                    continue;
+                }
+
+                $line = trim($line);
+
+                if (empty($line)) {
+                    continue;
+                }
+
+                yield (string) UserAgent::fromUseragent($line) => [
+                    'browser' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'platform' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+
+            fclose($handle);
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

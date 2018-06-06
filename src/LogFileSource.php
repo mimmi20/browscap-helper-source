@@ -66,6 +66,71 @@ class LogFileSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        if (!file_exists($this->sourcesDirectory)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->sourcesDirectory);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->notName('*.filepart');
+        $finder->notName('*.sql');
+        $finder->notName('*.rename');
+        $finder->notName('*.txt');
+        $finder->notName('*.zip');
+        $finder->notName('*.rar');
+        $finder->notName('*.php');
+        $finder->notName('*.gitkeep');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->sourcesDirectory);
+
+        $filepathHelper = new FilePath();
+        $reader         = new LogFileReader($this->logger);
+
+        foreach ($finder as $file) {
+            /* @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $filepathHelper->getPath($file);
+
+            if (null === $filepath) {
+                continue;
+            }
+
+            $reader->addLocalFile($filepath);
+        }
+
+        foreach ($reader->getAgents($this->logger) as $agent) {
+            yield (string) UserAgent::fromUseragent($agent) => [
+                'browser' => [
+                    'name'    => null,
+                    'version' => null,
+                ],
+                'platform' => [
+                    'name'    => null,
+                    'version' => null,
+                ],
+                'device' => [
+                    'name'     => null,
+                    'brand'    => null,
+                    'type'     => null,
+                    'ismobile' => null,
+                ],
+                'engine' => [
+                    'name'    => null,
+                    'version' => null,
+                ],
+            ];
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

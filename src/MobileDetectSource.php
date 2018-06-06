@@ -57,6 +57,72 @@ class MobileDetectSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $path = 'vendor/mobiledetect/mobiledetectlib/tests/providers/vendors';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.php');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($path);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $data = include $filepath;
+            $key  = $file->getBasename('.php');
+
+            if (!is_array($data) || !array_key_exists($key, $data) || !is_array($data[$key])) {
+                continue;
+            }
+
+            foreach (array_keys($data[$key]) as $agent) {
+                $agent = trim($agent);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield (string) UserAgent::fromUseragent($agent) => [
+                    'browser' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'platform' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

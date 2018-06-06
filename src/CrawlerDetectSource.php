@@ -57,6 +57,88 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $path = 'vendor/jaybizzle/crawler-detect/tests';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('crawlers.txt');
+        $finder->name('devices.txt');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($path);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $handle = @fopen($filepath, 'r');
+
+            if (false === $handle) {
+                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
+                continue;
+            }
+
+            $i = 1;
+
+            while (!feof($handle)) {
+                $line = fgets($handle, 65535);
+
+                if (false === $line) {
+                    continue;
+                }
+                ++$i;
+
+                if (empty($line)) {
+                    continue;
+                }
+
+                $line = trim($line);
+
+                if (empty($line)) {
+                    continue;
+                }
+
+                yield (string) UserAgent::fromUseragent($line) => [
+                    'browser' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'platform' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+
+            fclose($handle);
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

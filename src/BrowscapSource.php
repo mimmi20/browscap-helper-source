@@ -59,6 +59,88 @@ class BrowscapSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $path = 'vendor/browscap/browscap/tests/issues';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.php');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($path);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $data = include $filepath;
+
+            if (!is_array($data)) {
+                continue;
+            }
+
+            foreach ($data as $row) {
+                if (!array_key_exists('ua', $row)) {
+                    continue;
+                }
+
+                $agent = trim($row['ua']);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                $isMobile = false;
+
+                switch ($data['properties']['Device_Type']) {
+                    case 'Mobile Phone':
+                    case 'Tablet':
+                    case 'Console':
+                    case 'Digital Camera':
+                    case 'Ebook Reader':
+                    case 'Mobile Device':
+                        $isMobile = true;
+
+                        break;
+                }
+
+                yield (string) UserAgent::fromUseragent($agent) => [
+                    'browser' => [
+                        'name'    => $data['properties']['Browser'],
+                        'version' => $data['properties']['Version'],
+                    ],
+                    'platform' => [
+                        'name'    => $data['properties']['Platform'] ?? 'unknown',
+                        'version' => $data['properties']['Platform_Version'],
+                    ],
+                    'device' => [
+                        'name'     => $data['properties']['Device_Code_Name'],
+                        'brand'    => $data['properties']['Device_Brand_Name'],
+                        'type'     => $data['properties']['Device_Type'],
+                        'ismobile' => $isMobile,
+                    ],
+                    'engine' => [
+                        'name'    => $data['properties']['RenderingEngine_Name'],
+                        'version' => $data['properties']['RenderingEngine_Version'],
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

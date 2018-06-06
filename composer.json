@@ -36,7 +36,8 @@
     "whichbrowser/parser": "dev-master",
     "woothee/woothee-testset": "dev-master",
     "yzalis/ua-parser": "dev-master",
-    "zsxsoft/php-useragent": "dev-master"
+    "zsxsoft/php-useragent": "dev-master",
+    "doctrine/cache": "^1.6"
   },
   "suggest": {
     "browscap/browscap": "To read these useragents",
@@ -52,7 +53,8 @@
     "whichbrowser/parser": "To read these useragents",
     "woothee/woothee-testset": "To read these useragents",
     "yzalis/ua-parser": "To read these useragents",
-    "zsxsoft/php-useragent": "To read these useragents"
+    "zsxsoft/php-useragent": "To read these useragents",
+    "doctrine/cache": "required for the UapCoreSource"
   },
   "autoload": {
     "psr-4": {

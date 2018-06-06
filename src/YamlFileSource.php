@@ -71,6 +71,63 @@ class YamlFileSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        if (!file_exists($this->dir)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->dir);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.yaml');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->dir);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $data = Yaml::parse($file->getContents());
+
+            if (!is_array($data)) {
+                continue;
+            }
+
+            foreach ($data as $headers) {
+                yield (string) UserAgent::fromHeaderArray($headers) => [
+                    'browser' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'platform' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return array[]|iterable
      */
     private function loadFromPath(): iterable

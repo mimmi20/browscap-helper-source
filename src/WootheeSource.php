@@ -68,6 +68,75 @@ class WootheeSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $path = 'vendor/woothee/woothee-testset/testsets';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.yaml');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($path);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $data = Yaml::parse($file->getContents());
+
+            if (!is_array($data)) {
+                continue;
+            }
+
+            foreach ($data as $row) {
+                if (!array_key_exists('target', $row) || empty($row['target'])) {
+                    continue;
+                }
+
+                $agent = trim($row['target']);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield (string) UserAgent::fromUseragent($agent) => [
+                    'browser' => [
+                        'name'    => $row['name'] ?? null,
+                        'version' => $row['version'] ?? null,
+                    ],
+                    'platform' => [
+                        'name'    => $row['os'] ?? null,
+                        'version' => $row['os_version'] ?? null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => $row['category'] ?? null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

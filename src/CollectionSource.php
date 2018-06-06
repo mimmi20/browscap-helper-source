@@ -59,4 +59,14 @@ class CollectionSource implements SourceInterface
             yield from $source->getHeaders();
         }
     }
+
+    /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        foreach ($this->collection as $source) {
+            yield from $source->getProperties();
+        }
+    }
 }

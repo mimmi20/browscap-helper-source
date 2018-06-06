@@ -66,6 +66,86 @@ class DonatjSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $path = 'vendor/donatj/phpuseragentparser/Tests';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('user_agents.json');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($path);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $content = $file->getContents();
+
+            if ('' === $content || PHP_EOL === $content) {
+                continue;
+            }
+
+            try {
+                $provider = $this->jsonParser->parse(
+                    $content,
+                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                );
+            } catch (ParsingException $e) {
+                $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
+
+                continue;
+            }
+
+            if (!is_array($provider)) {
+                continue;
+            }
+
+            foreach ($provider as $test => $data) {
+                $agent = trim($test);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield (string) UserAgent::fromUseragent($agent) => [
+                    'browser' => [
+                        'name'    => $data['browser'],
+                        'version' => $data['version'],
+                    ],
+                    'platform' => [
+                        'name'    => $data['platform'],
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

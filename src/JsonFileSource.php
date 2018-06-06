@@ -75,6 +75,75 @@ class JsonFileSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        if (!file_exists($this->dir)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->dir);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.json');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->dir);
+
+        $jsonParser = new JsonParser();
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            try {
+                $data = $jsonParser->parse(
+                    $file->getContents(),
+                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                );
+            } catch (ParsingException $e) {
+                $this->logger->error(
+                    new \Exception(sprintf('file %s contains invalid json.', $file->getPathname()), 0, $e)
+                );
+                continue;
+            }
+
+            if (!is_array($data)) {
+                continue;
+            }
+
+            foreach ($data as $headers) {
+                yield (string) UserAgent::fromHeaderArray($headers) => [
+                    'browser' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'platform' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return array[]|iterable
      */
     private function loadFromPath(): iterable

@@ -52,7 +52,15 @@ class DetectorSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -60,8 +68,88 @@ class DetectorSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $path = 'vendor/mimmi20/browser-detector-tests/tests/issues';
+
+        if (!file_exists($path)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $path);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.json');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($path);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $content = $file->getContents();
+
+            if ('' === $content || PHP_EOL === $content) {
+                unlink($filepath);
+
+                continue;
+            }
+
+            try {
+                $data = $this->jsonParser->parse(
+                    $content,
+                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                );
+            } catch (ParsingException $e) {
+                $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
+
+                continue;
+            }
+
+            if (!is_array($data)) {
+                continue;
+            }
+
+            foreach ($data as $test) {
+                $agent = (string) UserAgent::fromHeaderArray($test['headers']);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'browser' => [
+                        'name'    => $test['result']['browser']['name'],
+                        'version' => ($test['result']['browser']['version'] === '0.0.0' ? null : $test['result']['browser']['version']),
+                    ],
+                    'platform' => [
+                        'name'    => $test['result']['os']['name'],
+                        'version' => ($test['result']['os']['version'] === '0.0.0' ? null : $test['result']['os']['version']),
+                    ],
+                    'device' => [
+                        'name'     => $test['result']['device']['deviceName'],
+                        'brand'    => $test['result']['device']['brand'],
+                        'type'     => $test['result']['device']['type'],
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
         }
     }
 
@@ -117,13 +205,7 @@ class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                $agent = trim($test->ua);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent;
+                yield (string) UserAgent::fromHeaderArray($test['headers']);
             }
         }
     }

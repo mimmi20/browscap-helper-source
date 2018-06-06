@@ -64,6 +64,64 @@ class PhpFileSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        if (!file_exists($this->dir)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->dir);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->name('*.php');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->dir);
+
+        foreach ($finder as $file) {
+            $filepath = $file->getPathname();
+
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+
+            $provider = require $filepath;
+
+            foreach (array_keys($provider) as $ua) {
+                $agent = trim($ua);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield (string) UserAgent::fromUseragent($agent) => [
+                    'browser' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'platform' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'name'     => null,
+                        'brand'    => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                    ],
+                ];
+            }
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable

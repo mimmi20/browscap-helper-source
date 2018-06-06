@@ -63,6 +63,49 @@ class PdoSource implements SourceInterface
     }
 
     /**
+     * @return iterable|array[]
+     */
+    public function getProperties(): iterable
+    {
+        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
+
+        $driverOptions = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
+
+        /** @var \PDOStatement $stmt */
+        $stmt = $this->pdo->prepare($sql, $driverOptions);
+        $stmt->execute();
+
+        while ($row = $stmt->fetch(\PDO::FETCH_OBJ)) {
+            $agent = trim($row->agent);
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield (string) UserAgent::fromUseragent($agent) => [
+                'browser' => [
+                    'name'    => null,
+                    'version' => null,
+                ],
+                'platform' => [
+                    'name'    => null,
+                    'version' => null,
+                ],
+                'device' => [
+                    'name'     => null,
+                    'brand'    => null,
+                    'type'     => null,
+                    'ismobile' => null,
+                ],
+                'engine' => [
+                    'name'    => null,
+                    'version' => null,
+                ],
+            ];
+        }
+    }
+
+    /**
      * @return iterable|string[]
      */
     private function getAgents(): iterable
