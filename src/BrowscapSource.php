@@ -65,7 +65,7 @@ class BrowscapSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -138,36 +138,36 @@ class BrowscapSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => $data['properties']['Device_Code_Name'],
-                        'marketingName' => $data['properties']['Device_Name'],
-                        'manufacturer' => $data['properties']['Device_Maker'],
-                        'brand'    => $data['properties']['Device_Brand_Name'],
-                        'pointingMethod' => $data['properties']['Device_Pointing_Method'],
-                        'resolutionWidth' => null,
+                        'deviceName'       => $data['properties']['Device_Code_Name'],
+                        'marketingName'    => $data['properties']['Device_Name'],
+                        'manufacturer'     => $data['properties']['Device_Maker'],
+                        'brand'            => $data['properties']['Device_Brand_Name'],
+                        'pointingMethod'   => $data['properties']['Device_Pointing_Method'],
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => $data['properties']['Device_Type'],
-                        'ismobile' => $isMobile,
+                        'dualOrientation'  => null,
+                        'type'             => $data['properties']['Device_Type'],
+                        'ismobile'         => $isMobile,
                     ],
                     'browser' => [
-                        'name'    => $data['properties']['Browser'],
-                        'modus' => $data['properties']['Browser_Modus'],
-                        'version' => $data['properties']['Version'],
+                        'name'         => $data['properties']['Browser'],
+                        'modus'        => $data['properties']['Browser_Modus'],
+                        'version'      => $data['properties']['Version'],
                         'manufacturer' => $data['properties']['Browser_Maker'],
-                        'bits' => $data['properties']['Browser_Bits'],
-                        'type' => $data['properties']['Browser_Type'],
-                        'isbot' => $data['properties']['Crawler'],
+                        'bits'         => $data['properties']['Browser_Bits'],
+                        'type'         => $data['properties']['Browser_Type'],
+                        'isbot'        => $data['properties']['Crawler'],
                     ],
                     'platform' => [
-                        'name'    => $data['properties']['Platform'] ?? 'unknown',
+                        'name'          => $data['properties']['Platform'] ?? 'unknown',
                         'marketingName' => null,
-                        'version' => $data['properties']['Platform_Version'],
-                        'manufacturer' => $data['properties']['Platform_Maker'],
-                        'bits' => $data['properties']['Platform_Bits'],
+                        'version'       => $data['properties']['Platform_Version'],
+                        'manufacturer'  => $data['properties']['Platform_Maker'],
+                        'bits'          => $data['properties']['Platform_Bits'],
                     ],
                     'engine' => [
-                        'name'    => $data['properties']['RenderingEngine_Name'],
-                        'version' => $data['properties']['RenderingEngine_Version'],
+                        'name'         => $data['properties']['RenderingEngine_Name'],
+                        'version'      => $data['properties']['RenderingEngine_Version'],
                         'manufacturer' => $data['properties']['RenderingEngine_Maker'],
                     ],
                 ];

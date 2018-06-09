@@ -67,7 +67,7 @@ class UaParserJsSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -97,6 +97,7 @@ class UaParserJsSource implements SourceInterface
         $finder->in($path);
 
         $jsonParser = new JsonParser();
+        $agents     = [];
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -121,25 +122,25 @@ class UaParserJsSource implements SourceInterface
             }
 
             $providerName = $file->getFilename();
-            $base = [
-                'device'   => [
-                    'deviceName'      => null,
-                    'marketingName'   => null,
-                    'manufacturer'    => null,
-                    'brand'           => null,
-                    'pointingMethod'  => null,
-                    'resolutionWidth' => null,
+            $base         = [
+                'device' => [
+                    'deviceName'       => null,
+                    'marketingName'    => null,
+                    'manufacturer'     => null,
+                    'brand'            => null,
+                    'pointingMethod'   => null,
+                    'resolutionWidth'  => null,
                     'resolutionHeight' => null,
-                    'dualOrientation' => null,
-                    'type'            => null,
-                    'ismobile'        => null,
+                    'dualOrientation'  => null,
+                    'type'             => null,
+                    'ismobile'         => null,
                 ],
-                'browser'  => [
+                'browser' => [
                     'name'         => null,
-                    'modus' => null,
+                    'modus'        => null,
                     'version'      => null,
                     'manufacturer' => null,
-                    'bits' => null,
+                    'bits'         => null,
                     'type'         => null,
                     'isbot'        => null,
                 ],
@@ -148,9 +149,9 @@ class UaParserJsSource implements SourceInterface
                     'marketingName' => null,
                     'version'       => null,
                     'manufacturer'  => null,
-                    'bits' => null,
+                    'bits'          => null,
                 ],
-                'engine'   => [
+                'engine' => [
                     'name'         => null,
                     'version'      => null,
                     'manufacturer' => null,
@@ -170,19 +171,19 @@ class UaParserJsSource implements SourceInterface
 
                 switch ($providerName) {
                     case 'browser-test.json':
-                        $agents[$agent]['browser']['name']    = $data['expect']['name']    === 'undefined' ? '' : $data['expect']['name'];
-                        $agents[$agent]['browser']['version'] = $data['expect']['version'] === 'undefined' ? '' : $data['expect']['version'];
+                        $agents[$agent]['browser']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
+                        $agents[$agent]['browser']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
 
                         break;
                     case 'device-test.json':
-                        $agents[$agent]['device']['name']  = $data['expect']['model']  === 'undefined' ? '' : $data['expect']['model'];
-                        $agents[$agent]['device']['brand'] = $data['expect']['vendor'] === 'undefined' ? '' : $data['expect']['vendor'];
-                        $agents[$agent]['device']['type']  = $data['expect']['type']   === 'undefined' ? '' : $data['expect']['type'];
+                        $agents[$agent]['device']['name']  = 'undefined' === $data['expect']['model'] ? '' : $data['expect']['model'];
+                        $agents[$agent]['device']['brand'] = 'undefined' === $data['expect']['vendor'] ? '' : $data['expect']['vendor'];
+                        $agents[$agent]['device']['type']  = 'undefined' === $data['expect']['type'] ? '' : $data['expect']['type'];
 
                         break;
                     case 'os-test.json':
-                        $agents[$agent]['platform']['name']    = $data['expect']['name']    === 'undefined' ? '' : $data['expect']['name'];
-                        $agents[$agent]['platform']['version'] = $data['expect']['version'] === 'undefined' ? '' : $data['expect']['version'];
+                        $agents[$agent]['platform']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
+                        $agents[$agent]['platform']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
 
                         break;
                     // Skipping cpu-test.json because we don't look at CPU data, which is all that file tests against

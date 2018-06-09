@@ -61,7 +61,7 @@ class CollectionSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {

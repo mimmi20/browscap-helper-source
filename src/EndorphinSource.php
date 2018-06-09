@@ -65,7 +65,7 @@ class EndorphinSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -105,26 +105,25 @@ class EndorphinSource implements SourceInterface
             $provider = simplexml_load_file($filepath);
 
             foreach ($provider->test as $test) {
-
                 $expected = [
-                    'device'   => [
-                        'deviceName'      => null,
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'           => null,
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                    'device' => [
+                        'deviceName'       => null,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => null,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'            => null,
-                        'ismobile'        => null,
+                        'dualOrientation'  => null,
+                        'type'             => null,
+                        'ismobile'         => null,
                     ],
-                    'browser'  => [
+                    'browser' => [
                         'name'         => null,
-                        'modus' => null,
+                        'modus'        => null,
                         'version'      => null,
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
@@ -133,9 +132,9 @@ class EndorphinSource implements SourceInterface
                         'marketingName' => null,
                         'version'       => null,
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
-                    'engine'   => [
+                    'engine' => [
                         'name'         => null,
                         'version'      => null,
                         'manufacturer' => null,

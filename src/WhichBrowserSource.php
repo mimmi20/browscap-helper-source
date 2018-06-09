@@ -75,7 +75,7 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -137,37 +137,37 @@ class WhichBrowserSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => $row['device']['model'],
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'    => $row['device']['manufacturer'],
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                        'deviceName'       => $row['device']['model'],
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => $row['device']['manufacturer'],
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => $row['device']['type'],
-                        'ismobile' => $this->isMobile($row) ? true : false,
+                        'dualOrientation'  => null,
+                        'type'             => $row['device']['type'],
+                        'ismobile'         => $this->isMobile($row) ? true : false,
                     ],
                     'browser' => [
-                        'name'    => $row['browser']['name'],
-                        'modus' => null,
-                        'version' => is_array($row['browser']['version']) ? $row['browser']['version']['value'] : $row['browser']['version'],
+                        'name'         => $row['browser']['name'],
+                        'modus'        => null,
+                        'version'      => is_array($row['browser']['version']) ? $row['browser']['version']['value'] : $row['browser']['version'],
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => $row['os']['name'],
+                        'name'          => $row['os']['name'],
                         'marketingName' => null,
-                        'version' => is_array($row['os']['version']) ? $row['os']['version']['value'] : $row['os']['version'],
+                        'version'       => is_array($row['os']['version']) ? $row['os']['version']['value'] : $row['os']['version'],
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
                     'engine' => [
-                        'name'    => (!empty($row['engine']['name']) ? $row['engine']['name'] : null),
-                        'version' => (!empty($row['engine']['version']) ? $row['engine']['version'] : null),
-                        'manufacturer'  => null,
+                        'name'         => (!empty($row['engine']['name']) ? $row['engine']['name'] : null),
+                        'version'      => (!empty($row['engine']['version']) ? $row['engine']['version'] : null),
+                        'manufacturer' => null,
                     ],
                 ];
             }
@@ -225,8 +225,8 @@ class WhichBrowserSource implements SourceInterface
             return true;
         }
 
-        if ($data['device']['type'] === 'gaming') {
-            if (isset($data['device']['subtype']) && $data['device']['subtype'] === 'portable') {
+        if ('gaming' === $data['device']['type']) {
+            if (isset($data['device']['subtype']) && 'portable' === $data['device']['subtype']) {
                 return true;
             }
         }

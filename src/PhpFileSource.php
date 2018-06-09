@@ -72,7 +72,7 @@ class PhpFileSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -102,7 +102,7 @@ class PhpFileSource implements SourceInterface
         foreach ($finder as $file) {
             $filepath = $file->getPathname();
 
-            $this->logger->info('    reading file '.str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
             $provider = require $filepath;
 
@@ -113,14 +113,14 @@ class PhpFileSource implements SourceInterface
                     continue;
                 }
 
-                $agent = (string)UserAgent::fromUseragent($agent);
+                $agent = (string) UserAgent::fromUseragent($agent);
 
                 if (empty($agent)) {
                     continue;
                 }
 
                 yield $agent => [
-                    'device'   => [
+                    'device' => [
                         'deviceName'       => null,
                         'marketingName'    => null,
                         'manufacturer'     => null,
@@ -132,7 +132,7 @@ class PhpFileSource implements SourceInterface
                         'type'             => null,
                         'ismobile'         => null,
                     ],
-                    'browser'  => [
+                    'browser' => [
                         'name'         => null,
                         'modus'        => null,
                         'version'      => null,
@@ -148,7 +148,7 @@ class PhpFileSource implements SourceInterface
                         'manufacturer'  => null,
                         'bits'          => null,
                     ],
-                    'engine'   => [
+                    'engine' => [
                         'name'         => null,
                         'version'      => null,
                         'manufacturer' => null,

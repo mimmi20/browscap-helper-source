@@ -74,7 +74,7 @@ class DetectorSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -141,36 +141,36 @@ class DetectorSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => $test['result']['device']['deviceName'],
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'    => $test['result']['device']['brand'],
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                        'deviceName'       => $test['result']['device']['deviceName'],
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => $test['result']['device']['brand'],
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => $test['result']['device']['type'],
-                        'ismobile' => null,
+                        'dualOrientation'  => null,
+                        'type'             => $test['result']['device']['type'],
+                        'ismobile'         => null,
                     ],
                     'browser' => [
-                        'name'    => $test['result']['browser']['name'],
-                        'modus' => null,
-                        'version' => ($test['result']['browser']['version'] === '0.0.0' ? null : $test['result']['browser']['version']),
+                        'name'         => $test['result']['browser']['name'],
+                        'modus'        => null,
+                        'version'      => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => $test['result']['os']['name'],
+                        'name'          => $test['result']['os']['name'],
                         'marketingName' => null,
-                        'version' => ($test['result']['os']['version'] === '0.0.0' ? null : $test['result']['os']['version']),
+                        'version'       => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
                     'engine' => [
-                        'name'    => null,
-                        'version' => null,
+                        'name'         => null,
+                        'version'      => null,
                         'manufacturer' => null,
                     ],
                 ];

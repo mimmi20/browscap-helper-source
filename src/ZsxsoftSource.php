@@ -65,7 +65,7 @@ class ZsxsoftSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -149,37 +149,37 @@ class ZsxsoftSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => $model,
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'    => $brand,
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                        'deviceName'       => $model,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => $brand,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => null,
-                        'ismobile' => null,
+                        'dualOrientation'  => null,
+                        'type'             => null,
+                        'ismobile'         => null,
                     ],
                     'browser' => [
-                        'name'    => $data[1][2],
-                        'modus' => null,
-                        'version' => $data[1][3],
+                        'name'         => $data[1][2],
+                        'modus'        => null,
+                        'version'      => $data[1][3],
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => $data[1][5],
+                        'name'          => $data[1][5],
                         'marketingName' => null,
-                        'version' => $data[1][6],
+                        'version'       => $data[1][6],
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
                     'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                        'manufacturer'  => null,
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
                     ],
                 ];
             }

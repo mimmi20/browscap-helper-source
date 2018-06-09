@@ -74,7 +74,7 @@ class WootheeSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -134,37 +134,37 @@ class WootheeSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => null,
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'    => null,
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                        'deviceName'       => null,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => null,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => $row['category'] ?? null,
-                        'ismobile' => null,
+                        'dualOrientation'  => null,
+                        'type'             => $row['category'] ?? null,
+                        'ismobile'         => null,
                     ],
                     'browser' => [
-                        'name'    => $row['name'] ?? null,
-                        'modus' => null,
-                        'version' => $row['version'] ?? null,
+                        'name'         => $row['name'] ?? null,
+                        'modus'        => null,
+                        'version'      => $row['version'] ?? null,
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => $row['os'] ?? null,
+                        'name'          => $row['os'] ?? null,
                         'marketingName' => null,
-                        'version' => $row['os_version'] ?? null,
+                        'version'       => $row['os_version'] ?? null,
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
                     'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                        'manufacturer'  => null,
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
                     ],
                 ];
             }

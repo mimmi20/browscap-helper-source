@@ -12,11 +12,10 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
-
 use DeviceDetector\Parser\Client\Browser;
 use DeviceDetector\Parser\Device\DeviceParserAbstract;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Finder\Finder;
 
 class PiwikSource implements SourceInterface
 {
@@ -68,7 +67,7 @@ class PiwikSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -130,37 +129,37 @@ class PiwikSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => $data['device']['model'],
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'    => DeviceParserAbstract::getFullName($data['device']['brand']),
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                        'deviceName'       => $data['device']['model'],
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => DeviceParserAbstract::getFullName($data['device']['brand']),
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => $data['device']['type'],
-                        'ismobile' => $this->isMobile($data),
+                        'dualOrientation'  => null,
+                        'type'             => $data['device']['type'],
+                        'ismobile'         => $this->isMobile($data),
                     ],
                     'browser' => [
-                        'name'    => $data['client']['name'],
-                        'modus' => null,
-                        'version' => $data['client']['version'],
+                        'name'         => $data['client']['name'],
+                        'modus'        => null,
+                        'version'      => $data['client']['version'],
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => $data['os']['name'],
+                        'name'          => $data['os']['name'],
                         'marketingName' => null,
-                        'version' => $data['os']['version'],
+                        'version'       => $data['os']['version'],
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
                     'engine' => [
-                        'name'    => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
-                        'version' => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
-                        'manufacturer'  => null,
+                        'name'         => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
+                        'version'      => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
+                        'manufacturer' => null,
                     ],
                 ];
             }
@@ -197,7 +196,7 @@ class PiwikSource implements SourceInterface
         }
 
         // Check for browsers available for mobile devices only
-        if ($data['client']['type'] === 'browser' && Browser::isMobileOnlyBrowser($data['client']['short_name'] ? $data['client']['short_name'] : 'UNK')) {
+        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ? $data['client']['short_name'] : 'UNK')) {
             return true;
         }
 
@@ -215,7 +214,7 @@ class PiwikSource implements SourceInterface
             return false;
         }
         // Check for browsers available for mobile devices only
-        if ($data['client']['type'] === 'browser' && Browser::isMobileOnlyBrowser($data['client']['short_name'] ? $data['client']['short_name'] : 'UNK')) {
+        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ? $data['client']['short_name'] : 'UNK')) {
             return false;
         }
 

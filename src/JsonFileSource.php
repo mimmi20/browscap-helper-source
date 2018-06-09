@@ -74,7 +74,7 @@ class JsonFileSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -126,7 +126,6 @@ class JsonFileSource implements SourceInterface
             }
 
             foreach ($data as $headers) {
-
                 $agent = (string) UserAgent::fromHeaderArray($headers);
 
                 if (empty($agent)) {
@@ -134,24 +133,24 @@ class JsonFileSource implements SourceInterface
                 }
 
                 yield $agent => [
-                    'device'   => [
-                        'deviceName'      => null,
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'           => null,
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                    'device' => [
+                        'deviceName'       => null,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => null,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'            => null,
-                        'ismobile'        => null,
+                        'dualOrientation'  => null,
+                        'type'             => null,
+                        'ismobile'         => null,
                     ],
-                    'browser'  => [
+                    'browser' => [
                         'name'         => null,
-                        'modus' => null,
+                        'modus'        => null,
                         'version'      => null,
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
@@ -160,9 +159,9 @@ class JsonFileSource implements SourceInterface
                         'marketingName' => null,
                         'version'       => null,
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
-                    'engine'   => [
+                    'engine' => [
                         'name'         => null,
                         'version'      => null,
                         'manufacturer' => null,

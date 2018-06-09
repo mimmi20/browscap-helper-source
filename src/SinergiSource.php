@@ -65,7 +65,7 @@ class SinergiSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -127,37 +127,37 @@ class SinergiSource implements SourceInterface
 
                     yield $agent => [
                         'device' => [
-                            'deviceName'     => $device,
-                            'marketingName'   => null,
-                            'manufacturer'    => null,
-                            'brand'    => null,
-                            'pointingMethod'  => null,
-                            'resolutionWidth' => null,
+                            'deviceName'       => $device,
+                            'marketingName'    => null,
+                            'manufacturer'     => null,
+                            'brand'            => null,
+                            'pointingMethod'   => null,
+                            'resolutionWidth'  => null,
                             'resolutionHeight' => null,
-                            'dualOrientation' => null,
-                            'type'     => null,
-                            'ismobile' => null,
+                            'dualOrientation'  => null,
+                            'type'             => null,
+                            'ismobile'         => null,
                         ],
                         'browser' => [
-                            'name'    => $browser,
-                            'modus' => null,
-                            'version' => $browserVersion,
+                            'name'         => $browser,
+                            'modus'        => null,
+                            'version'      => $browserVersion,
                             'manufacturer' => null,
-                            'bits' => null,
+                            'bits'         => null,
                             'type'         => null,
                             'isbot'        => null,
                         ],
                         'platform' => [
-                            'name'    => $platform,
+                            'name'          => $platform,
                             'marketingName' => null,
-                            'version' => $platformVersion,
+                            'version'       => $platformVersion,
                             'manufacturer'  => null,
-                            'bits' => null,
+                            'bits'          => null,
                         ],
                         'engine' => [
-                            'name'    => null,
-                            'version' => null,
-                            'manufacturer'  => null,
+                            'name'         => null,
+                            'version'      => null,
+                            'manufacturer' => null,
                         ],
                     ];
                 }

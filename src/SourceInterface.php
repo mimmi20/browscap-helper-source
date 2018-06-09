@@ -33,7 +33,7 @@ interface SourceInterface
     public function getName(): string;
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable;
 }

@@ -37,7 +37,7 @@ class UapCoreSource implements SourceInterface
     public function __construct(LoggerInterface $logger, PhpFileCache $cache)
     {
         $this->logger = $logger;
-        $this->cache = $cache;
+        $this->cache  = $cache;
     }
 
     /**
@@ -75,7 +75,7 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -144,24 +144,24 @@ class UapCoreSource implements SourceInterface
                 $ua = addcslashes($ua, "\n");
                 if (!isset($tests[$ua])) {
                     $tests[$ua] = [
-                        'device'   => [
-                            'deviceName'      => null,
-                            'marketingName'   => null,
-                            'manufacturer'    => null,
-                            'brand'           => null,
-                            'pointingMethod'  => null,
-                            'resolutionWidth' => null,
+                        'device' => [
+                            'deviceName'       => null,
+                            'marketingName'    => null,
+                            'manufacturer'     => null,
+                            'brand'            => null,
+                            'pointingMethod'   => null,
+                            'resolutionWidth'  => null,
                             'resolutionHeight' => null,
-                            'dualOrientation' => null,
-                            'type'            => null,
-                            'ismobile'        => null,
+                            'dualOrientation'  => null,
+                            'type'             => null,
+                            'ismobile'         => null,
                         ],
-                        'browser'  => [
+                        'browser' => [
                             'name'         => null,
-                            'modus' => null,
+                            'modus'        => null,
                             'version'      => null,
                             'manufacturer' => null,
-                            'bits' => null,
+                            'bits'         => null,
                             'type'         => null,
                             'isbot'        => null,
                         ],
@@ -170,9 +170,9 @@ class UapCoreSource implements SourceInterface
                             'marketingName' => null,
                             'version'       => null,
                             'manufacturer'  => null,
-                            'bits' => null,
+                            'bits'          => null,
                         ],
-                        'engine'   => [
+                        'engine' => [
                             'name'         => null,
                             'version'      => null,
                             'manufacturer' => null,
@@ -198,10 +198,10 @@ class UapCoreSource implements SourceInterface
                     } else {
                         $browser = [
                             'name'         => null,
-                            'modus' => null,
+                            'modus'        => null,
                             'version'      => null,
                             'manufacturer' => null,
-                            'bits' => null,
+                            'bits'         => null,
                             'type'         => null,
                             'isbot'        => null,
                         ];
@@ -211,20 +211,20 @@ class UapCoreSource implements SourceInterface
                             'marketingName' => null,
                             'version'       => null,
                             'manufacturer'  => null,
-                            'bits' => null,
+                            'bits'          => null,
                         ];
 
                         $device = [
-                            'deviceName'      => null,
-                            'marketingName'   => null,
-                            'manufacturer'    => null,
-                            'brand'           => null,
-                            'pointingMethod'  => null,
-                            'resolutionWidth' => null,
+                            'deviceName'       => null,
+                            'marketingName'    => null,
+                            'manufacturer'     => null,
+                            'brand'            => null,
+                            'pointingMethod'   => null,
+                            'resolutionWidth'  => null,
                             'resolutionHeight' => null,
-                            'dualOrientation' => null,
-                            'type'            => null,
-                            'ismobile'        => null,
+                            'dualOrientation'  => null,
+                            'type'             => null,
+                            'ismobile'         => null,
                         ];
 
                         $engine = [

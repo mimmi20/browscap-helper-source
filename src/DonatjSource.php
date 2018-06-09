@@ -74,7 +74,7 @@ class DonatjSource implements SourceInterface
     }
 
     /**
-     * @return iterable|array[]
+     * @return array[]|iterable
      */
     public function getProperties(): iterable
     {
@@ -145,37 +145,37 @@ class DonatjSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'     => null,
-                        'marketingName'   => null,
-                        'manufacturer'    => null,
-                        'brand'    => null,
-                        'pointingMethod'  => null,
-                        'resolutionWidth' => null,
+                        'deviceName'       => null,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => null,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
-                        'type'     => null,
-                        'ismobile' => null,
+                        'dualOrientation'  => null,
+                        'type'             => null,
+                        'ismobile'         => null,
                     ],
                     'browser' => [
-                        'name'    => $data['browser'],
-                        'modus' => null,
-                        'version' => $data['version'],
+                        'name'         => $data['browser'],
+                        'modus'        => null,
+                        'version'      => $data['version'],
                         'manufacturer' => null,
-                        'bits' => null,
+                        'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => $data['platform'],
+                        'name'          => $data['platform'],
                         'marketingName' => null,
-                        'version' => null,
+                        'version'       => null,
                         'manufacturer'  => null,
-                        'bits' => null,
+                        'bits'          => null,
                     ],
                     'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                        'manufacturer'  => null,
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
                     ],
                 ];
             }
