@@ -21,6 +21,7 @@
   },
   "require-dev": {
     "browscap/browscap": "dev-master",
+    "doctrine/cache": "^1.6",
     "donatj/phpuseragentparser": "dev-master",
     "endorphin-studio/browser-detector": "^3.0",
     "friendsofphp/php-cs-fixer": "^2.12",
@@ -36,11 +37,11 @@
     "whichbrowser/parser": "dev-master",
     "woothee/woothee-testset": "dev-master",
     "yzalis/ua-parser": "dev-master",
-    "zsxsoft/php-useragent": "dev-master",
-    "doctrine/cache": "^1.6"
+    "zsxsoft/php-useragent": "dev-master"
   },
   "suggest": {
     "browscap/browscap": "To read these useragents",
+    "doctrine/cache": "required for the UapCoreSource",
     "donatj/phpuseragentparser": "To read these useragents",
     "endorphin-studio/browser-detector": "To read these useragents",
     "jaybizzle/crawler-detect": "To read these useragents",
@@ -53,8 +54,7 @@
     "whichbrowser/parser": "To read these useragents",
     "woothee/woothee-testset": "To read these useragents",
     "yzalis/ua-parser": "To read these useragents",
-    "zsxsoft/php-useragent": "To read these useragents",
-    "doctrine/cache": "required for the UapCoreSource"
+    "zsxsoft/php-useragent": "To read these useragents"
   },
   "autoload": {
     "psr-4": {
