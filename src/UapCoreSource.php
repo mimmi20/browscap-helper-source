@@ -53,7 +53,15 @@ class UapCoreSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -61,8 +69,8 @@ class UapCoreSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -70,6 +78,14 @@ class UapCoreSource implements SourceInterface
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/ua-parser/uap-core/tests';
 
@@ -104,65 +120,13 @@ class UapCoreSource implements SourceInterface
         }
 
         foreach ($tests as $agent => $test) {
-            yield (string) UserAgent::fromUseragent($agent) => $test;
-        }
-    }
+            $agent = (string) UserAgent::fromUseragent($agent);
 
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/ua-parser/uap-core/tests';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.yaml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        if (file_exists('vendor/ua-parser/uap-core/test_resources')) {
-            $finder->in('vendor/ua-parser/uap-core/test_resources');
-        }
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $data = Yaml::parse($file->getContents());
-
-            if (!is_array($data)) {
+            if (empty($agent)) {
                 continue;
             }
 
-            if (empty($data['test_cases']) || !is_array($data['test_cases'])) {
-                continue;
-            }
-
-            foreach ($data['test_cases'] as $row) {
-                if (empty($row['user_agent_string'])) {
-                    continue;
-                }
-
-                $agent = trim($row['user_agent_string']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent;
-            }
+            yield $agent => $test;
         }
     }
 
@@ -180,23 +144,38 @@ class UapCoreSource implements SourceInterface
                 $ua = addcslashes($ua, "\n");
                 if (!isset($tests[$ua])) {
                     $tests[$ua] = [
-                        'browser' => [
-                            'name'    => null,
-                            'version' => null,
+                        'device'   => [
+                            'deviceName'      => null,
+                            'marketingName'   => null,
+                            'manufacturer'    => null,
+                            'brand'           => null,
+                            'pointingMethod'  => null,
+                            'resolutionWidth' => null,
+                            'resolutionHeight' => null,
+                            'dualOrientation' => null,
+                            'type'            => null,
+                            'ismobile'        => null,
+                        ],
+                        'browser'  => [
+                            'name'         => null,
+                            'modus' => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type'         => null,
+                            'isbot'        => null,
                         ],
                         'platform' => [
-                            'name'    => null,
-                            'version' => null,
+                            'name'          => null,
+                            'marketingName' => null,
+                            'version'       => null,
+                            'manufacturer'  => null,
+                            'bits' => null,
                         ],
-                        'device' => [
-                            'name'     => null,
-                            'brand'    => null,
-                            'type'     => null,
-                            'ismobile' => null,
-                        ],
-                        'engine' => [
-                            'name'    => null,
-                            'version' => null,
+                        'engine'   => [
+                            'name'         => null,
+                            'version'      => null,
+                            'manufacturer' => null,
                         ],
                     ];
                 }
@@ -218,25 +197,40 @@ class UapCoreSource implements SourceInterface
                         $engine   = $tests[$ua]['engine'];
                     } else {
                         $browser = [
-                            'name'    => null,
-                            'version' => null,
+                            'name'         => null,
+                            'modus' => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type'         => null,
+                            'isbot'        => null,
                         ];
 
                         $platform = [
-                            'name'    => null,
-                            'version' => null,
+                            'name'          => null,
+                            'marketingName' => null,
+                            'version'       => null,
+                            'manufacturer'  => null,
+                            'bits' => null,
                         ];
 
                         $device = [
-                            'name'     => null,
-                            'brand'    => null,
-                            'type'     => null,
-                            'ismobile' => null,
+                            'deviceName'      => null,
+                            'marketingName'   => null,
+                            'manufacturer'    => null,
+                            'brand'           => null,
+                            'pointingMethod'  => null,
+                            'resolutionWidth' => null,
+                            'resolutionHeight' => null,
+                            'dualOrientation' => null,
+                            'type'            => null,
+                            'ismobile'        => null,
                         ];
 
                         $engine = [
-                            'name'    => null,
-                            'version' => null,
+                            'name'         => null,
+                            'version'      => null,
+                            'manufacturer' => null,
                         ];
                     }
 

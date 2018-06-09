@@ -52,7 +52,15 @@ class DonatjSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -60,8 +68,8 @@ class DonatjSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -69,6 +77,14 @@ class DonatjSource implements SourceInterface
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/donatj/phpuseragentparser/Tests';
 
@@ -121,87 +137,47 @@ class DonatjSource implements SourceInterface
                     continue;
                 }
 
-                yield (string) UserAgent::fromUseragent($agent) => [
-                    'browser' => [
-                        'name'    => $data['browser'],
-                        'version' => $data['version'],
-                    ],
-                    'platform' => [
-                        'name'    => $data['platform'],
-                        'version' => null,
-                    ],
-                    'device' => [
-                        'name'     => null,
-                        'brand'    => null,
-                        'type'     => null,
-                        'ismobile' => null,
-                    ],
-                    'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                ];
-            }
-        }
-    }
-
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/donatj/phpuseragentparser/Tests';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('user_agents.json');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $content = $file->getContents();
-
-            if ('' === $content || PHP_EOL === $content) {
-                continue;
-            }
-
-            try {
-                $data = $this->jsonParser->parse(
-                    $content,
-                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
-                );
-            } catch (ParsingException $e) {
-                $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
-
-                continue;
-            }
-
-            if (!is_array($data)) {
-                continue;
-            }
-
-            foreach (array_keys($data) as $test) {
-                $agent = trim($test);
+                $agent = (string) UserAgent::fromUseragent($agent);
 
                 if (empty($agent)) {
                     continue;
                 }
 
-                yield $agent;
+                yield $agent => [
+                    'device' => [
+                        'deviceName'     => null,
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'    => null,
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'browser' => [
+                        'name'    => $data['browser'],
+                        'modus' => null,
+                        'version' => $data['version'],
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'    => $data['platform'],
+                        'marketingName' => null,
+                        'version' => null,
+                        'manufacturer'  => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                        'manufacturer'  => null,
+                    ],
+                ];
             }
         }
     }

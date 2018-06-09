@@ -43,7 +43,15 @@ class SinergiSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -51,8 +59,8 @@ class SinergiSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -60,6 +68,14 @@ class SinergiSource implements SourceInterface
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
@@ -103,73 +119,47 @@ class SinergiSource implements SourceInterface
                     $platformVersion = (string) $field->field[3];
 
                     $device = (string) $field->field[4];
-
-                    yield (string) UserAgent::fromUseragent($agent) => [
-                        'browser' => [
-                            'name'    => $browser,
-                            'version' => $browserVersion,
-                        ],
-                        'platform' => [
-                            'name'    => $platform,
-                            'version' => $platformVersion,
-                        ],
-                        'device' => [
-                            'name'     => $device,
-                            'brand'    => null,
-                            'type'     => null,
-                            'ismobile' => null,
-                        ],
-                        'engine' => [
-                            'name'    => null,
-                            'version' => null,
-                        ],
-                    ];
-                }
-            }
-        }
-    }
-
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.xml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $provider = simplexml_load_file($filepath);
-
-            foreach ($provider->strings as $string) {
-                foreach ($string as $field) {
-                    $ua    = explode("\n", $field->field[6]);
-                    $ua    = array_map('trim', $ua);
-                    $agent = trim(implode(' ', $ua));
+                    $agent  = (string) UserAgent::fromUseragent($agent);
 
                     if (empty($agent)) {
                         continue;
                     }
 
-                    yield $agent;
+                    yield $agent => [
+                        'device' => [
+                            'deviceName'     => $device,
+                            'marketingName'   => null,
+                            'manufacturer'    => null,
+                            'brand'    => null,
+                            'pointingMethod'  => null,
+                            'resolutionWidth' => null,
+                            'resolutionHeight' => null,
+                            'dualOrientation' => null,
+                            'type'     => null,
+                            'ismobile' => null,
+                        ],
+                        'browser' => [
+                            'name'    => $browser,
+                            'modus' => null,
+                            'version' => $browserVersion,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type'         => null,
+                            'isbot'        => null,
+                        ],
+                        'platform' => [
+                            'name'    => $platform,
+                            'marketingName' => null,
+                            'version' => $platformVersion,
+                            'manufacturer'  => null,
+                            'bits' => null,
+                        ],
+                        'engine' => [
+                            'name'    => null,
+                            'version' => null,
+                            'manufacturer'  => null,
+                        ],
+                    ];
                 }
             }
         }

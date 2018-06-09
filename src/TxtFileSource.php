@@ -50,7 +50,15 @@ class TxtFileSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -58,8 +66,8 @@ class TxtFileSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -68,77 +76,7 @@ class TxtFileSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        if (!file_exists($this->dir)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $this->dir);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.txt');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
-
-        foreach ($finder as $file) {
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $handle = @fopen($filepath, 'r');
-
-            if (false === $handle) {
-                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
-                continue;
-            }
-
-            $i = 1;
-
-            while (!feof($handle)) {
-                $line = fgets($handle, 65535);
-
-                if (false === $line) {
-                    continue;
-                }
-                ++$i;
-
-                if (empty($line)) {
-                    continue;
-                }
-
-                $line = trim($line);
-
-                if (empty($line)) {
-                    continue;
-                }
-
-                yield (string) UserAgent::fromUseragent($line) => [
-                    'browser' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'platform' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'device' => [
-                        'name'     => null,
-                        'brand'    => null,
-                        'type'     => null,
-                        'ismobile' => null,
-                    ],
-                    'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                ];
-            }
-
-            fclose($handle);
-        }
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -193,7 +131,47 @@ class TxtFileSource implements SourceInterface
                     continue;
                 }
 
-                yield $line;
+                $agent = (string) UserAgent::fromUseragent($line);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device'   => [
+                        'deviceName'      => null,
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'           => null,
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'            => null,
+                        'ismobile'        => null,
+                    ],
+                    'browser'  => [
+                        'name'         => null,
+                        'modus' => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => null,
+                        'marketingName' => null,
+                        'version'       => null,
+                        'manufacturer'  => null,
+                        'bits' => null,
+                    ],
+                    'engine'   => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                    ],
+                ];
             }
 
             fclose($handle);

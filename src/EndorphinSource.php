@@ -43,7 +43,15 @@ class EndorphinSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -51,8 +59,8 @@ class EndorphinSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -60,6 +68,14 @@ class EndorphinSource implements SourceInterface
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/endorphin-studio/browser-detector/tests/data/ua';
 
@@ -91,19 +107,38 @@ class EndorphinSource implements SourceInterface
             foreach ($provider->test as $test) {
 
                 $expected = [
-                    'browser' => [
-                        'name'    => null,
-                        'version' => null,
+                    'device'   => [
+                        'deviceName'      => null,
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'           => null,
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'            => null,
+                        'ismobile'        => null,
+                    ],
+                    'browser'  => [
+                        'name'         => null,
+                        'modus' => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'    => null,
-                        'version' => null,
+                        'name'          => null,
+                        'marketingName' => null,
+                        'version'       => null,
+                        'manufacturer'  => null,
+                        'bits' => null,
                     ],
-                    'device' => [
-                        'name'     => null,
-                        'type'     => null,
-                        'brand'    => null,
-                        'ismobile' => null,
+                    'engine'   => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
                     ],
                 ];
 
@@ -160,45 +195,13 @@ class EndorphinSource implements SourceInterface
         }
 
         foreach ($uas as $ua => $test) {
-            yield (string) UserAgent::fromUseragent((string) $ua) => $test;
-        }
-    }
+            $agent = (string) UserAgent::fromUseragent($ua);
 
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/endorphin-studio/browser-detector/tests/data/ua';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.xml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $provider = simplexml_load_file($filepath);
-
-            foreach ($provider->test as $test) {
-                foreach ($test->UAList->UA as $ua) {
-                    yield (string) $ua;
-                }
+            if (empty($agent)) {
+                continue;
             }
+
+            yield $agent => $test;
         }
     }
 }

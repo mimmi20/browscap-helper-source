@@ -52,15 +52,14 @@ class JsonFileSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        $counter = 0;
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
 
-        foreach ($this->loadFromPath() as $headers) {
-            if (empty($headers['user-agent'])) {
+            if (!isset($headers['user-agent'])) {
                 continue;
             }
 
             yield $headers['user-agent'];
-            ++$counter;
         }
     }
 
@@ -69,8 +68,8 @@ class JsonFileSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers) {
-            yield (string) UserAgent::fromHeaderArray($headers);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -79,68 +78,7 @@ class JsonFileSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        if (!file_exists($this->dir)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $this->dir);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.json');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
-
-        $jsonParser = new JsonParser();
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            try {
-                $data = $jsonParser->parse(
-                    $file->getContents(),
-                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
-                );
-            } catch (ParsingException $e) {
-                $this->logger->error(
-                    new \Exception(sprintf('file %s contains invalid json.', $file->getPathname()), 0, $e)
-                );
-                continue;
-            }
-
-            if (!is_array($data)) {
-                continue;
-            }
-
-            foreach ($data as $headers) {
-                yield (string) UserAgent::fromHeaderArray($headers) => [
-                    'browser' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'platform' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'device' => [
-                        'name'     => null,
-                        'brand'    => null,
-                        'type'     => null,
-                        'ismobile' => null,
-                    ],
-                    'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                ];
-            }
-        }
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -187,7 +125,50 @@ class JsonFileSource implements SourceInterface
                 continue;
             }
 
-            yield from $data;
+            foreach ($data as $headers) {
+
+                $agent = (string) UserAgent::fromHeaderArray($headers);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device'   => [
+                        'deviceName'      => null,
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'           => null,
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'            => null,
+                        'ismobile'        => null,
+                    ],
+                    'browser'  => [
+                        'name'         => null,
+                        'modus' => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => null,
+                        'marketingName' => null,
+                        'version'       => null,
+                        'manufacturer'  => null,
+                        'bits' => null,
+                    ],
+                    'engine'   => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                    ],
+                ];
+            }
         }
     }
 }

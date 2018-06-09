@@ -46,7 +46,15 @@ class PiwikSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -54,8 +62,8 @@ class PiwikSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -64,68 +72,7 @@ class PiwikSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        $path = 'vendor/piwik/device-detector/Tests/fixtures';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.yml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $data = \Spyc::YAMLLoadString($file->getContents());
-
-            if (!is_array($data)) {
-                continue;
-            }
-
-            foreach ($data as $row) {
-                if (empty($row['user_agent'])) {
-                    continue;
-                }
-
-                $agent = trim($row['user_agent']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield (string) UserAgent::fromUseragent($agent) => [
-                    'browser' => [
-                        'name'    => $data['client']['name'],
-                        'version' => $data['client']['version'],
-                    ],
-                    'platform' => [
-                        'name'    => $data['os']['name'],
-                        'version' => $data['os']['version'],
-                    ],
-                    'device' => [
-                        'name'     => $data['device']['model'],
-                        'brand'    => DeviceParserAbstract::getFullName($data['device']['brand']),
-                        'type'     => $data['device']['type'],
-                        'ismobile' => $this->isMobile($data),
-                    ],
-                    'engine' => [
-                        'name'    => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
-                        'version' => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
-                    ],
-                ];
-            }
-        }
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -167,13 +114,55 @@ class PiwikSource implements SourceInterface
                     continue;
                 }
 
-                $agent = trim($row['user_agent']);
+                $ua    = explode("\n", $row['user_agent']);
+                $ua    = array_map('trim', $ua);
+                $agent = trim(implode(' ', $ua));
 
                 if (empty($agent)) {
                     continue;
                 }
 
-                yield $agent;
+                $agent = (string) UserAgent::fromUseragent($agent);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device' => [
+                        'deviceName'     => $data['device']['model'],
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'    => DeviceParserAbstract::getFullName($data['device']['brand']),
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'     => $data['device']['type'],
+                        'ismobile' => $this->isMobile($data),
+                    ],
+                    'browser' => [
+                        'name'    => $data['client']['name'],
+                        'modus' => null,
+                        'version' => $data['client']['version'],
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'    => $data['os']['name'],
+                        'marketingName' => null,
+                        'version' => $data['os']['version'],
+                        'manufacturer'  => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name'    => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
+                        'version' => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
+                        'manufacturer'  => null,
+                    ],
+                ];
             }
         }
     }

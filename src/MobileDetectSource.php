@@ -43,7 +43,15 @@ class MobileDetectSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -51,8 +59,8 @@ class MobileDetectSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -61,65 +69,7 @@ class MobileDetectSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        $path = 'vendor/mobiledetect/mobiledetectlib/tests/providers/vendors';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.php');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $data = include $filepath;
-            $key  = $file->getBasename('.php');
-
-            if (!is_array($data) || !array_key_exists($key, $data) || !is_array($data[$key])) {
-                continue;
-            }
-
-            foreach (array_keys($data[$key]) as $agent) {
-                $agent = trim($agent);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield (string) UserAgent::fromUseragent($agent) => [
-                    'browser' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'platform' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'device' => [
-                        'name'     => null,
-                        'brand'    => null,
-                        'type'     => null,
-                        'ismobile' => null,
-                    ],
-                    'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                ];
-            }
-        }
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -164,7 +114,47 @@ class MobileDetectSource implements SourceInterface
                     continue;
                 }
 
-                yield $agent;
+                $agent = (string) UserAgent::fromUseragent($agent);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device'   => [
+                        'deviceName'      => null,
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'           => null,
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'            => null,
+                        'ismobile'        => null,
+                    ],
+                    'browser'  => [
+                        'name'         => null,
+                        'modus' => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => null,
+                        'marketingName' => null,
+                        'version'       => null,
+                        'manufacturer'  => null,
+                        'bits' => null,
+                    ],
+                    'engine'   => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                    ],
+                ];
             }
         }
     }

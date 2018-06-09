@@ -44,7 +44,15 @@ class YzalisSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -52,8 +60,8 @@ class YzalisSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -61,6 +69,14 @@ class YzalisSource implements SourceInterface
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/yzalis/ua-parser/tests/UAParser/Tests/Fixtures';
 
@@ -104,23 +120,38 @@ class YzalisSource implements SourceInterface
 
                 if (!isset($tests[$ua])) {
                     $tests[$ua] = [
-                        'browser' => [
-                            'name'    => null,
-                            'version' => null,
+                        'device'   => [
+                            'deviceName'      => null,
+                            'marketingName'   => null,
+                            'manufacturer'    => null,
+                            'brand'           => null,
+                            'pointingMethod'  => null,
+                            'resolutionWidth' => null,
+                            'resolutionHeight' => null,
+                            'dualOrientation' => null,
+                            'type'            => null,
+                            'ismobile'        => null,
+                        ],
+                        'browser'  => [
+                            'name'         => null,
+                            'modus' => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type'         => null,
+                            'isbot'        => null,
                         ],
                         'platform' => [
-                            'name'    => null,
-                            'version' => null,
+                            'name'          => null,
+                            'marketingName' => null,
+                            'version'       => null,
+                            'manufacturer'  => null,
+                            'bits' => null,
                         ],
-                        'device' => [
-                            'name'     => null,
-                            'brand'    => null,
-                            'type'     => null,
-                            'ismobile' => null,
-                        ],
-                        'engine' => [
-                            'name'    => null,
-                            'version' => null,
+                        'engine'   => [
+                            'name'         => null,
+                            'version'      => null,
+                            'manufacturer' => null,
                         ],
                     ];
                 }
@@ -142,68 +173,24 @@ class YzalisSource implements SourceInterface
                         $tests[$ua]['platform']['version'] = $data[2] . (null !== $data[3] ? '.' . $data[3] . (null !== $data[4] ? '.' . $data[4] : '') : '');
 
                         break;
-                    // Skipping rendering_engines.yml because we don't look at Engine data
+                    case 'rendering_engines.yml':
+                        $tests[$ua]['engine']['name']    = $data[1];
+                        $tests[$ua]['engine']['version'] = $data[2];
+
+                        break;
                     // Skipping other files because we dont test this
                 }
             }
         }
 
         foreach ($tests as $agent => $test) {
-            yield (string) UserAgent::fromUseragent($agent) => $test;
-        }
-    }
+            $agent = (string) UserAgent::fromUseragent($agent);
 
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/yzalis/ua-parser/tests/UAParser/Tests/Fixtures';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('browsers.yml');
-        $finder->name('devices.yml');
-        $finder->name('email_clients.yml');
-        $finder->name('operating_systems.yml');
-        $finder->name('rendering_engines.yml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $data = Yaml::parse($file->getContents());
-
-            if (!is_array($data)) {
+            if (empty($agent)) {
                 continue;
             }
 
-            foreach ($data as $row) {
-                if (!isset($row[0])) {
-                    continue;
-                }
-
-                $agent = trim($row[0]);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent;
-            }
+            yield $agent => $test;
         }
     }
 }

@@ -52,7 +52,7 @@ class DetectorSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        foreach ($this->loadFromPath() as $headers) {
+        foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
             if (!isset($headers['user-agent'])) {
@@ -68,13 +68,23 @@ class DetectorSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
+        }
     }
 
     /**
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/mimmi20/browser-detector-tests/tests/issues';
 
@@ -130,82 +140,40 @@ class DetectorSource implements SourceInterface
                 }
 
                 yield $agent => [
+                    'device' => [
+                        'deviceName'     => $test['result']['device']['deviceName'],
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'    => $test['result']['device']['brand'],
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'     => $test['result']['device']['type'],
+                        'ismobile' => null,
+                    ],
                     'browser' => [
                         'name'    => $test['result']['browser']['name'],
+                        'modus' => null,
                         'version' => ($test['result']['browser']['version'] === '0.0.0' ? null : $test['result']['browser']['version']),
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
                     ],
                     'platform' => [
                         'name'    => $test['result']['os']['name'],
+                        'marketingName' => null,
                         'version' => ($test['result']['os']['version'] === '0.0.0' ? null : $test['result']['os']['version']),
-                    ],
-                    'device' => [
-                        'name'     => $test['result']['device']['deviceName'],
-                        'brand'    => $test['result']['device']['brand'],
-                        'type'     => $test['result']['device']['type'],
-                        'ismobile' => null,
+                        'manufacturer'  => null,
+                        'bits' => null,
                     ],
                     'engine' => [
                         'name'    => null,
                         'version' => null,
+                        'manufacturer' => null,
                     ],
                 ];
-            }
-        }
-    }
-
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/mimmi20/browser-detector-tests/tests/issues';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.json');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $content = $file->getContents();
-
-            if ('' === $content || PHP_EOL === $content) {
-                unlink($filepath);
-
-                continue;
-            }
-
-            try {
-                $data = $this->jsonParser->parse(
-                    $content,
-                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
-                );
-            } catch (ParsingException $e) {
-                $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
-
-                continue;
-            }
-
-            if (!is_array($data)) {
-                continue;
-            }
-
-            foreach ($data as $test) {
-                yield (string) UserAgent::fromHeaderArray($test['headers']);
             }
         }
     }

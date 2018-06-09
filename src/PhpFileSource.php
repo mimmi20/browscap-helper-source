@@ -50,7 +50,15 @@ class PhpFileSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -58,8 +66,8 @@ class PhpFileSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -68,57 +76,7 @@ class PhpFileSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        if (!file_exists($this->dir)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $this->dir);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.php');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
-
-        foreach ($finder as $file) {
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $provider = require $filepath;
-
-            foreach (array_keys($provider) as $ua) {
-                $agent = trim($ua);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield (string) UserAgent::fromUseragent($agent) => [
-                    'browser' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'platform' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                    'device' => [
-                        'name'     => null,
-                        'brand'    => null,
-                        'type'     => null,
-                        'ismobile' => null,
-                    ],
-                    'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                ];
-            }
-        }
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -144,7 +102,7 @@ class PhpFileSource implements SourceInterface
         foreach ($finder as $file) {
             $filepath = $file->getPathname();
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $this->logger->info('    reading file '.str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
             $provider = require $filepath;
 
@@ -155,7 +113,47 @@ class PhpFileSource implements SourceInterface
                     continue;
                 }
 
-                yield $agent;
+                $agent = (string)UserAgent::fromUseragent($agent);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device'   => [
+                        'deviceName'       => null,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => null,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation'  => null,
+                        'type'             => null,
+                        'ismobile'         => null,
+                    ],
+                    'browser'  => [
+                        'name'         => null,
+                        'modus'        => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                        'bits'         => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => null,
+                        'marketingName' => null,
+                        'version'       => null,
+                        'manufacturer'  => null,
+                        'bits'          => null,
+                    ],
+                    'engine'   => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                    ],
+                ];
             }
         }
     }

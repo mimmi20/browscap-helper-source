@@ -49,7 +49,15 @@ class PdoSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->getAgents();
+        foreach ($this->getAgents() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -57,8 +65,8 @@ class PdoSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->getAgents() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->getAgents() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -67,42 +75,7 @@ class PdoSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
-
-        $driverOptions = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
-
-        /** @var \PDOStatement $stmt */
-        $stmt = $this->pdo->prepare($sql, $driverOptions);
-        $stmt->execute();
-
-        while ($row = $stmt->fetch(\PDO::FETCH_OBJ)) {
-            $agent = trim($row->agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield (string) UserAgent::fromUseragent($agent) => [
-                'browser' => [
-                    'name'    => null,
-                    'version' => null,
-                ],
-                'platform' => [
-                    'name'    => null,
-                    'version' => null,
-                ],
-                'device' => [
-                    'name'     => null,
-                    'brand'    => null,
-                    'type'     => null,
-                    'ismobile' => null,
-                ],
-                'engine' => [
-                    'name'    => null,
-                    'version' => null,
-                ],
-            ];
-        }
+        yield from $this->getAgents();
     }
 
     /**
@@ -125,7 +98,47 @@ class PdoSource implements SourceInterface
                 continue;
             }
 
-            yield $agent;
+            $agent = (string) UserAgent::fromUseragent($agent);
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => [
+                'device'   => [
+                    'deviceName'      => null,
+                    'marketingName'   => null,
+                    'manufacturer'    => null,
+                    'brand'           => null,
+                    'pointingMethod'  => null,
+                    'resolutionWidth' => null,
+                    'resolutionHeight' => null,
+                    'dualOrientation' => null,
+                    'type'            => null,
+                    'ismobile'        => null,
+                ],
+                'browser'  => [
+                    'name'         => null,
+                    'modus' => null,
+                    'version'      => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type'         => null,
+                    'isbot'        => null,
+                ],
+                'platform' => [
+                    'name'          => null,
+                    'marketingName' => null,
+                    'version'       => null,
+                    'manufacturer'  => null,
+                    'bits' => null,
+                ],
+                'engine'   => [
+                    'name'         => null,
+                    'version'      => null,
+                    'manufacturer' => null,
+                ],
+            ];
         }
     }
 }

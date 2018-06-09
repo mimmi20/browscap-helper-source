@@ -43,7 +43,15 @@ class ZsxsoftSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -51,8 +59,8 @@ class ZsxsoftSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
     }
 
@@ -60,6 +68,14 @@ class ZsxsoftSource implements SourceInterface
      * @return iterable|array[]
      */
     public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
+    }
+
+    /**
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
     {
         $path = 'vendor/zsxsoft/php-useragent/tests';
 
@@ -125,68 +141,47 @@ class ZsxsoftSource implements SourceInterface
                     $brand = '';
                 }
 
-                yield (string) UserAgent::fromUseragent($agent) => [
-                    'browser' => [
-                        'name'    => $data[1][2],
-                        'version' => $data[1][3],
-                    ],
-                    'platform' => [
-                        'name'    => $data[1][5],
-                        'version' => $data[1][6],
-                    ],
-                    'device' => [
-                        'name'     => $model,
-                        'brand'    => $brand,
-                        'type'     => null,
-                        'ismobile' => null,
-                    ],
-                    'engine' => [
-                        'name'    => null,
-                        'version' => null,
-                    ],
-                ];
-            }
-        }
-    }
-
-    /**
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/zsxsoft/php-useragent/tests';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $path);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('UserAgentList.php');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
-
-            $provider = require $filepath;
-
-            foreach ($provider as $data) {
-                $agent = trim($data[0][0]);
+                $agent = (string) UserAgent::fromUseragent($agent);
 
                 if (empty($agent)) {
                     continue;
                 }
 
-                yield $agent;
+                yield $agent => [
+                    'device' => [
+                        'deviceName'     => $model,
+                        'marketingName'   => null,
+                        'manufacturer'    => null,
+                        'brand'    => $brand,
+                        'pointingMethod'  => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type'     => null,
+                        'ismobile' => null,
+                    ],
+                    'browser' => [
+                        'name'    => $data[1][2],
+                        'modus' => null,
+                        'version' => $data[1][3],
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'    => $data[1][5],
+                        'marketingName' => null,
+                        'version' => $data[1][6],
+                        'manufacturer'  => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name'    => null,
+                        'version' => null,
+                        'manufacturer'  => null,
+                    ],
+                ];
             }
         }
     }
