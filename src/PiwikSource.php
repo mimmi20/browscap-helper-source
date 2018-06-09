@@ -12,6 +12,8 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
+use DeviceDetector\Parser\Client\Browser;
+use DeviceDetector\Parser\Device\DeviceParserAbstract;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -31,11 +33,27 @@ class PiwikSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'piwik/device-detector';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -43,9 +61,17 @@ class PiwikSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -87,14 +113,111 @@ class PiwikSource implements SourceInterface
                     continue;
                 }
 
-                $agent = trim($row['user_agent']);
+                $ua    = explode("\n", $row['user_agent']);
+                $ua    = array_map('trim', $ua);
+                $agent = trim(implode(' ', $ua));
 
                 if (empty($agent)) {
                     continue;
                 }
 
-                yield $agent;
+                $agent = (string) UserAgent::fromUseragent($agent);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device' => [
+                        'deviceName'       => $data['device']['model'],
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => DeviceParserAbstract::getFullName($data['device']['brand']),
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation'  => null,
+                        'type'             => $data['device']['type'],
+                        'ismobile'         => $this->isMobile($data),
+                    ],
+                    'browser' => [
+                        'name'         => $data['client']['name'],
+                        'modus'        => null,
+                        'version'      => $data['client']['version'],
+                        'manufacturer' => null,
+                        'bits'         => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => $data['os']['name'],
+                        'marketingName' => null,
+                        'version'       => $data['os']['version'],
+                        'manufacturer'  => null,
+                        'bits'          => null,
+                    ],
+                    'engine' => [
+                        'name'         => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
+                        'version'      => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
+                        'manufacturer' => null,
+                    ],
+                ];
             }
         }
+    }
+
+    private function isMobile(array $data): bool
+    {
+        $device     = $data['device']['type'];
+        $os         = $data['os']['short_name'];
+        $deviceType = DeviceParserAbstract::getAvailableDeviceTypes()[$device];
+
+        // Mobile device types
+        if (!empty($deviceType) && in_array($deviceType, [
+                DeviceParserAbstract::DEVICE_TYPE_FEATURE_PHONE,
+                DeviceParserAbstract::DEVICE_TYPE_SMARTPHONE,
+                DeviceParserAbstract::DEVICE_TYPE_TABLET,
+                DeviceParserAbstract::DEVICE_TYPE_PHABLET,
+                DeviceParserAbstract::DEVICE_TYPE_CAMERA,
+                DeviceParserAbstract::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
+            ])
+        ) {
+            return true;
+        }
+
+        // non mobile device types
+        if (!empty($deviceType) && in_array($deviceType, [
+                DeviceParserAbstract::DEVICE_TYPE_TV,
+                DeviceParserAbstract::DEVICE_TYPE_SMART_DISPLAY,
+                DeviceParserAbstract::DEVICE_TYPE_CONSOLE,
+            ])
+        ) {
+            return false;
+        }
+
+        // Check for browsers available for mobile devices only
+        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ? $data['client']['short_name'] : 'UNK')) {
+            return true;
+        }
+
+        if (empty($os) || 'UNK' === $os) {
+            return false;
+        }
+
+        return !$this->isDesktop($data);
+    }
+
+    private function isDesktop(array $data): bool
+    {
+        $osShort = $data['os']['short_name'];
+        if (empty($osShort) || 'UNK' === $osShort) {
+            return false;
+        }
+        // Check for browsers available for mobile devices only
+        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ? $data['client']['short_name'] : 'UNK')) {
+            return false;
+        }
+
+        return in_array($data['os_family'], ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS']);
     }
 }

@@ -13,28 +13,30 @@ namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
+use Seld\JsonLint\JsonParser;
+use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 
-class TxtFileSource implements SourceInterface
+class DonatjSource implements SourceInterface
 {
-    /**
-     * @var string
-     */
-    private $dir;
-
     /**
      * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
     /**
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param string                   $dir
+     * @var \Seld\JsonLint\JsonParser
      */
-    public function __construct(LoggerInterface $logger, string $dir)
+    private $jsonParser;
+
+    /**
+     * @param \Psr\Log\LoggerInterface $logger
+     */
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->dir    = $dir;
+
+        $this->jsonParser = new JsonParser();
     }
 
     /**
@@ -42,7 +44,7 @@ class TxtFileSource implements SourceInterface
      */
     public function getName(): string
     {
-        return 'txt-files';
+        return 'donatj/phpuseragentparser';
     }
 
     /**
@@ -84,54 +86,58 @@ class TxtFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        if (!file_exists($this->dir)) {
+        $path = 'vendor/donatj/phpuseragentparser/Tests';
+
+        if (!file_exists($path)) {
             return;
         }
 
-        $this->logger->info('    reading path ' . $this->dir);
+        $this->logger->info('    reading path ' . $path);
 
         $finder = new Finder();
         $finder->files();
-        $finder->name('*.txt');
+        $finder->name('user_agents.json');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
+        $finder->in($path);
 
         foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $handle = @fopen($filepath, 'r');
+            $content = $file->getContents();
 
-            if (false === $handle) {
-                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
+            if ('' === $content || PHP_EOL === $content) {
                 continue;
             }
 
-            $i = 1;
+            try {
+                $provider = $this->jsonParser->parse(
+                    $content,
+                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                );
+            } catch (ParsingException $e) {
+                $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
 
-            while (!feof($handle)) {
-                $line = fgets($handle, 65535);
+                continue;
+            }
 
-                if (false === $line) {
+            if (!is_array($provider)) {
+                continue;
+            }
+
+            foreach ($provider as $test => $data) {
+                $agent = trim($test);
+
+                if (empty($agent)) {
                     continue;
                 }
-                ++$i;
 
-                if (empty($line)) {
-                    continue;
-                }
-
-                $line = trim($line);
-
-                if (empty($line)) {
-                    continue;
-                }
-
-                $agent = (string) UserAgent::fromUseragent($line);
+                $agent = (string) UserAgent::fromUseragent($agent);
 
                 if (empty($agent)) {
                     continue;
@@ -151,16 +157,16 @@ class TxtFileSource implements SourceInterface
                         'ismobile'         => null,
                     ],
                     'browser' => [
-                        'name'         => null,
+                        'name'         => $data['browser'],
                         'modus'        => null,
-                        'version'      => null,
+                        'version'      => $data['version'],
                         'manufacturer' => null,
                         'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'          => null,
+                        'name'          => $data['platform'],
                         'marketingName' => null,
                         'version'       => null,
                         'manufacturer'  => null,
@@ -173,8 +179,6 @@ class TxtFileSource implements SourceInterface
                     ],
                 ];
             }
-
-            fclose($handle);
         }
     }
 }

@@ -15,13 +15,8 @@ use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class TxtFileSource implements SourceInterface
+class ZsxsoftSource implements SourceInterface
 {
-    /**
-     * @var string
-     */
-    private $dir;
-
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -29,12 +24,10 @@ class TxtFileSource implements SourceInterface
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
-     * @param string                   $dir
      */
-    public function __construct(LoggerInterface $logger, string $dir)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->dir    = $dir;
     }
 
     /**
@@ -42,7 +35,7 @@ class TxtFileSource implements SourceInterface
      */
     public function getName(): string
     {
-        return 'txt-files';
+        return 'zsxsoft/php-useragent';
     }
 
     /**
@@ -84,54 +77,71 @@ class TxtFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        if (!file_exists($this->dir)) {
+        $path = 'vendor/zsxsoft/php-useragent/tests';
+
+        if (!file_exists($path)) {
             return;
         }
 
-        $this->logger->info('    reading path ' . $this->dir);
+        $this->logger->info('    reading path ' . $path);
+
+        $brands = [];
+        $file   = new \SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
+        $file->setFlags(\SplFileObject::DROP_NEW_LINE);
+        while (!$file->eof()) {
+            $line = trim($file->fgets());
+            preg_match('/^\$brand = ("|\')(.*)("|\');$/', $line, $matches);
+
+            if (0 < count($matches)) {
+                $brand = $matches[2];
+                if (!empty($brand)) {
+                    $brands[] = $brand;
+                }
+            }
+        }
+        $brands = array_unique($brands);
+
+        usort($brands, static function ($a, $b) {
+            return mb_strlen($b) - mb_strlen($a);
+        });
 
         $finder = new Finder();
         $finder->files();
-        $finder->name('*.txt');
+        $finder->name('UserAgentList.php');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
+        $finder->in($path);
 
         foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $handle = @fopen($filepath, 'r');
+            $provider = require $filepath;
 
-            if (false === $handle) {
-                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
-                continue;
-            }
+            foreach ($provider as $data) {
+                $agent = trim($data[0][0]);
 
-            $i = 1;
-
-            while (!feof($handle)) {
-                $line = fgets($handle, 65535);
-
-                if (false === $line) {
-                    continue;
-                }
-                ++$i;
-
-                if (empty($line)) {
+                if (empty($agent)) {
                     continue;
                 }
 
-                $line = trim($line);
+                $brand = '';
+                $model = '';
 
-                if (empty($line)) {
-                    continue;
+                foreach ($brands as $brand) {
+                    if (false !== mb_strpos($data[1][8], $brand)) {
+                        $model = trim(str_replace($brand, '', $data[1][8]));
+
+                        break;
+                    }
+                    $brand = '';
                 }
 
-                $agent = (string) UserAgent::fromUseragent($line);
+                $agent = (string) UserAgent::fromUseragent($agent);
 
                 if (empty($agent)) {
                     continue;
@@ -139,10 +149,10 @@ class TxtFileSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => null,
+                        'deviceName'       => $model,
                         'marketingName'    => null,
                         'manufacturer'     => null,
-                        'brand'            => null,
+                        'brand'            => $brand,
                         'pointingMethod'   => null,
                         'resolutionWidth'  => null,
                         'resolutionHeight' => null,
@@ -151,18 +161,18 @@ class TxtFileSource implements SourceInterface
                         'ismobile'         => null,
                     ],
                     'browser' => [
-                        'name'         => null,
+                        'name'         => $data[1][2],
                         'modus'        => null,
-                        'version'      => null,
+                        'version'      => $data[1][3],
                         'manufacturer' => null,
                         'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'          => null,
+                        'name'          => $data[1][5],
                         'marketingName' => null,
-                        'version'       => null,
+                        'version'       => $data[1][6],
                         'manufacturer'  => null,
                         'bits'          => null,
                     ],
@@ -173,8 +183,6 @@ class TxtFileSource implements SourceInterface
                     ],
                 ];
             }
-
-            fclose($handle);
         }
     }
 }

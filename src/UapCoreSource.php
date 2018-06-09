@@ -12,8 +12,10 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
+use Doctrine\Common\Cache\PhpFileCache;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
 class UapCoreSource implements SourceInterface
@@ -24,11 +26,26 @@ class UapCoreSource implements SourceInterface
     private $logger;
 
     /**
-     * @param \Psr\Log\LoggerInterface $logger
+     * @var \Doctrine\Common\Cache\PhpFileCache
      */
-    public function __construct(LoggerInterface $logger)
+    private $cache;
+
+    /**
+     * @param \Psr\Log\LoggerInterface            $logger
+     * @param \Doctrine\Common\Cache\PhpFileCache $cache
+     */
+    public function __construct(LoggerInterface $logger, PhpFileCache $cache)
     {
         $this->logger = $logger;
+        $this->cache  = $cache;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'ua-parser/uap-core';
     }
 
     /**
@@ -36,7 +53,15 @@ class UapCoreSource implements SourceInterface
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -44,9 +69,17 @@ class UapCoreSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -75,35 +108,180 @@ class UapCoreSource implements SourceInterface
             $finder->in('vendor/ua-parser/uap-core/test_resources');
         }
 
+        $tests = [];
+
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $data = Yaml::parse($file->getContents());
+            $this->processFixture($file, $tests);
+        }
 
-            if (!is_array($data)) {
+        foreach ($tests as $agent => $test) {
+            $agent = (string) UserAgent::fromUseragent($agent);
+
+            if (empty($agent)) {
                 continue;
             }
 
-            if (empty($data['test_cases']) || !is_array($data['test_cases'])) {
-                continue;
-            }
+            yield $agent => $test;
+        }
+    }
 
-            foreach ($data['test_cases'] as $row) {
-                if (empty($row['user_agent_string'])) {
-                    continue;
+    /**
+     * @param \Symfony\Component\Finder\SplFileInfo $fixture
+     * @param array                                 $tests
+     */
+    private function processFixture(SplFileInfo $fixture, array &$tests): void
+    {
+        $key = sha1_file($fixture->getPathname());
+        if ($this->cache->contains($key)) {
+            $records = $this->cache->fetch($key);
+
+            foreach ($records as $ua => $data) {
+                $ua = addcslashes($ua, "\n");
+                if (!isset($tests[$ua])) {
+                    $tests[$ua] = [
+                        'device' => [
+                            'deviceName'       => null,
+                            'marketingName'    => null,
+                            'manufacturer'     => null,
+                            'brand'            => null,
+                            'pointingMethod'   => null,
+                            'resolutionWidth'  => null,
+                            'resolutionHeight' => null,
+                            'dualOrientation'  => null,
+                            'type'             => null,
+                            'ismobile'         => null,
+                        ],
+                        'browser' => [
+                            'name'         => null,
+                            'modus'        => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                            'bits'         => null,
+                            'type'         => null,
+                            'isbot'        => null,
+                        ],
+                        'platform' => [
+                            'name'          => null,
+                            'marketingName' => null,
+                            'version'       => null,
+                            'manufacturer'  => null,
+                            'bits'          => null,
+                        ],
+                        'engine' => [
+                            'name'         => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                        ],
+                    ];
                 }
 
-                $agent = trim($row['user_agent_string']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent;
+                $tests[$ua] = array_replace_recursive($tests[$ua], $data);
             }
+        } else {
+            $provider = Yaml::parse(file_get_contents($fixture->getPathname()));
+
+            $records = [];
+
+            foreach ($provider['test_cases'] as $data) {
+                $ua = $data['user_agent_string'];
+                if (!empty($ua)) {
+                    if (isset($tests[addcslashes($ua, "\n")])) {
+                        $browser  = $tests[$ua]['browser'];
+                        $platform = $tests[$ua]['platform'];
+                        $device   = $tests[$ua]['device'];
+                        $engine   = $tests[$ua]['engine'];
+                    } else {
+                        $browser = [
+                            'name'         => null,
+                            'modus'        => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                            'bits'         => null,
+                            'type'         => null,
+                            'isbot'        => null,
+                        ];
+
+                        $platform = [
+                            'name'          => null,
+                            'marketingName' => null,
+                            'version'       => null,
+                            'manufacturer'  => null,
+                            'bits'          => null,
+                        ];
+
+                        $device = [
+                            'deviceName'       => null,
+                            'marketingName'    => null,
+                            'manufacturer'     => null,
+                            'brand'            => null,
+                            'pointingMethod'   => null,
+                            'resolutionWidth'  => null,
+                            'resolutionHeight' => null,
+                            'dualOrientation'  => null,
+                            'type'             => null,
+                            'ismobile'         => null,
+                        ];
+
+                        $engine = [
+                            'name'         => null,
+                            'version'      => null,
+                            'manufacturer' => null,
+                        ];
+                    }
+
+                    switch ($fixture->getFilename()) {
+                        case 'test_device.yaml':
+                            $device = [
+                                'name'     => $data['model'],
+                                'brand'    => $data['brand'],
+                                'type'     => null,
+                                'ismobile' => null,
+                            ];
+
+                            $records[$ua]['device'] = $device;
+
+                            break;
+                        case 'test_os.yaml':
+                        case 'additional_os_tests.yaml':
+                            $platform = [
+                                'name'    => $data['family'],
+                                'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
+                            ];
+
+                            $records[$ua]['platform'] = $platform;
+
+                            break;
+                        case 'test_ua.yaml':
+                        case 'firefox_user_agent_strings.yaml':
+                        case 'opera_mini_user_agent_strings.yaml':
+                        case 'pgts_browser_list.yaml':
+                            $browser = [
+                                'name'    => $data['family'],
+                                'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
+                            ];
+
+                            $records[$ua]['browser'] = $browser;
+
+                            break;
+                    }
+
+                    $expected = [
+                        'browser'  => $browser,
+                        'platform' => $platform,
+                        'device'   => $device,
+                        'engine'   => $engine,
+                    ];
+
+                    $tests[addcslashes($ua, "\n")] = $expected;
+                }
+            }
+
+            $this->cache->save($key, $records);
         }
     }
 }

@@ -39,11 +39,27 @@ class DirectorySource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'directory';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -51,9 +67,17 @@ class DirectorySource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -61,6 +85,12 @@ class DirectorySource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
+        if (!file_exists($this->dir)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->dir);
+
         $finder = new Finder();
         $finder->files();
         $finder->ignoreDotFiles(true);
@@ -111,7 +141,47 @@ class DirectorySource implements SourceInterface
                     continue;
                 }
 
-                yield $line;
+                $agent = (string) UserAgent::fromUseragent($line);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device' => [
+                        'deviceName'       => null,
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => null,
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation'  => null,
+                        'type'             => null,
+                        'ismobile'         => null,
+                    ],
+                    'browser' => [
+                        'name'         => null,
+                        'modus'        => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                        'bits'         => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => null,
+                        'marketingName' => null,
+                        'version'       => null,
+                        'manufacturer'  => null,
+                        'bits'          => null,
+                    ],
+                    'engine' => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                    ],
+                ];
             }
 
             fclose($handle);

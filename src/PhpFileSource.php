@@ -15,7 +15,7 @@ use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class TxtFileSource implements SourceInterface
+class PhpFileSource implements SourceInterface
 {
     /**
      * @var string
@@ -42,7 +42,7 @@ class TxtFileSource implements SourceInterface
      */
     public function getName(): string
     {
-        return 'txt-files';
+        return 'php-files';
     }
 
     /**
@@ -92,7 +92,7 @@ class TxtFileSource implements SourceInterface
 
         $finder = new Finder();
         $finder->files();
-        $finder->name('*.txt');
+        $finder->name('*.php');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
@@ -104,34 +104,16 @@ class TxtFileSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $handle = @fopen($filepath, 'r');
+            $provider = require $filepath;
 
-            if (false === $handle) {
-                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
-                continue;
-            }
+            foreach (array_keys($provider) as $ua) {
+                $agent = trim($ua);
 
-            $i = 1;
-
-            while (!feof($handle)) {
-                $line = fgets($handle, 65535);
-
-                if (false === $line) {
-                    continue;
-                }
-                ++$i;
-
-                if (empty($line)) {
+                if (empty($agent)) {
                     continue;
                 }
 
-                $line = trim($line);
-
-                if (empty($line)) {
-                    continue;
-                }
-
-                $agent = (string) UserAgent::fromUseragent($line);
+                $agent = (string) UserAgent::fromUseragent($agent);
 
                 if (empty($agent)) {
                     continue;
@@ -173,8 +155,6 @@ class TxtFileSource implements SourceInterface
                     ],
                 ];
             }
-
-            fclose($handle);
         }
     }
 }

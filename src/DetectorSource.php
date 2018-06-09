@@ -40,11 +40,27 @@ class DetectorSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'mimmi20/browser-detector-tests';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -52,9 +68,17 @@ class DetectorSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -109,13 +133,47 @@ class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                $agent = trim($test->ua);
+                $agent = (string) UserAgent::fromHeaderArray($test['headers']);
 
                 if (empty($agent)) {
                     continue;
                 }
 
-                yield $agent;
+                yield $agent => [
+                    'device' => [
+                        'deviceName'       => $test['result']['device']['deviceName'],
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => $test['result']['device']['brand'],
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation'  => null,
+                        'type'             => $test['result']['device']['type'],
+                        'ismobile'         => null,
+                    ],
+                    'browser' => [
+                        'name'         => $test['result']['browser']['name'],
+                        'modus'        => null,
+                        'version'      => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
+                        'manufacturer' => null,
+                        'bits'         => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => $test['result']['os']['name'],
+                        'marketingName' => null,
+                        'version'       => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
+                        'manufacturer'  => null,
+                        'bits'          => null,
+                    ],
+                    'engine' => [
+                        'name'         => null,
+                        'version'      => null,
+                        'manufacturer' => null,
+                    ],
+                ];
             }
         }
     }

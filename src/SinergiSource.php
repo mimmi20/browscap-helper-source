@@ -14,9 +14,8 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Yaml;
 
-class YzalisSource implements SourceInterface
+class SinergiSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -36,7 +35,7 @@ class YzalisSource implements SourceInterface
      */
     public function getName(): string
     {
-        return 'yzalis/ua-parser';
+        return 'sinergi/browser-detector';
     }
 
     /**
@@ -78,7 +77,7 @@ class YzalisSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/yzalis/ua-parser/tests/UAParser/Tests/Fixtures';
+        $path = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
         if (!file_exists($path)) {
             return;
@@ -88,18 +87,12 @@ class YzalisSource implements SourceInterface
 
         $finder = new Finder();
         $finder->files();
-        $finder->name('browsers.yml');
-        $finder->name('devices.yml');
-        $finder->name('email_clients.yml');
-        $finder->name('operating_systems.yml');
-        $finder->name('rendering_engines.yml');
+        $finder->name('*.xml');
         $finder->ignoreDotFiles(true);
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
         $finder->in($path);
-
-        $tests = [];
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -107,21 +100,34 @@ class YzalisSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $provider = Yaml::parse($file->getContents());
+            $provider = simplexml_load_file($filepath);
 
-            if (!is_array($provider)) {
-                continue;
-            }
+            foreach ($provider->strings as $string) {
+                foreach ($string as $field) {
+                    $ua    = explode("\n", $field->field[6]);
+                    $ua    = array_map('trim', $ua);
+                    $agent = trim(implode(' ', $ua));
 
-            $providerName = $file->getFilename();
+                    if (empty($agent)) {
+                        continue;
+                    }
 
-            foreach ($provider as $data) {
-                $ua = $data[0];
+                    $browser        = (string) $field->field[0];
+                    $browserVersion = (string) $field->field[1];
 
-                if (!isset($tests[$ua])) {
-                    $tests[$ua] = [
+                    $platform        = (string) $field->field[2];
+                    $platformVersion = (string) $field->field[3];
+
+                    $device = (string) $field->field[4];
+                    $agent  = (string) UserAgent::fromUseragent($agent);
+
+                    if (empty($agent)) {
+                        continue;
+                    }
+
+                    yield $agent => [
                         'device' => [
-                            'deviceName'       => null,
+                            'deviceName'       => $device,
                             'marketingName'    => null,
                             'manufacturer'     => null,
                             'brand'            => null,
@@ -133,18 +139,18 @@ class YzalisSource implements SourceInterface
                             'ismobile'         => null,
                         ],
                         'browser' => [
-                            'name'         => null,
+                            'name'         => $browser,
                             'modus'        => null,
-                            'version'      => null,
+                            'version'      => $browserVersion,
                             'manufacturer' => null,
                             'bits'         => null,
                             'type'         => null,
                             'isbot'        => null,
                         ],
                         'platform' => [
-                            'name'          => null,
+                            'name'          => $platform,
                             'marketingName' => null,
-                            'version'       => null,
+                            'version'       => $platformVersion,
                             'manufacturer'  => null,
                             'bits'          => null,
                         ],
@@ -155,42 +161,7 @@ class YzalisSource implements SourceInterface
                         ],
                     ];
                 }
-
-                switch ($providerName) {
-                    case 'browsers.yml':
-                        $tests[$ua]['browser']['name']    = $data[1];
-                        $tests[$ua]['browser']['version'] = $data[2] . '.' . $data[3] . '.' . $data[4];
-
-                        break;
-                    case 'devices.yml':
-                        $tests[$ua]['device']['name']  = $data[2];
-                        $tests[$ua]['device']['brand'] = $data[1];
-                        $tests[$ua]['device']['type']  = $data[3];
-
-                        break;
-                    case 'operating_systems.yml':
-                        $tests[$ua]['platform']['name']    = $data[1];
-                        $tests[$ua]['platform']['version'] = $data[2] . (null !== $data[3] ? '.' . $data[3] . (null !== $data[4] ? '.' . $data[4] : '') : '');
-
-                        break;
-                    case 'rendering_engines.yml':
-                        $tests[$ua]['engine']['name']    = $data[1];
-                        $tests[$ua]['engine']['version'] = $data[2];
-
-                        break;
-                    // Skipping other files because we dont test this
-                }
             }
-        }
-
-        foreach ($tests as $agent => $test) {
-            $agent = (string) UserAgent::fromUseragent($agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent => $test;
         }
     }
 }

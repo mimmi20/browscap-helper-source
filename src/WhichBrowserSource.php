@@ -41,22 +41,26 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'whichbrowser/parser';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
     {
-        foreach ($this->loadFromPath() as $headers) {
-            if (empty($headers)) {
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
                 continue;
             }
 
-            $agent = trim($headers['User-Agent']);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent;
+            yield $headers['user-agent'];
         }
     }
 
@@ -65,19 +69,17 @@ class WhichBrowserSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers) {
-            if (empty($headers)) {
-                continue;
-            }
-
-            $lowerHeaders = [];
-
-            foreach ($headers as $header => $value) {
-                $lowerHeaders[mb_strtolower($header)] = $value;
-            }
-
-            yield (string) UserAgent::fromHeaderArray($lowerHeaders);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -121,7 +123,53 @@ class WhichBrowserSource implements SourceInterface
                     continue;
                 }
 
-                yield $headers;
+                $lowerHeaders = [];
+
+                foreach ($headers as $header => $value) {
+                    $lowerHeaders[mb_strtolower($header)] = $value;
+                }
+
+                $agent = (string) UserAgent::fromHeaderArray($lowerHeaders);
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield $agent => [
+                    'device' => [
+                        'deviceName'       => $row['device']['model'],
+                        'marketingName'    => null,
+                        'manufacturer'     => null,
+                        'brand'            => $row['device']['manufacturer'],
+                        'pointingMethod'   => null,
+                        'resolutionWidth'  => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation'  => null,
+                        'type'             => $row['device']['type'],
+                        'ismobile'         => $this->isMobile($row) ? true : false,
+                    ],
+                    'browser' => [
+                        'name'         => $row['browser']['name'],
+                        'modus'        => null,
+                        'version'      => is_array($row['browser']['version']) ? $row['browser']['version']['value'] : $row['browser']['version'],
+                        'manufacturer' => null,
+                        'bits'         => null,
+                        'type'         => null,
+                        'isbot'        => null,
+                    ],
+                    'platform' => [
+                        'name'          => $row['os']['name'],
+                        'marketingName' => null,
+                        'version'       => is_array($row['os']['version']) ? $row['os']['version']['value'] : $row['os']['version'],
+                        'manufacturer'  => null,
+                        'bits'          => null,
+                    ],
+                    'engine' => [
+                        'name'         => (!empty($row['engine']['name']) ? $row['engine']['name'] : null),
+                        'version'      => (!empty($row['engine']['version']) ? $row['engine']['version'] : null),
+                        'manufacturer' => null,
+                    ],
+                ];
             }
         }
     }
@@ -146,6 +194,8 @@ class WhichBrowserSource implements SourceInterface
             } elseif (function_exists('\http_parse_headers')) {
                 // pecl_http version 1.x
                 $headers = \http_parse_headers($row['headers']);
+            } elseif (0 === mb_strpos($row['headers'], 'User-Agent: ')) {
+                $headers = ['user-agent' => str_replace('User-Agent: ', '', $row['headers'])];
             } else {
                 return [];
             }
@@ -156,5 +206,31 @@ class WhichBrowserSource implements SourceInterface
         }
 
         return [];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return bool|null
+     */
+    private function isMobile(array $data): ?bool
+    {
+        if (!isset($data['device']['type'])) {
+            return null;
+        }
+
+        $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
+
+        if (in_array($data['device']['type'], $mobileTypes)) {
+            return true;
+        }
+
+        if ('gaming' === $data['device']['type']) {
+            if (isset($data['device']['subtype']) && 'portable' === $data['device']['subtype']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

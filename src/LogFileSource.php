@@ -40,11 +40,27 @@ class LogFileSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'log-files';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $headers => $test) {
+            $headers = UserAgent::fromString($headers)->getHeader();
+
+            if (!isset($headers['user-agent'])) {
+                continue;
+            }
+
+            yield $headers['user-agent'];
+        }
     }
 
     /**
@@ -52,9 +68,17 @@ class LogFileSource implements SourceInterface
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            yield (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $headers => $test) {
+            yield $headers;
         }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        yield from $this->loadFromPath();
     }
 
     /**
@@ -62,6 +86,12 @@ class LogFileSource implements SourceInterface
      */
     private function loadFromPath(): iterable
     {
+        if (!file_exists($this->sourcesDirectory)) {
+            return;
+        }
+
+        $this->logger->info('    reading path ' . $this->sourcesDirectory);
+
         $finder = new Finder();
         $finder->files();
         $finder->notName('*.filepart');
@@ -92,6 +122,48 @@ class LogFileSource implements SourceInterface
             $reader->addLocalFile($filepath);
         }
 
-        yield from $reader->getAgents($this->logger);
+        foreach ($reader->getAgents($this->logger) as $agent) {
+            $agent = (string) UserAgent::fromUseragent($agent);
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => [
+                'device' => [
+                    'deviceName'       => null,
+                    'marketingName'    => null,
+                    'manufacturer'     => null,
+                    'brand'            => null,
+                    'pointingMethod'   => null,
+                    'resolutionWidth'  => null,
+                    'resolutionHeight' => null,
+                    'dualOrientation'  => null,
+                    'type'             => null,
+                    'ismobile'         => null,
+                ],
+                'browser' => [
+                    'name'         => null,
+                    'modus'        => null,
+                    'version'      => null,
+                    'manufacturer' => null,
+                    'bits'         => null,
+                    'type'         => null,
+                    'isbot'        => null,
+                ],
+                'platform' => [
+                    'name'          => null,
+                    'marketingName' => null,
+                    'version'       => null,
+                    'manufacturer'  => null,
+                    'bits'          => null,
+                ],
+                'engine' => [
+                    'name'         => null,
+                    'version'      => null,
+                    'manufacturer' => null,
+                ],
+            ];
+        }
     }
 }

@@ -33,6 +33,14 @@ class CollectionSource implements SourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return 'collection';
+    }
+
+    /**
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -49,6 +57,16 @@ class CollectionSource implements SourceInterface
     {
         foreach ($this->collection as $source) {
             yield from $source->getHeaders();
+        }
+    }
+
+    /**
+     * @return array[]|iterable
+     */
+    public function getProperties(): iterable
+    {
+        foreach ($this->collection as $source) {
+            yield from $source->getProperties();
         }
     }
 }
