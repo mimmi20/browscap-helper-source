@@ -15,6 +15,7 @@
   ],
   "require": {
     "php": "^7.1",
+    "psr/log": "^1.0",
     "mustangostang/spyc": "*",
     "symfony/finder": "^4.1",
     "symfony/yaml": "^4.1"
@@ -40,6 +41,7 @@
     "zsxsoft/php-useragent": "dev-master"
   },
   "suggest": {
+    "ext-pdo": "required for the PdoSource",
     "browscap/browscap": "To read these useragents",
     "doctrine/cache": "required for the UapCoreSource",
     "donatj/phpuseragentparser": "To read these useragents",
