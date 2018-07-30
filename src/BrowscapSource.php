@@ -122,53 +122,59 @@ class BrowscapSource implements SourceInterface
                     continue;
                 }
 
-                $isMobile = false;
+                $isMobile = null;
 
-                switch ($data['properties']['Device_Type']) {
-                    case 'Mobile Phone':
-                    case 'Tablet':
-                    case 'Console':
-                    case 'Digital Camera':
-                    case 'Ebook Reader':
-                    case 'Mobile Device':
-                        $isMobile = true;
+                if (!empty($row['properties']['Device_Type'])) {
+                    switch ($row['properties']['Device_Type']) {
+                        case 'Mobile Phone':
+                        case 'Tablet':
+                        case 'Console':
+                        case 'Digital Camera':
+                        case 'Ebook Reader':
+                        case 'Mobile Device':
+                            $isMobile = true;
 
-                        break;
+                            break;
+                        default:
+                            $isMobile = false;
+
+                            break;
+                    }
                 }
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => $data['properties']['Device_Code_Name'],
-                        'marketingName'    => $data['properties']['Device_Name'],
-                        'manufacturer'     => $data['properties']['Device_Maker'],
-                        'brand'            => $data['properties']['Device_Brand_Name'],
-                        'pointingMethod'   => $data['properties']['Device_Pointing_Method'],
+                        'deviceName'       => $row['properties']['Device_Code_Name'] ?? null,
+                        'marketingName'    => $row['properties']['Device_Name'] ?? null,
+                        'manufacturer'     => $row['properties']['Device_Maker'] ?? null,
+                        'brand'            => $row['properties']['Device_Brand_Name'] ?? null,
+                        'pointingMethod'   => $row['properties']['Device_Pointing_Method'] ?? null,
                         'resolutionWidth'  => null,
                         'resolutionHeight' => null,
                         'dualOrientation'  => null,
-                        'type'             => $data['properties']['Device_Type'],
+                        'type'             => $row['properties']['Device_Type'] ?? null,
                         'ismobile'         => $isMobile,
                     ],
                     'browser' => [
-                        'name'         => $data['properties']['Browser'],
-                        'modus'        => $data['properties']['Browser_Modus'],
-                        'version'      => $data['properties']['Version'],
-                        'manufacturer' => $data['properties']['Browser_Maker'],
-                        'bits'         => $data['properties']['Browser_Bits'],
-                        'type'         => $data['properties']['Browser_Type'],
-                        'isbot'        => $data['properties']['Crawler'],
+                        'name'         => $row['properties']['Browser'] ?? null,
+                        'modus'        => $row['properties']['Browser_Modus'] ?? null,
+                        'version'      => $row['properties']['Version'] ?? null,
+                        'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
+                        'bits'         => $row['properties']['Browser_Bits'] ?? null,
+                        'type'         => $row['properties']['Browser_Type'] ?? null,
+                        'isbot'        => $row['properties']['Crawler'] ?? null,
                     ],
                     'platform' => [
-                        'name'          => $data['properties']['Platform'] ?? 'unknown',
+                        'name'          => $row['properties']['Platform'] ?? null,
                         'marketingName' => null,
-                        'version'       => $data['properties']['Platform_Version'],
-                        'manufacturer'  => $data['properties']['Platform_Maker'],
-                        'bits'          => $data['properties']['Platform_Bits'],
+                        'version'       => $row['properties']['Platform_Version'] ?? null,
+                        'manufacturer'  => $row['properties']['Platform_Maker'] ?? null,
+                        'bits'          => $row['properties']['Platform_Bits'] ?? null,
                     ],
                     'engine' => [
-                        'name'         => $data['properties']['RenderingEngine_Name'],
-                        'version'      => $data['properties']['RenderingEngine_Version'],
-                        'manufacturer' => $data['properties']['RenderingEngine_Maker'],
+                        'name'         => $row['properties']['RenderingEngine_Name'] ?? null,
+                        'version'      => $row['properties']['RenderingEngine_Version'] ?? null,
+                        'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
                     ],
                 ];
             }

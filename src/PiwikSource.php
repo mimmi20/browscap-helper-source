@@ -129,30 +129,30 @@ class PiwikSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => $data['device']['model'],
+                        'deviceName'       => $data['device']['model'] ?? null,
                         'marketingName'    => null,
                         'manufacturer'     => null,
-                        'brand'            => DeviceParserAbstract::getFullName($data['device']['brand']),
+                        'brand'            => (!empty($data['device']['brand']) ? DeviceParserAbstract::getFullName($data['device']['brand']) : null),
                         'pointingMethod'   => null,
                         'resolutionWidth'  => null,
                         'resolutionHeight' => null,
                         'dualOrientation'  => null,
-                        'type'             => $data['device']['type'],
+                        'type'             => $data['device']['type'] ?? null,
                         'ismobile'         => $this->isMobile($data),
                     ],
                     'browser' => [
-                        'name'         => $data['client']['name'],
+                        'name'         => $data['client']['name'] ?? null,
                         'modus'        => null,
-                        'version'      => $data['client']['version'],
+                        'version'      => $data['client']['version'] ?? null,
                         'manufacturer' => null,
                         'bits'         => null,
                         'type'         => null,
                         'isbot'        => null,
                     ],
                     'platform' => [
-                        'name'          => $data['os']['name'],
+                        'name'          => $data['os']['name'] ?? null,
                         'marketingName' => null,
-                        'version'       => $data['os']['version'],
+                        'version'       => $data['os']['version'] ?? null,
                         'manufacturer'  => null,
                         'bits'          => null,
                     ],
@@ -166,8 +166,12 @@ class PiwikSource implements SourceInterface
         }
     }
 
-    private function isMobile(array $data): bool
+    private function isMobile(array $data): ?bool
     {
+        if (empty($data['device']['type'])) {
+            return null;
+        }
+
         $device     = $data['device']['type'];
         $os         = $data['os']['short_name'];
         $deviceType = DeviceParserAbstract::getAvailableDeviceTypes()[$device];
