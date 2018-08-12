@@ -107,7 +107,7 @@ class PhpFileSource implements SourceInterface
             $provider = require $filepath;
 
             foreach (array_keys($provider) as $ua) {
-                $agent = trim($ua);
+                $agent = trim((string) $ua);
 
                 if (empty($agent)) {
                     continue;

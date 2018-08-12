@@ -183,7 +183,7 @@ class UapCoreSource implements SourceInterface
                 $tests[$ua] = array_replace_recursive($tests[$ua], $data);
             }
         } else {
-            $provider = Yaml::parse(file_get_contents($fixture->getPathname()));
+            $provider = Yaml::parse($fixture->getContents());
 
             $records = [];
 

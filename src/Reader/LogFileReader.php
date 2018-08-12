@@ -110,7 +110,7 @@ class LogFileReader implements ReaderInterface
         $parts = explode('"', $text);
         array_pop($parts);
 
-        $userAgent = array_pop($parts);
+        $userAgent = (string) array_pop($parts);
 
         return $userAgent;
     }

@@ -2,11 +2,22 @@ parameters:
   autoload_files:
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
+  includes:
+  	- vendor/phpstan/phpstan-strict-rules/rules.neon
+  	- vendor/phpstan/phpstan-phpunit/extension.neon
+  	- vendor/phpstan/phpstan-phpunit/rules.neon
+  	- vendor/pepakriz/phpstan-exception-rules/extension.neon
+  	- vendor/phpstan/phpstan-deprecation-rules/rules.neon
+  	- vendor/phpstan/phpstan-beberlei-assert/extension.neon
+  parameters:
+  	exceptionRules:
+  		reportUnusedCatchesOfUncheckedExceptions: false
+  		uncheckedExceptions: []
   excludes_analyse:
     - */tests/*/data/*
   ignoreErrors:
-    - '~of function array_multisort is passed by reference, so it expects variables only~'
+#    - '~of function array_multisort is passed by reference, so it expects variables only~'
     - '~Function http_parse_headers not found~'
     - '~Class http\\Header not found~'
     - '~Call to static method parse\(\) on an unknown class http\\Header~'
-#    - '~might not be defined~'
+    - '~Exception given~'
