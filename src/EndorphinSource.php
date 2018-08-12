@@ -102,7 +102,19 @@ class EndorphinSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $provider = simplexml_load_file($filepath);
+            $content = $file->getContents();
+
+            if (empty($content)) {
+                $this->logger->error('    reading file ' . $filepath . ' failed. The file is empty.');
+                continue;
+            }
+
+            $provider = simplexml_load_string($content);
+
+            if (false === $provider) {
+                $this->logger->error('    reading file ' . $filepath . ' failed.');
+                continue;
+            }
 
             foreach ($provider->test as $test) {
                 $expected = [

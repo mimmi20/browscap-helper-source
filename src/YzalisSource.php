@@ -184,7 +184,7 @@ class YzalisSource implements SourceInterface
         }
 
         foreach ($tests as $agent => $test) {
-            $agent = (string) UserAgent::fromUseragent($agent);
+            $agent = (string) UserAgent::fromUseragent((string) $agent);
 
             if (empty($agent)) {
                 continue;
