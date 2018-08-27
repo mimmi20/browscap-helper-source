@@ -34,6 +34,7 @@ jobs:
   allow_failures:
     - php: 7.3
     - php: nightly
+    - env: COMPOSER_FLAGS="--prefer-lowest"
   include:
     - stage: composer validate
       php: 7.1
