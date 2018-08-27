@@ -22,15 +22,16 @@
     "symfony/yaml": "^4.1"
   },
   "require-dev": {
+    "ext-json": "*",
     "ext-pdo": "*",
     "ext-simplexml": "*",
     "browscap/browscap": "dev-master",
     "doctrine/cache": "^1.7",
     "donatj/phpuseragentparser": "dev-master",
     "endorphin-studio/browser-detector": "^3.0",
-    "friendsofphp/php-cs-fixer": "^2.12",
+    "friendsofphp/php-cs-fixer": "^2.13",
     "jaybizzle/crawler-detect": "dev-master",
-    "mimmi20/browser-detector-tests": "~2.0.18",
+    "mimmi20/browser-detector-tests": "~2.0.24",
     "mobiledetect/mobiledetectlib": "dev-master",
     "pepakriz/phpstan-exception-rules": "^0.3",
     "phpstan/phpstan": "^0.10",
@@ -49,6 +50,7 @@
   },
   "suggest": {
     "ext-http": "to parse headers in the WhichBrowserSource",
+    "ext-json": "required for several sources",
     "ext-pdo": "required for the PdoSource",
     "ext-simplexml": "required for the EndorphinSource or the SinergiSource",
     "browscap/browscap": "To read these useragents",
