@@ -114,7 +114,7 @@ class DirectorySource implements SourceInterface
                 continue;
             }
 
-            $handle = @fopen($fullPath, 'r');
+            $handle = @fopen($fullPath, 'rb');
 
             if (false === $handle) {
                 $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));

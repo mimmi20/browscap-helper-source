@@ -54,7 +54,7 @@ class LogFileReader implements ReaderInterface
         foreach ($this->files as $file) {
             $this->logger->info('    reading file ' . str_pad($file, 100, ' ', STR_PAD_RIGHT));
 
-            $handle = @fopen($file, 'r');
+            $handle = @fopen($file, 'rb');
 
             if (false === $handle) {
                 $this->logger->emergency(new \RuntimeException('reading file ' . $file . ' caused an error'));

@@ -136,7 +136,7 @@ class UapCoreSource implements SourceInterface
      */
     private function processFixture(SplFileInfo $fixture, array &$tests): void
     {
-        $key = sha1_file($fixture->getPathname());
+        $key = (string) sha1_file($fixture->getPathname());
         if ($this->cache->contains($key)) {
             $records = $this->cache->fetch($key);
 

@@ -101,7 +101,7 @@ class CrawlerDetectSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $handle = @fopen($filepath, 'r');
+            $handle = @fopen($filepath, 'rb');
 
             if (false === $handle) {
                 $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
