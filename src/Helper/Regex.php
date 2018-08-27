@@ -33,7 +33,7 @@ class Regex
             . '\D+'
             . '(?P<length>\d+)'                  // Length (include Header)
             . '[^\d"]+'
-            . '\"(?P<referrer>[^"]*)\"'          // Referrer
+            . '\"(?P<referrer>.*)\"'             // Referrer
             . '[^"]+'
             . '\"(?P<userAgentString>[^"]*)\".*' // User Agent
             . '$/x';
