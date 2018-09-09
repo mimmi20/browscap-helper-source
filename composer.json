@@ -15,9 +15,9 @@
   ],
   "require": {
     "php": "^7.1",
+    "mimmi20/json-class": "~1.0.0",
     "mustangostang/spyc": "*",
     "psr/log": "^1.0",
-    "seld/jsonlint": "^1.7",
     "symfony/finder": "^4.1",
     "symfony/yaml": "^4.1"
   },

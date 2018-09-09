@@ -12,9 +12,9 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
+use ExceptionalJSON\DecodeErrorException;
+use JsonClass\Json;
 use Psr\Log\LoggerInterface;
-use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 
 class DonatjSource implements SourceInterface
@@ -25,18 +25,11 @@ class DonatjSource implements SourceInterface
     private $logger;
 
     /**
-     * @var \Seld\JsonLint\JsonParser
-     */
-    private $jsonParser;
-
-    /**
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-
-        $this->jsonParser = new JsonParser();
     }
 
     /**
@@ -116,11 +109,11 @@ class DonatjSource implements SourceInterface
             }
 
             try {
-                $provider = $this->jsonParser->parse(
+                $provider = (new Json())->decode(
                     $content,
-                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                    true
                 );
-            } catch (ParsingException $e) {
+            } catch (DecodeErrorException $e) {
                 $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
 
                 continue;

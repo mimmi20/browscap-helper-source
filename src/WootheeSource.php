@@ -13,7 +13,6 @@ namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
-use Seld\JsonLint\JsonParser;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
@@ -25,18 +24,11 @@ class WootheeSource implements SourceInterface
     private $logger;
 
     /**
-     * @var \Seld\JsonLint\JsonParser
-     */
-    private $jsonParser;
-
-    /**
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-
-        $this->jsonParser = new JsonParser();
     }
 
     /**

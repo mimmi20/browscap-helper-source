@@ -12,9 +12,9 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
+use ExceptionalJSON\DecodeErrorException;
+use JsonClass\Json;
 use Psr\Log\LoggerInterface;
-use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
 use Symfony\Component\Finder\Finder;
 
 class UaParserJsSource implements SourceInterface
@@ -96,8 +96,7 @@ class UaParserJsSource implements SourceInterface
         $finder->ignoreUnreadableDirs();
         $finder->in($path);
 
-        $jsonParser = new JsonParser();
-        $agents     = [];
+        $agents = [];
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -106,11 +105,11 @@ class UaParserJsSource implements SourceInterface
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
             try {
-                $provider = $jsonParser->parse(
+                $provider = (new Json())->decode(
                     $file->getContents(),
-                    JsonParser::DETECT_KEY_CONFLICTS | JsonParser::PARSE_TO_ASSOC
+                    true
                 );
-            } catch (ParsingException $e) {
+            } catch (DecodeErrorException $e) {
                 $this->logger->error(
                     new \Exception(sprintf('file %s contains invalid json.', $file->getPathname()), 0, $e)
                 );
