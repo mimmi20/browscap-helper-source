@@ -15,9 +15,9 @@
   ],
   "require": {
     "php": "^7.1",
+    "mimmi20/json-class": "~1.0.0",
     "mustangostang/spyc": "*",
     "psr/log": "^1.0",
-    "seld/jsonlint": "^1.7",
     "symfony/finder": "^4.1",
     "symfony/yaml": "^4.1"
   },
@@ -31,7 +31,8 @@
     "endorphin-studio/browser-detector": "^3.0",
     "friendsofphp/php-cs-fixer": "^2.13",
     "jaybizzle/crawler-detect": "dev-master",
-    "mimmi20/browser-detector-tests": "~2.0.24",
+    "mimmi20/browser-detector": "~4.0.14",
+    "mimmi20/browser-detector-tests": "~2.0.26",
     "mobiledetect/mobiledetectlib": "dev-master",
     "pepakriz/phpstan-exception-rules": "^0.3",
     "phpstan/phpstan": "^0.10",
