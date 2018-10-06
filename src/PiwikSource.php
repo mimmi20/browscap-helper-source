@@ -16,6 +16,7 @@ use DeviceDetector\Parser\Client\Browser;
 use DeviceDetector\Parser\Device\DeviceParserAbstract;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Yaml\Yaml;
 
 class PiwikSource implements SourceInterface
 {
@@ -102,7 +103,7 @@ class PiwikSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $data = \Spyc::YAMLLoadString($file->getContents());
+            $data = Yaml::parse($file->getContents());
 
             if (!is_array($data)) {
                 continue;
