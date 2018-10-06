@@ -41,8 +41,7 @@ jobs:
       php: 7.1
       env: COMPOSER_FLAGS=""
       install: skip
-      script:
-        - composer validate
+      script: composer validate
 
     - stage: static code analysis
       php: 7.1
