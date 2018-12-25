@@ -4,11 +4,8 @@ parameters:
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
   includes:
     - vendor/phpstan/phpstan-strict-rules/rules.neon
-    - vendor/phpstan/phpstan-phpunit/extension.neon
-    - vendor/phpstan/phpstan-phpunit/rules.neon
     - vendor/pepakriz/phpstan-exception-rules/extension.neon
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
-    - vendor/phpstan/phpstan-beberlei-assert/extension.neon
     - vendor/localheinz/phpstan-rules/rules.neon
   parameters:
     exceptionRules:
@@ -22,3 +19,5 @@ parameters:
     - '~Class http\\Header not found~'
     - '~Call to static method parse\(\) on an unknown class http\\Header~'
     - '~Exception given~'
+    - '~InvalidArgumentException is not subtype of Throwable~'
+    - '~InvalidArgumentException&Throwable given~'
