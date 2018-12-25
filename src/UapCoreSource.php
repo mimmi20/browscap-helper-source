@@ -12,8 +12,9 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Doctrine\Common\Cache\PhpFileCache;
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\InvalidArgumentException;
+use Symfony\Component\Cache\Simple\PhpFilesCache;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
@@ -26,15 +27,15 @@ class UapCoreSource implements SourceInterface
     private $logger;
 
     /**
-     * @var \Doctrine\Common\Cache\PhpFileCache
+     * @var \Symfony\Component\Cache\Simple\PhpFilesCache
      */
     private $cache;
 
     /**
-     * @param \Psr\Log\LoggerInterface            $logger
-     * @param \Doctrine\Common\Cache\PhpFileCache $cache
+     * @param \Psr\Log\LoggerInterface                      $logger
+     * @param \Symfony\Component\Cache\Simple\PhpFilesCache $cache
      */
-    public function __construct(LoggerInterface $logger, PhpFileCache $cache)
+    public function __construct(LoggerInterface $logger, PhpFilesCache $cache)
     {
         $this->logger = $logger;
         $this->cache  = $cache;
@@ -116,7 +117,11 @@ class UapCoreSource implements SourceInterface
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            $this->processFixture($file, $tests);
+            try {
+                $this->processFixture($file, $tests);
+            } catch (InvalidArgumentException $e) {
+                $this->logger->error($e);
+            }
         }
 
         foreach ($tests as $agent => $test) {
@@ -133,12 +138,14 @@ class UapCoreSource implements SourceInterface
     /**
      * @param \Symfony\Component\Finder\SplFileInfo $fixture
      * @param array                                 $tests
+     *
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     private function processFixture(SplFileInfo $fixture, array &$tests): void
     {
         $key = (string) sha1_file($fixture->getPathname());
-        if ($this->cache->contains($key)) {
-            $records = $this->cache->fetch($key);
+        if ($this->cache->has($key)) {
+            $records = $this->cache->get($key);
 
             foreach ($records as $ua => $data) {
                 $ua = addcslashes($ua, "\n");
@@ -292,7 +299,7 @@ class UapCoreSource implements SourceInterface
                 }
             }
 
-            $this->cache->save($key, $records);
+            $this->cache->set($key, $records);
         }
     }
 }
