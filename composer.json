@@ -15,23 +15,25 @@
   ],
   "require": {
     "php": "^7.1",
-    "mimmi20/json-class": "~1.0.0",
+    "mimmi20/json-class": "~2.0.1",
     "psr/log": "^1.0",
-    "symfony/finder": "^4.1",
-    "symfony/yaml": "^4.1"
+    "symfony/finder": "^4.2",
+    "symfony/yaml": "^4.2"
   },
   "require-dev": {
     "ext-json": "*",
     "ext-pdo": "*",
     "ext-simplexml": "*",
-    "browscap/browscap": "dev-master",
+    "browscap/browscap": "dev-update-dependencies",
     "doctrine/cache": "^1.7",
     "donatj/phpuseragentparser": "dev-master",
     "endorphin-studio/browser-detector": "^3.0",
     "friendsofphp/php-cs-fixer": "^2.13",
     "jaybizzle/crawler-detect": "dev-master",
-    "mimmi20/browser-detector": "~4.0.14",
-    "mimmi20/browser-detector-tests": "~2.0.26",
+    "localheinz/composer-normalize": "^1.0.0",
+    "localheinz/phpstan-rules": "^0.4",
+    "mimmi20/browser-detector": "dev-updates",
+    "mimmi20/browser-detector-tests": "dev-updates",
     "mobiledetect/mobiledetectlib": "dev-master",
     "pepakriz/phpstan-exception-rules": "^0.3",
     "phpstan/phpstan": "^0.10",
@@ -41,7 +43,7 @@
     "phpstan/phpstan-strict-rules": "^0.10",
     "piwik/device-detector": "dev-master",
     "sinergi/browser-detector": "dev-master",
-    "squizlabs/php_codesniffer": "^3.3",
+    "squizlabs/php_codesniffer": "^3.4",
     "ua-parser/uap-core": "dev-master",
     "whichbrowser/parser": "dev-master",
     "woothee/woothee-testset": "dev-master",
@@ -69,6 +71,11 @@
     "yzalis/ua-parser": "To read these useragents",
     "zsxsoft/php-useragent": "To read these useragents"
   },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
   "autoload": {
     "psr-4": {
       "BrowscapHelper\\Source\\": "src/"
@@ -78,6 +85,12 @@
     {
       "type": "git",
       "url": "https://github.com/mimmi20/uap-core"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/mimmi20/browscap"
     }
-  ]
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

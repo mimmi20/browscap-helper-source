@@ -149,16 +149,27 @@ class ZsxsoftSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => $model,
-                        'marketingName'    => null,
-                        'manufacturer'     => null,
-                        'brand'            => $brand,
-                        'pointingMethod'   => null,
-                        'resolutionWidth'  => null,
-                        'resolutionHeight' => null,
-                        'dualOrientation'  => null,
-                        'type'             => null,
-                        'ismobile'         => null,
+                        'deviceName'    => $model,
+                        'marketingName' => null,
+                        'manufacturer'  => null,
+                        'brand'         => $brand,
+                        'display'       => [
+                            'width'  => null,
+                            'height' => null,
+                            'touch'  => null,
+                            'type'   => null,
+                            'size'   => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type'            => null,
+                        'simCount'        => null,
+                        'market'          => [
+                            'regions'   => null,
+                            'countries' => null,
+                            'vendors'   => null,
+                        ],
+                        'connections' => null,
+                        'ismobile'    => null,
                     ],
                     'browser' => [
                         'name'         => $data[1][2],

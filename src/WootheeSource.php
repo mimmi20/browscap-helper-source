@@ -126,16 +126,27 @@ class WootheeSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => null,
-                        'marketingName'    => null,
-                        'manufacturer'     => null,
-                        'brand'            => null,
-                        'pointingMethod'   => null,
-                        'resolutionWidth'  => null,
-                        'resolutionHeight' => null,
-                        'dualOrientation'  => null,
-                        'type'             => $row['category'] ?? null,
-                        'ismobile'         => null,
+                        'deviceName'    => null,
+                        'marketingName' => null,
+                        'manufacturer'  => null,
+                        'brand'         => null,
+                        'display'       => [
+                            'width'  => null,
+                            'height' => null,
+                            'touch'  => null,
+                            'type'   => null,
+                            'size'   => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type'            => $row['category'] ?? null,
+                        'simCount'        => null,
+                        'market'          => [
+                            'regions'   => null,
+                            'countries' => null,
+                            'vendors'   => null,
+                        ],
+                        'connections' => null,
+                        'ismobile'    => null,
                     ],
                     'browser' => [
                         'name'         => $row['name'] ?? null,

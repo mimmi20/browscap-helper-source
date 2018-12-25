@@ -121,16 +121,27 @@ class YamlFileSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => null,
-                        'marketingName'    => null,
-                        'manufacturer'     => null,
-                        'brand'            => null,
-                        'pointingMethod'   => null,
-                        'resolutionWidth'  => null,
-                        'resolutionHeight' => null,
-                        'dualOrientation'  => null,
-                        'type'             => null,
-                        'ismobile'         => null,
+                        'deviceName'    => null,
+                        'marketingName' => null,
+                        'manufacturer'  => null,
+                        'brand'         => null,
+                        'display'       => [
+                            'width'  => null,
+                            'height' => null,
+                            'touch'  => null,
+                            'type'   => null,
+                            'size'   => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type'            => null,
+                        'simCount'        => null,
+                        'market'          => [
+                            'regions'   => null,
+                            'countries' => null,
+                            'vendors'   => null,
+                        ],
+                        'connections' => null,
+                        'ismobile'    => null,
                     ],
                     'browser' => [
                         'name'         => null,

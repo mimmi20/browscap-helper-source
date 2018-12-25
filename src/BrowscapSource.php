@@ -122,38 +122,29 @@ class BrowscapSource implements SourceInterface
                     continue;
                 }
 
-                $isMobile = null;
-
-                if (!empty($row['properties']['Device_Type'])) {
-                    switch ($row['properties']['Device_Type']) {
-                        case 'Mobile Phone':
-                        case 'Tablet':
-                        case 'Console':
-                        case 'Digital Camera':
-                        case 'Ebook Reader':
-                        case 'Mobile Device':
-                            $isMobile = true;
-
-                            break;
-                        default:
-                            $isMobile = false;
-
-                            break;
-                    }
-                }
-
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => $row['properties']['Device_Code_Name'] ?? null,
-                        'marketingName'    => $row['properties']['Device_Name'] ?? null,
-                        'manufacturer'     => $row['properties']['Device_Maker'] ?? null,
-                        'brand'            => $row['properties']['Device_Brand_Name'] ?? null,
-                        'pointingMethod'   => $row['properties']['Device_Pointing_Method'] ?? null,
-                        'resolutionWidth'  => null,
-                        'resolutionHeight' => null,
-                        'dualOrientation'  => null,
-                        'type'             => $row['properties']['Device_Type'] ?? null,
-                        'ismobile'         => $isMobile,
+                        'deviceName'    => $row['properties']['Device_Code_Name'] ?? null,
+                        'marketingName' => $row['properties']['Device_Name'] ?? null,
+                        'manufacturer'  => $row['properties']['Device_Maker'] ?? null,
+                        'brand'         => $row['properties']['Device_Brand_Name'] ?? null,
+                        'display'       => [
+                            'width'  => null,
+                            'height' => null,
+                            'touch'  => ('touchscreen' === $row['properties']['Device_Pointing_Method'] ?? null),
+                            'type'   => null,
+                            'size'   => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type'            => $row['properties']['Device_Type'] ?? null,
+                        'simCount'        => null,
+                        'market'          => [
+                            'regions'   => null,
+                            'countries' => null,
+                            'vendors'   => null,
+                        ],
+                        'connections' => null,
+                        'ismobile'    => (new \UaDeviceType\TypeLoader())->load($row['properties']['Device_Type'])->isMobile(),
                     ],
                     'browser' => [
                         'name'         => $row['properties']['Browser'] ?? null,
@@ -162,7 +153,7 @@ class BrowscapSource implements SourceInterface
                         'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
                         'bits'         => $row['properties']['Browser_Bits'] ?? null,
                         'type'         => $row['properties']['Browser_Type'] ?? null,
-                        'isbot'        => $row['properties']['Crawler'] ?? null,
+                        'isbot'        => (new \UaBrowserType\TypeLoader())->load($row['properties']['Browser_Type'])->isBot(),
                     ],
                     'platform' => [
                         'name'          => $row['properties']['Platform'] ?? null,

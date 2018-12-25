@@ -129,16 +129,27 @@ class WhichBrowserSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => $row['device']['model'] ?? null,
-                        'marketingName'    => null,
-                        'manufacturer'     => null,
-                        'brand'            => $row['device']['manufacturer'] ?? null,
-                        'pointingMethod'   => null,
-                        'resolutionWidth'  => null,
-                        'resolutionHeight' => null,
-                        'dualOrientation'  => null,
-                        'type'             => $row['device']['type'] ?? null,
-                        'ismobile'         => $this->isMobile($row) ? true : false,
+                        'deviceName'    => $row['device']['model'] ?? null,
+                        'marketingName' => null,
+                        'manufacturer'  => null,
+                        'brand'         => $row['device']['manufacturer'] ?? null,
+                        'display'       => [
+                            'width'  => null,
+                            'height' => null,
+                            'touch'  => null,
+                            'type'   => null,
+                            'size'   => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type'            => $row['device']['type'] ?? null,
+                        'simCount'        => null,
+                        'market'          => [
+                            'regions'   => null,
+                            'countries' => null,
+                            'vendors'   => null,
+                        ],
+                        'connections' => null,
+                        'ismobile'    => $this->isMobile($row) ? true : false,
                     ],
                     'browser' => [
                         'name'         => $row['browser']['name'] ?? null,
