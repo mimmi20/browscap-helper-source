@@ -130,16 +130,27 @@ class PiwikSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'       => $data['device']['model'] ?? null,
-                        'marketingName'    => null,
-                        'manufacturer'     => null,
-                        'brand'            => (!empty($data['device']['brand']) ? DeviceParserAbstract::getFullName($data['device']['brand']) : null),
-                        'pointingMethod'   => null,
-                        'resolutionWidth'  => null,
-                        'resolutionHeight' => null,
-                        'dualOrientation'  => null,
-                        'type'             => $data['device']['type'] ?? null,
-                        'ismobile'         => $this->isMobile($data),
+                        'deviceName'    => $data['device']['model'] ?? null,
+                        'marketingName' => null,
+                        'manufacturer'  => null,
+                        'brand'         => (!empty($data['device']['brand']) ? DeviceParserAbstract::getFullName($data['device']['brand']) : null),
+                        'display'       => [
+                            'width'  => null,
+                            'height' => null,
+                            'touch'  => null,
+                            'type'   => null,
+                            'size'   => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type'            => $data['device']['type'] ?? null,
+                        'simCount'        => null,
+                        'market'          => [
+                            'regions'   => null,
+                            'countries' => null,
+                            'vendors'   => null,
+                        ],
+                        'connections' => null,
+                        'ismobile'    => $this->isMobile($data),
                     ],
                     'browser' => [
                         'name'         => $data['client']['name'] ?? null,
