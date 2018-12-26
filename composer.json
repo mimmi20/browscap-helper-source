@@ -17,6 +17,7 @@
     "php": "^7.1",
     "mimmi20/json-class": "~2.0.1",
     "psr/log": "^1.0",
+    "psr/simple-cache": "^1.0",
     "symfony/finder": "^4.2",
     "symfony/yaml": "^4.2"
   },
@@ -41,7 +42,6 @@
     "piwik/device-detector": "dev-master",
     "sinergi/browser-detector": "dev-master",
     "squizlabs/php_codesniffer": "^3.4",
-    "symfony/cache": "^4.2",
     "ua-parser/uap-core": "dev-master",
     "whichbrowser/parser": "dev-master",
     "woothee/woothee-testset": "dev-master",
