@@ -13,8 +13,8 @@ namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
-use Symfony\Component\Cache\Simple\PhpFilesCache;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
@@ -27,15 +27,15 @@ class UapCoreSource implements SourceInterface
     private $logger;
 
     /**
-     * @var \Symfony\Component\Cache\Simple\PhpFilesCache
+     * @var \Psr\SimpleCache\CacheInterface
      */
     private $cache;
 
     /**
-     * @param \Psr\Log\LoggerInterface                      $logger
-     * @param \Symfony\Component\Cache\Simple\PhpFilesCache $cache
+     * @param \Psr\Log\LoggerInterface        $logger
+     * @param \Psr\SimpleCache\CacheInterface $cache
      */
-    public function __construct(LoggerInterface $logger, PhpFilesCache $cache)
+    public function __construct(LoggerInterface $logger, CacheInterface $cache)
     {
         $this->logger = $logger;
         $this->cache  = $cache;
