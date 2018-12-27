@@ -123,28 +123,68 @@ class BrowscapSource implements SourceInterface
                     continue;
                 }
 
+                $deviceTypeLoader = new \UaDeviceType\TypeLoader();
+
                 try {
-                    $deviceType = (new \UaDeviceType\TypeLoader())->load($row['properties']['Device_Type'] ?? '');
+                    $deviceType = $deviceTypeLoader->load($row['properties']['Device_Type'] ?? '');
 
                     $isMobile = $deviceType->isMobile();
                     $type1    = $deviceType->getType();
                 } catch (NotFoundException $e) {
-                    $this->logger->error($e);
+                    $this->logger->info($e);
 
                     $isMobile = null;
                     $type1    = null;
+
+                    try {
+                        $deviceReflection = new \ReflectionClass($deviceTypeLoader);
+
+                        foreach ($deviceReflection->getConstant('OPTIONS') as $type => $className) {
+                            /** @var \UaDeviceType\TypeInterface $class */
+                            $class = new $className();
+
+                            if ($row['properties']['Device_Type'] ?? '' !== $class->getType()) {
+                                continue;
+                            }
+
+                            $isMobile = $class->isMobile();
+                            $type1    = $class->getType();
+                        }
+                    } catch (\ReflectionException $e) {
+                        $this->logger->error($e);
+                    }
                 }
 
+                $browserTypeLoader = new \UaBrowserType\TypeLoader();
+
                 try {
-                    $browserType = (new \UaBrowserType\TypeLoader())->load($row['properties']['Browser_Type'] ?? '');
+                    $browserType = $browserTypeLoader->load($row['properties']['Browser_Type'] ?? '');
 
                     $isBot = $browserType->isBot();
                     $type2 = $browserType->getType();
                 } catch (NotFoundException $e) {
-                    $this->logger->error($e);
+                    $this->logger->info($e);
 
                     $isBot = null;
                     $type2 = null;
+
+                    try {
+                        $browserReflection = new \ReflectionClass($browserTypeLoader);
+
+                        foreach ($browserReflection->getConstant('OPTIONS') as $type => $className) {
+                            /** @var \UaBrowserType\TypeInterface $class */
+                            $class = new $className();
+
+                            if ($row['properties']['Browser_Type'] ?? '' !== $class->getType()) {
+                                continue;
+                            }
+
+                            $isBot = $class->isBot();
+                            $type2 = $class->getType();
+                        }
+                    } catch (\ReflectionException $e) {
+                        $this->logger->error($e);
+                    }
                 }
 
                 yield $agent => [
