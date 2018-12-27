@@ -187,6 +187,8 @@ class BrowscapSource implements SourceInterface
                     }
                 }
 
+                $pointingMethod = $row['properties']['Device_Pointing_Method'] ?? null;
+
                 yield $agent => [
                     'device' => [
                         'deviceName'    => $row['properties']['Device_Code_Name'] ?? null,
@@ -196,7 +198,7 @@ class BrowscapSource implements SourceInterface
                         'display'       => [
                             'width'  => null,
                             'height' => null,
-                            'touch'  => ('touchscreen' === $row['properties']['Device_Pointing_Method'] ?? null),
+                            'touch'  => ('touchscreen' === $pointingMethod),
                             'type'   => null,
                             'size'   => null,
                         ],
