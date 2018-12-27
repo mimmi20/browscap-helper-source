@@ -12,6 +12,7 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
+use BrowserDetector\Loader\NotFoundException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
@@ -122,6 +123,30 @@ class BrowscapSource implements SourceInterface
                     continue;
                 }
 
+                try {
+                    $deviceType = (new \UaDeviceType\TypeLoader())->load($row['properties']['Device_Type'] ?? '');
+
+                    $isMobile = $deviceType->isMobile();
+                    $type1    = $deviceType->getType();
+                } catch (NotFoundException $e) {
+                    $this->logger->error($e);
+
+                    $isMobile = null;
+                    $type1    = null;
+                }
+
+                try {
+                    $browserType = (new \UaBrowserType\TypeLoader())->load($row['properties']['Browser_Type'] ?? '');
+
+                    $isBot = $browserType->isBot();
+                    $type2 = $browserType->getType();
+                } catch (NotFoundException $e) {
+                    $this->logger->error($e);
+
+                    $isBot = null;
+                    $type2 = null;
+                }
+
                 yield $agent => [
                     'device' => [
                         'deviceName'    => $row['properties']['Device_Code_Name'] ?? null,
@@ -136,7 +161,7 @@ class BrowscapSource implements SourceInterface
                             'size'   => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => $row['properties']['Device_Type'] ?? null,
+                        'type'            => $type1,
                         'simCount'        => null,
                         'market'          => [
                             'regions'   => null,
@@ -144,7 +169,7 @@ class BrowscapSource implements SourceInterface
                             'vendors'   => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => (new \UaDeviceType\TypeLoader())->load($row['properties']['Device_Type'])->isMobile(),
+                        'ismobile'    => $isMobile,
                     ],
                     'browser' => [
                         'name'         => $row['properties']['Browser'] ?? null,
@@ -152,8 +177,8 @@ class BrowscapSource implements SourceInterface
                         'version'      => $row['properties']['Version'] ?? null,
                         'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
                         'bits'         => $row['properties']['Browser_Bits'] ?? null,
-                        'type'         => $row['properties']['Browser_Type'] ?? null,
-                        'isbot'        => (new \UaBrowserType\TypeLoader())->load($row['properties']['Browser_Type'])->isBot(),
+                        'type'         => $type2,
+                        'isbot'        => $isBot,
                     ],
                     'platform' => [
                         'name'          => $row['properties']['Platform'] ?? null,
