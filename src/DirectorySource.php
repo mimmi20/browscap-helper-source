@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -114,7 +114,7 @@ class DirectorySource implements SourceInterface
                 continue;
             }
 
-            $handle = @fopen($fullPath, 'rb');
+            $handle = @fopen($fullPath, 'r');
 
             if (false === $handle) {
                 $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));

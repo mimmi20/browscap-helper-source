@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2018, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -54,7 +54,7 @@ class LogFileReader implements ReaderInterface
         foreach ($this->files as $file) {
             $this->logger->info('    reading file ' . str_pad($file, 100, ' ', STR_PAD_RIGHT));
 
-            $handle = @fopen($file, 'rb');
+            $handle = @fopen($file, 'r');
 
             if (false === $handle) {
                 $this->logger->emergency(new \RuntimeException('reading file ' . $file . ' caused an error'));
