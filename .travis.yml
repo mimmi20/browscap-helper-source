@@ -7,11 +7,17 @@ php:
   - 7.2
   - 7.3
 
-os: linux
+os:
+  - linux
+  #- windows
 
 env:
   - COMPOSER_FLAGS="--prefer-lowest"
   - COMPOSER_FLAGS=""
+
+cache:
+  directories:
+    - $HOME/.composer/cache
 
 stages:
   - composer validate
@@ -22,7 +28,9 @@ before_install:
   - phpenv config-rm xdebug.ini || echo "xdebug not available"
   - echo 'opcache.enable=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - echo 'opcache.enable_cli=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - travis_retry composer self-update
+  - echo 'zend.assertions=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo 'assert.exception=On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - composer self-update
 
 install: travis_retry composer update --optimize-autoloader --prefer-dist --prefer-stable --no-progress --no-interaction --no-suggest $COMPOSER_FLAGS -vv
 
@@ -32,11 +40,13 @@ jobs:
   allow_failures:
     - php: 7.3
     - php: nightly
+    #- os: windows
   include:
     - php: nightly
       env: COMPOSER_FLAGS="--ignore-platform-reqs"
 
     - stage: composer validate
+      os: linux
       php: 7.1
       env: COMPOSER_FLAGS=""
       script:
@@ -44,6 +54,7 @@ jobs:
         - composer normalize --dry-run
 
     - stage: static code analysis
+      os: linux
       php: 7.1
       env:
         - TEST=phpcs
@@ -51,6 +62,7 @@ jobs:
       script: vendor/bin/phpcs --colors
 
     - stage: static code analysis
+      os: linux
       php: 7.1
       env:
         - TEST=php-cs-fixer
@@ -58,11 +70,12 @@ jobs:
       script: vendor/bin/php-cs-fixer fix --dry-run -vv
 
     - stage: static code analysis
+      os: linux
       php: 7.1
       env:
         - TEST=phpstan
         - COMPOSER_FLAGS=""
-      script: vendor/bin/phpstan analyse -l max -c phpstan.neon --autoload-file=vendor/autoload.php --memory-limit=768M --no-progress src
+      script: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=768M --no-progress
 
 notifications:
   email: false
