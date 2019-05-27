@@ -15,7 +15,7 @@ use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class CrawlerDetectSource implements SourceInterface
+final class CrawlerDetectSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -39,6 +39,8 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -46,7 +48,7 @@ class CrawlerDetectSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -55,6 +57,8 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -65,6 +69,8 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -73,6 +79,8 @@ class CrawlerDetectSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -136,47 +144,47 @@ class CrawlerDetectSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => null,
+                        'deviceName' => null,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => null,
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => null,
+                        'ismobile' => null,
                     ],
                     'browser' => [
-                        'name'         => null,
-                        'modus'        => null,
-                        'version'      => null,
+                        'name' => null,
+                        'modus' => null,
+                        'version' => null,
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => null,
+                        'name' => null,
                         'marketingName' => null,
-                        'version'       => null,
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => null,
-                        'version'      => null,
+                        'name' => null,
+                        'version' => null,
                         'manufacturer' => null,
                     ],
                 ];

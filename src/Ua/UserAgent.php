@@ -13,7 +13,7 @@ namespace BrowscapHelper\Source\Ua;
 
 use BrowscapHelper\Source\SourceInterface;
 
-class UserAgent
+final class UserAgent
 {
     /**
      * @var array

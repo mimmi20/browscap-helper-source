@@ -14,7 +14,7 @@ namespace BrowscapHelper\Source\Reader;
 use BrowscapHelper\Source\Helper\Regex;
 use Psr\Log\LoggerInterface;
 
-class LogFileReader implements ReaderInterface
+final class LogFileReader implements ReaderInterface
 {
     /**
      * @var array
@@ -77,19 +77,19 @@ class LogFileReader implements ReaderInterface
 
                 $lineMatches = [];
 
-                if (!preg_match($regex, $line, $lineMatches)) {
+                if (!(bool) preg_match($regex, $line, $lineMatches)) {
                     $logger->error('no useragent found in line "' . $line . '" used regex: "' . $regex . '"');
 
                     continue;
                 }
 
-                if (isset($lineMatches['userAgentString'])) {
+                if (array_key_exists('userAgentString', $lineMatches)) {
                     $agentOfLine = trim($lineMatches['userAgentString']);
                 } else {
                     $agentOfLine = trim($this->extractAgent($line));
                 }
 
-                if (!is_string($agentOfLine) || empty($agentOfLine)) {
+                if (empty($agentOfLine)) {
                     continue;
                 }
 
@@ -110,8 +110,6 @@ class LogFileReader implements ReaderInterface
         $parts = explode('"', $text);
         array_pop($parts);
 
-        $userAgent = (string) array_pop($parts);
-
-        return $userAgent;
+        return (string) array_pop($parts);
     }
 }

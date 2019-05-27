@@ -18,11 +18,17 @@ interface SourceInterface
     public const DELIMETER_HEADER_ROW = '::==::';
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable;
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable;
@@ -33,6 +39,9 @@ interface SourceInterface
     public function getName(): string;
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable;

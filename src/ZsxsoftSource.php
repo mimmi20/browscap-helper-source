@@ -15,7 +15,7 @@ use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class ZsxsoftSource implements SourceInterface
+final class ZsxsoftSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -39,6 +39,8 @@ class ZsxsoftSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -46,7 +48,7 @@ class ZsxsoftSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -55,6 +57,8 @@ class ZsxsoftSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -65,6 +69,8 @@ class ZsxsoftSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -73,6 +79,8 @@ class ZsxsoftSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -85,25 +93,7 @@ class ZsxsoftSource implements SourceInterface
 
         $this->logger->info('    reading path ' . $path);
 
-        $brands = [];
-        $file   = new \SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
-        $file->setFlags(\SplFileObject::DROP_NEW_LINE);
-        while (!$file->eof()) {
-            $line = trim($file->fgets());
-            preg_match('/^\$brand = ("|\')(.*)("|\');$/', $line, $matches);
-
-            if (0 < count($matches)) {
-                $brand = $matches[2];
-                if (!empty($brand)) {
-                    $brands[] = $brand;
-                }
-            }
-        }
-        $brands = array_unique($brands);
-
-        usort($brands, static function ($a, $b) {
-            return mb_strlen($b) - mb_strlen($a);
-        });
+        $brands = $this->getBrands();
 
         $finder = new Finder();
         $finder->files();
@@ -129,7 +119,6 @@ class ZsxsoftSource implements SourceInterface
                     continue;
                 }
 
-                $brand = '';
                 $model = '';
 
                 foreach ($brands as $brand) {
@@ -138,6 +127,7 @@ class ZsxsoftSource implements SourceInterface
 
                         break;
                     }
+
                     $brand = '';
                 }
 
@@ -149,51 +139,79 @@ class ZsxsoftSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => $model,
+                        'deviceName' => $model,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => $brand,
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => $brand ?? '',
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => null,
+                        'ismobile' => null,
                     ],
                     'browser' => [
-                        'name'         => $data[1][2],
-                        'modus'        => null,
-                        'version'      => $data[1][3],
+                        'name' => $data[1][2],
+                        'modus' => null,
+                        'version' => $data[1][3],
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => $data[1][5],
+                        'name' => $data[1][5],
                         'marketingName' => null,
-                        'version'       => $data[1][6],
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => $data[1][6],
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => null,
-                        'version'      => null,
+                        'name' => null,
+                        'version' => null,
                         'manufacturer' => null,
                     ],
                 ];
             }
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getBrands(): array
+    {
+        $brands = [];
+        $file   = new \SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
+        $file->setFlags(\SplFileObject::DROP_NEW_LINE);
+        while (!$file->eof()) {
+            $line = trim($file->fgets());
+            preg_match('/^\$brand = ("|\')(.*)("|\');$/', $line, $matches);
+
+            if (0 < count($matches)) {
+                $brand = $matches[2];
+                if (!empty($brand)) {
+                    $brands[] = $brand;
+                }
+            }
+        }
+        $brands = array_unique($brands);
+
+        usort($brands, static function ($a, $b) {
+            return mb_strlen($b) - mb_strlen($a);
+        });
+
+        return $brands;
     }
 }

@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
-class PiwikSource implements SourceInterface
+final class PiwikSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -42,6 +42,9 @@ class PiwikSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -49,7 +52,7 @@ class PiwikSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -58,6 +61,9 @@ class PiwikSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -68,6 +74,9 @@ class PiwikSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -76,6 +85,9 @@ class PiwikSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -130,47 +142,47 @@ class PiwikSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => $data['device']['model'] ?? null,
+                        'deviceName' => $data['device']['model'] ?? null,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => (!empty($data['device']['brand']) ? DeviceParserAbstract::getFullName($data['device']['brand']) : null),
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => (!empty($data['device']['brand']) ? DeviceParserAbstract::getFullName($data['device']['brand']) : null),
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => $data['device']['type'] ?? null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => $data['device']['type'] ?? null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => $this->isMobile($data),
+                        'ismobile' => $this->isMobile($data),
                     ],
                     'browser' => [
-                        'name'         => $data['client']['name'] ?? null,
-                        'modus'        => null,
-                        'version'      => $data['client']['version'] ?? null,
+                        'name' => $data['client']['name'] ?? null,
+                        'modus' => null,
+                        'version' => $data['client']['version'] ?? null,
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => $data['os']['name'] ?? null,
+                        'name' => $data['os']['name'] ?? null,
                         'marketingName' => null,
-                        'version'       => $data['os']['version'] ?? null,
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => $data['os']['version'] ?? null,
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
-                        'version'      => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
+                        'name' => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
+                        'version' => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
                         'manufacturer' => null,
                     ],
                 ];
@@ -178,10 +190,15 @@ class PiwikSource implements SourceInterface
         }
     }
 
-    private function isMobile(array $data): ?bool
+    /**
+     * @param array $data
+     *
+     * @return bool
+     */
+    private function isMobile(array $data): bool
     {
         if (empty($data['device']['type'])) {
-            return null;
+            return false;
         }
 
         $device     = $data['device']['type'];
@@ -190,23 +207,23 @@ class PiwikSource implements SourceInterface
 
         // Mobile device types
         if (!empty($deviceType) && in_array($deviceType, [
-                DeviceParserAbstract::DEVICE_TYPE_FEATURE_PHONE,
-                DeviceParserAbstract::DEVICE_TYPE_SMARTPHONE,
-                DeviceParserAbstract::DEVICE_TYPE_TABLET,
-                DeviceParserAbstract::DEVICE_TYPE_PHABLET,
-                DeviceParserAbstract::DEVICE_TYPE_CAMERA,
-                DeviceParserAbstract::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
-            ])
+            DeviceParserAbstract::DEVICE_TYPE_FEATURE_PHONE,
+            DeviceParserAbstract::DEVICE_TYPE_SMARTPHONE,
+            DeviceParserAbstract::DEVICE_TYPE_TABLET,
+            DeviceParserAbstract::DEVICE_TYPE_PHABLET,
+            DeviceParserAbstract::DEVICE_TYPE_CAMERA,
+            DeviceParserAbstract::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
+        ], true)
         ) {
             return true;
         }
 
         // non mobile device types
         if (!empty($deviceType) && in_array($deviceType, [
-                DeviceParserAbstract::DEVICE_TYPE_TV,
-                DeviceParserAbstract::DEVICE_TYPE_SMART_DISPLAY,
-                DeviceParserAbstract::DEVICE_TYPE_CONSOLE,
-            ])
+            DeviceParserAbstract::DEVICE_TYPE_TV,
+            DeviceParserAbstract::DEVICE_TYPE_SMART_DISPLAY,
+            DeviceParserAbstract::DEVICE_TYPE_CONSOLE,
+        ], true)
         ) {
             return false;
         }
@@ -234,6 +251,6 @@ class PiwikSource implements SourceInterface
             return false;
         }
 
-        return in_array($data['os_family'], ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS']);
+        return in_array($data['os_family'], ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'], true);
     }
 }
