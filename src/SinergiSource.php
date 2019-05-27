@@ -15,7 +15,7 @@ use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class SinergiSource implements SourceInterface
+final class SinergiSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -39,6 +39,9 @@ class SinergiSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -46,7 +49,7 @@ class SinergiSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -55,6 +58,9 @@ class SinergiSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -65,6 +71,9 @@ class SinergiSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -73,6 +82,9 @@ class SinergiSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -107,7 +119,7 @@ class SinergiSource implements SourceInterface
                 continue;
             }
 
-            $provider = simplexml_load_string($content);
+            $provider = \simplexml_load_string($content);
 
             if (false === $provider) {
                 $this->logger->error('    reading file ' . $filepath . ' failed.');
@@ -139,47 +151,47 @@ class SinergiSource implements SourceInterface
 
                     yield $agent => [
                         'device' => [
-                            'deviceName'    => $device,
+                            'deviceName' => $device,
                             'marketingName' => null,
-                            'manufacturer'  => null,
-                            'brand'         => null,
-                            'display'       => [
-                                'width'  => null,
+                            'manufacturer' => null,
+                            'brand' => null,
+                            'display' => [
+                                'width' => null,
                                 'height' => null,
-                                'touch'  => null,
-                                'type'   => null,
-                                'size'   => null,
+                                'touch' => null,
+                                'type' => null,
+                                'size' => null,
                             ],
                             'dualOrientation' => null,
-                            'type'            => null,
-                            'simCount'        => null,
-                            'market'          => [
-                                'regions'   => null,
+                            'type' => null,
+                            'simCount' => null,
+                            'market' => [
+                                'regions' => null,
                                 'countries' => null,
-                                'vendors'   => null,
+                                'vendors' => null,
                             ],
                             'connections' => null,
-                            'ismobile'    => null,
+                            'ismobile' => null,
                         ],
                         'browser' => [
-                            'name'         => $browser,
-                            'modus'        => null,
-                            'version'      => $browserVersion,
+                            'name' => $browser,
+                            'modus' => null,
+                            'version' => $browserVersion,
                             'manufacturer' => null,
-                            'bits'         => null,
-                            'type'         => null,
-                            'isbot'        => null,
+                            'bits' => null,
+                            'type' => null,
+                            'isbot' => null,
                         ],
                         'platform' => [
-                            'name'          => $platform,
+                            'name' => $platform,
                             'marketingName' => null,
-                            'version'       => $platformVersion,
-                            'manufacturer'  => null,
-                            'bits'          => null,
+                            'version' => $platformVersion,
+                            'manufacturer' => null,
+                            'bits' => null,
                         ],
                         'engine' => [
-                            'name'         => null,
-                            'version'      => null,
+                            'name' => null,
+                            'version' => null,
                             'manufacturer' => null,
                         ],
                     ];

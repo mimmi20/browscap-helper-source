@@ -11,7 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
-class CollectionSource implements SourceInterface
+final class CollectionSource implements SourceInterface
 {
     /**
      * @var \BrowscapHelper\Source\SourceInterface[]
@@ -19,17 +19,13 @@ class CollectionSource implements SourceInterface
     private $collection;
 
     /**
-     * @param \BrowscapHelper\Source\SourceInterface[] $collection
+     * CollectionSource constructor.
+     *
+     * @param \BrowscapHelper\Source\SourceInterface ...$collection
      */
-    public function __construct(array $collection)
+    public function __construct(SourceInterface ...$collection)
     {
-        foreach ($collection as $source) {
-            if (!$source instanceof SourceInterface) {
-                throw new SourceException('unsupported type of source found');
-            }
-
-            $this->collection[] = $source;
-        }
+        $this->collection = $collection;
     }
 
     /**
@@ -41,6 +37,9 @@ class CollectionSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -51,6 +50,9 @@ class CollectionSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -61,6 +63,9 @@ class CollectionSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -68,5 +73,10 @@ class CollectionSource implements SourceInterface
         foreach ($this->collection as $source) {
             yield from $source->getProperties();
         }
+    }
+
+    public function count(): int
+    {
+        return count($this->collection);
     }
 }

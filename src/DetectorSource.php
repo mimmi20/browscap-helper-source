@@ -17,7 +17,7 @@ use JsonClass\Json;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class DetectorSource implements SourceInterface
+final class DetectorSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -41,6 +41,9 @@ class DetectorSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -48,7 +51,7 @@ class DetectorSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -57,6 +60,9 @@ class DetectorSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -67,6 +73,9 @@ class DetectorSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -75,6 +84,9 @@ class DetectorSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -134,47 +146,47 @@ class DetectorSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => $test['result']['device']['deviceName'],
+                        'deviceName' => $test['result']['device']['deviceName'],
                         'marketingName' => $test['result']['device']['marketingName'],
-                        'manufacturer'  => $test['result']['device']['manufacturer'],
-                        'brand'         => $test['result']['device']['brand'],
-                        'display'       => [
-                            'width'  => $test['result']['device']['display']['width'],
+                        'manufacturer' => $test['result']['device']['manufacturer'],
+                        'brand' => $test['result']['device']['brand'],
+                        'display' => [
+                            'width' => $test['result']['device']['display']['width'],
                             'height' => $test['result']['device']['display']['height'],
-                            'touch'  => $test['result']['device']['display']['touch'],
-                            'type'   => $test['result']['device']['display']['type'],
-                            'size'   => $test['result']['device']['display']['size'],
+                            'touch' => $test['result']['device']['display']['touch'],
+                            'type' => $test['result']['device']['display']['type'],
+                            'size' => $test['result']['device']['display']['size'],
                         ],
                         'dualOrientation' => $test['result']['device']['dualOrientation'],
-                        'type'            => $test['result']['device']['type'],
-                        'simCount'        => $test['result']['device']['simCount'],
-                        'market'          => [
-                            'regions'   => $test['result']['device']['market']['regions'],
+                        'type' => $test['result']['device']['type'],
+                        'simCount' => $test['result']['device']['simCount'],
+                        'market' => [
+                            'regions' => $test['result']['device']['market']['regions'],
                             'countries' => $test['result']['device']['market']['countries'],
-                            'vendors'   => $test['result']['device']['market']['vendors'],
+                            'vendors' => $test['result']['device']['market']['vendors'],
                         ],
                         'connections' => $test['result']['device']['connections'],
-                        'ismobile'    => (new \UaDeviceType\TypeLoader())->load($test['result']['device']['type'])->isMobile(),
+                        'ismobile' => (new \UaDeviceType\TypeLoader())->load($test['result']['device']['type'])->isMobile(),
                     ],
                     'browser' => [
-                        'name'         => $test['result']['browser']['name'],
-                        'modus'        => $test['result']['browser']['modus'],
-                        'version'      => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
+                        'name' => $test['result']['browser']['name'],
+                        'modus' => $test['result']['browser']['modus'],
+                        'version' => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
                         'manufacturer' => $test['result']['browser']['manufacturer'],
-                        'bits'         => $test['result']['browser']['bits'],
-                        'type'         => $test['result']['browser']['type'],
-                        'isbot'        => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
+                        'bits' => $test['result']['browser']['bits'],
+                        'type' => $test['result']['browser']['type'],
+                        'isbot' => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
                     ],
                     'platform' => [
-                        'name'          => $test['result']['os']['name'],
+                        'name' => $test['result']['os']['name'],
                         'marketingName' => $test['result']['os']['marketingName'],
-                        'version'       => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
-                        'manufacturer'  => $test['result']['os']['manufacturer'],
-                        'bits'          => $test['result']['os']['bits'],
+                        'version' => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
+                        'manufacturer' => $test['result']['os']['manufacturer'],
+                        'bits' => $test['result']['os']['bits'],
                     ],
                     'engine' => [
-                        'name'         => $test['result']['engine']['name'],
-                        'version'      => $test['result']['engine']['version'],
+                        'name' => $test['result']['engine']['name'],
+                        'version' => $test['result']['engine']['version'],
                         'manufacturer' => $test['result']['engine']['manufacturer'],
                     ],
                 ];

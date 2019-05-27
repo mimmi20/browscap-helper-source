@@ -2,26 +2,32 @@ parameters:
   level: max
   paths:
     - src
+    - tests
   autoload_files:
     - %currentWorkingDirectory%/vendor/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
-  includes:
-    - vendor/phpstan/phpstan-strict-rules/rules.neon
-    - vendor/pepakriz/phpstan-exception-rules/extension.neon
-    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
-    - vendor/localheinz/phpstan-rules/rules.neon
-  parameters:
-    exceptionRules:
-      reportUnusedCatchesOfUncheckedExceptions: false
-      uncheckedExceptions: []
   excludes_analyse:
     - */tests/*/data/*
   ignoreErrors:
-#    - '~of function array_multisort is passed by reference, so it expects variables only~'
-    - '~Function http_parse_headers not found~'
+    - '~Construct empty\(\) is not allowed\. Use more strict comparison~'
+    - '~Language construct isset\(\) should not be used~'
     - '~Class http\\Header not found~'
     - '~Call to static method parse\(\) on an unknown class http\\Header~'
-    - '~Exception given~'
-    - '~InvalidArgumentException is not subtype of Throwable~'
-    - '~InvalidArgumentException&Throwable given~'
+    - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception given~'
+    - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception\&Throwable given~'
+    - '~Method BrowscapHelper\\Source\\Helper\\FilePath::getPath\(\) has a nullable return type declaration~'
+    - '~PHPDoc tag @throws with type Psr\\SimpleCache\\InvalidArgumentException\|RuntimeException is not subtype of Throwable~'
+  exceptionRules:
+    reportUnusedCatchesOfUncheckedExceptions: false
+    uncheckedExceptions: []
+  classesAllowedToBeExtended:
+  	- UnexpectedValueException
+
+includes:
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
+  - vendor/phpstan/phpstan-phpunit/extension.neon
+  - vendor/phpstan/phpstan-phpunit/rules.neon
+  - vendor/pepakriz/phpstan-exception-rules/extension.neon
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+  - vendor/localheinz/phpstan-rules/rules.neon

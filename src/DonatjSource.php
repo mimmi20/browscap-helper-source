@@ -17,7 +17,7 @@ use JsonClass\Json;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 
-class DonatjSource implements SourceInterface
+final class DonatjSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -41,6 +41,9 @@ class DonatjSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -48,7 +51,7 @@ class DonatjSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -57,6 +60,9 @@ class DonatjSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -67,6 +73,9 @@ class DonatjSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -75,6 +84,9 @@ class DonatjSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -138,47 +150,47 @@ class DonatjSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => null,
+                        'deviceName' => null,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => null,
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => null,
+                        'ismobile' => null,
                     ],
                     'browser' => [
-                        'name'         => $data['browser'],
-                        'modus'        => null,
-                        'version'      => $data['version'],
+                        'name' => $data['browser'],
+                        'modus' => null,
+                        'version' => $data['version'],
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => $data['platform'],
+                        'name' => $data['platform'],
                         'marketingName' => null,
-                        'version'       => null,
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => null,
-                        'version'      => null,
+                        'name' => null,
+                        'version' => null,
                         'manufacturer' => null,
                     ],
                 ];

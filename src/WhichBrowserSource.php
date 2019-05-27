@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
-class WhichBrowserSource implements SourceInterface
+final class WhichBrowserSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -41,6 +41,9 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -48,7 +51,7 @@ class WhichBrowserSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -57,6 +60,9 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -67,6 +73,9 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -75,6 +84,9 @@ class WhichBrowserSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     private function loadFromPath(): iterable
@@ -118,7 +130,7 @@ class WhichBrowserSource implements SourceInterface
                 $lowerHeaders = [];
 
                 foreach ($headers as $header => $value) {
-                    $lowerHeaders[mb_strtolower($header)] = $value;
+                    $lowerHeaders[mb_strtolower((string) $header)] = $value;
                 }
 
                 $agent = (string) UserAgent::fromHeaderArray($lowerHeaders);
@@ -129,47 +141,47 @@ class WhichBrowserSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => $row['device']['model'] ?? null,
+                        'deviceName' => $row['device']['model'] ?? null,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => $row['device']['manufacturer'] ?? null,
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => $row['device']['manufacturer'] ?? null,
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => $row['device']['type'] ?? null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => $row['device']['type'] ?? null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => $this->isMobile($row) ? true : false,
+                        'ismobile' => $this->isMobile($row) ? true : false,
                     ],
                     'browser' => [
-                        'name'         => $row['browser']['name'] ?? null,
-                        'modus'        => null,
-                        'version'      => (!empty($row['browser']['version']) ? is_array($row['browser']['version']) ? $row['browser']['version']['value'] : $row['browser']['version'] : null),
+                        'name' => $row['browser']['name'] ?? null,
+                        'modus' => null,
+                        'version' => (!empty($row['browser']['version']) ? is_array($row['browser']['version']) ? $row['browser']['version']['value'] : $row['browser']['version'] : null),
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => $row['os']['name'] ?? null,
+                        'name' => $row['os']['name'] ?? null,
                         'marketingName' => null,
-                        'version'       => (!empty($row['os']['version']) ? is_array($row['os']['version']) ? $row['os']['version']['value'] : $row['os']['version'] : null),
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => (!empty($row['os']['version']) ? is_array($row['os']['version']) ? $row['os']['version']['value'] : $row['os']['version'] : null),
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => $row['engine']['name'] ?? null,
-                        'version'      => $row['engine']['version'] ?? null,
+                        'name' => $row['engine']['name'] ?? null,
+                        'version' => $row['engine']['version'] ?? null,
                         'manufacturer' => null,
                     ],
                 ];
@@ -186,8 +198,8 @@ class WhichBrowserSource implements SourceInterface
     {
         $headers = [];
 
-        if (isset($row['headers'])) {
-            if (isset($row['headers']) && is_array($row['headers'])) {
+        if (array_key_exists('headers', $row)) {
+            if (is_array($row['headers'])) {
                 return $row['headers'];
             }
 
@@ -214,17 +226,17 @@ class WhichBrowserSource implements SourceInterface
     /**
      * @param array $data
      *
-     * @return bool|null
+     * @return bool
      */
-    private function isMobile(array $data): ?bool
+    private function isMobile(array $data): bool
     {
         if (!isset($data['device']['type'])) {
-            return null;
+            return false;
         }
 
         $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
 
-        if (in_array($data['device']['type'], $mobileTypes)) {
+        if (in_array($data['device']['type'], $mobileTypes, true)) {
             return true;
         }
 

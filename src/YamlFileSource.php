@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
-class YamlFileSource implements SourceInterface
+final class YamlFileSource implements SourceInterface
 {
     /**
      * @var string
@@ -47,6 +47,9 @@ class YamlFileSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -54,7 +57,7 @@ class YamlFileSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -63,6 +66,9 @@ class YamlFileSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -73,6 +79,9 @@ class YamlFileSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -81,6 +90,9 @@ class YamlFileSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     private function loadFromPath(): iterable
@@ -121,47 +133,47 @@ class YamlFileSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => null,
+                        'deviceName' => null,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => null,
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => null,
+                        'ismobile' => null,
                     ],
                     'browser' => [
-                        'name'         => null,
-                        'modus'        => null,
-                        'version'      => null,
+                        'name' => null,
+                        'modus' => null,
+                        'version' => null,
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => null,
+                        'name' => null,
                         'marketingName' => null,
-                        'version'       => null,
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => null,
-                        'version'      => null,
+                        'name' => null,
+                        'version' => null,
                         'manufacturer' => null,
                     ],
                 ];

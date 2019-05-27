@@ -11,7 +11,7 @@
 declare(strict_types = 1);
 namespace BrowscapHelper\Source\Helper;
 
-class Regex
+final class Regex
 {
     /**
      * @return string

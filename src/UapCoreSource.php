@@ -19,7 +19,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
-class UapCoreSource implements SourceInterface
+final class UapCoreSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -50,6 +50,9 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -57,7 +60,7 @@ class UapCoreSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -66,6 +69,9 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -76,6 +82,9 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -84,6 +93,9 @@ class UapCoreSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -140,6 +152,7 @@ class UapCoreSource implements SourceInterface
      * @param array                                 $tests
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \RuntimeException
      */
     private function processFixture(SplFileInfo $fixture, array &$tests): void
     {
@@ -152,47 +165,47 @@ class UapCoreSource implements SourceInterface
                 if (!isset($tests[$ua])) {
                     $tests[$ua] = [
                         'device' => [
-                            'deviceName'    => null,
+                            'deviceName' => null,
                             'marketingName' => null,
-                            'manufacturer'  => null,
-                            'brand'         => null,
-                            'display'       => [
-                                'width'  => null,
+                            'manufacturer' => null,
+                            'brand' => null,
+                            'display' => [
+                                'width' => null,
                                 'height' => null,
-                                'touch'  => null,
-                                'type'   => null,
-                                'size'   => null,
+                                'touch' => null,
+                                'type' => null,
+                                'size' => null,
                             ],
                             'dualOrientation' => null,
-                            'type'            => null,
-                            'simCount'        => null,
-                            'market'          => [
-                                'regions'   => null,
+                            'type' => null,
+                            'simCount' => null,
+                            'market' => [
+                                'regions' => null,
                                 'countries' => null,
-                                'vendors'   => null,
+                                'vendors' => null,
                             ],
                             'connections' => null,
-                            'ismobile'    => null,
+                            'ismobile' => null,
                         ],
                         'browser' => [
-                            'name'         => null,
-                            'modus'        => null,
-                            'version'      => null,
+                            'name' => null,
+                            'modus' => null,
+                            'version' => null,
                             'manufacturer' => null,
-                            'bits'         => null,
-                            'type'         => null,
-                            'isbot'        => null,
+                            'bits' => null,
+                            'type' => null,
+                            'isbot' => null,
                         ],
                         'platform' => [
-                            'name'          => null,
+                            'name' => null,
                             'marketingName' => null,
-                            'version'       => null,
-                            'manufacturer'  => null,
-                            'bits'          => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                            'bits' => null,
                         ],
                         'engine' => [
-                            'name'         => null,
-                            'version'      => null,
+                            'name' => null,
+                            'version' => null,
                             'manufacturer' => null,
                         ],
                     ];
@@ -215,39 +228,39 @@ class UapCoreSource implements SourceInterface
                         $engine   = $tests[$ua]['engine'];
                     } else {
                         $browser = [
-                            'name'         => null,
-                            'modus'        => null,
-                            'version'      => null,
+                            'name' => null,
+                            'modus' => null,
+                            'version' => null,
                             'manufacturer' => null,
-                            'bits'         => null,
-                            'type'         => null,
-                            'isbot'        => null,
+                            'bits' => null,
+                            'type' => null,
+                            'isbot' => null,
                         ];
 
                         $platform = [
-                            'name'          => null,
+                            'name' => null,
                             'marketingName' => null,
-                            'version'       => null,
-                            'manufacturer'  => null,
-                            'bits'          => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                            'bits' => null,
                         ];
 
                         $device = [
-                            'deviceName'       => null,
-                            'marketingName'    => null,
-                            'manufacturer'     => null,
-                            'brand'            => null,
-                            'pointingMethod'   => null,
-                            'resolutionWidth'  => null,
+                            'deviceName' => null,
+                            'marketingName' => null,
+                            'manufacturer' => null,
+                            'brand' => null,
+                            'pointingMethod' => null,
+                            'resolutionWidth' => null,
                             'resolutionHeight' => null,
-                            'dualOrientation'  => null,
-                            'type'             => null,
-                            'ismobile'         => null,
+                            'dualOrientation' => null,
+                            'type' => null,
+                            'ismobile' => null,
                         ];
 
                         $engine = [
-                            'name'         => null,
-                            'version'      => null,
+                            'name' => null,
+                            'version' => null,
                             'manufacturer' => null,
                         ];
                     }
@@ -255,9 +268,9 @@ class UapCoreSource implements SourceInterface
                     switch ($fixture->getFilename()) {
                         case 'test_device.yaml':
                             $device = [
-                                'name'     => $data['model'],
-                                'brand'    => $data['brand'],
-                                'type'     => null,
+                                'name' => $data['model'],
+                                'brand' => $data['brand'],
+                                'type' => null,
                                 'ismobile' => null,
                             ];
 
@@ -267,7 +280,7 @@ class UapCoreSource implements SourceInterface
                         case 'test_os.yaml':
                         case 'additional_os_tests.yaml':
                             $platform = [
-                                'name'    => $data['family'],
+                                'name' => $data['family'],
                                 'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
                             ];
 
@@ -279,7 +292,7 @@ class UapCoreSource implements SourceInterface
                         case 'opera_mini_user_agent_strings.yaml':
                         case 'pgts_browser_list.yaml':
                             $browser = [
-                                'name'    => $data['family'],
+                                'name' => $data['family'],
                                 'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
                             ];
 
@@ -289,10 +302,10 @@ class UapCoreSource implements SourceInterface
                     }
 
                     $expected = [
-                        'browser'  => $browser,
+                        'browser' => $browser,
                         'platform' => $platform,
-                        'device'   => $device,
-                        'engine'   => $engine,
+                        'device' => $device,
+                        'engine' => $engine,
                     ];
 
                     $tests[addcslashes($ua, "\n")] = $expected;

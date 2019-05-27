@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
-class WootheeSource implements SourceInterface
+final class WootheeSource implements SourceInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -40,6 +40,9 @@ class WootheeSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getUserAgents(): iterable
@@ -47,7 +50,7 @@ class WootheeSource implements SourceInterface
         foreach ($this->loadFromPath() as $headers => $test) {
             $headers = UserAgent::fromString($headers)->getHeader();
 
-            if (!isset($headers['user-agent'])) {
+            if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
@@ -56,6 +59,9 @@ class WootheeSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     public function getHeaders(): iterable
@@ -66,6 +72,9 @@ class WootheeSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return array[]|iterable
      */
     public function getProperties(): iterable
@@ -74,6 +83,9 @@ class WootheeSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return iterable|string[]
      */
     private function loadFromPath(): iterable
@@ -126,47 +138,47 @@ class WootheeSource implements SourceInterface
 
                 yield $agent => [
                     'device' => [
-                        'deviceName'    => null,
+                        'deviceName' => null,
                         'marketingName' => null,
-                        'manufacturer'  => null,
-                        'brand'         => null,
-                        'display'       => [
-                            'width'  => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
                             'height' => null,
-                            'touch'  => null,
-                            'type'   => null,
-                            'size'   => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
                         'dualOrientation' => null,
-                        'type'            => $row['category'] ?? null,
-                        'simCount'        => null,
-                        'market'          => [
-                            'regions'   => null,
+                        'type' => $row['category'] ?? null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
                             'countries' => null,
-                            'vendors'   => null,
+                            'vendors' => null,
                         ],
                         'connections' => null,
-                        'ismobile'    => null,
+                        'ismobile' => null,
                     ],
                     'browser' => [
-                        'name'         => $row['name'] ?? null,
-                        'modus'        => null,
-                        'version'      => $row['version'] ?? null,
+                        'name' => $row['name'] ?? null,
+                        'modus' => null,
+                        'version' => $row['version'] ?? null,
                         'manufacturer' => null,
-                        'bits'         => null,
-                        'type'         => null,
-                        'isbot'        => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name'          => $row['os'] ?? null,
+                        'name' => $row['os'] ?? null,
                         'marketingName' => null,
-                        'version'       => $row['os_version'] ?? null,
-                        'manufacturer'  => null,
-                        'bits'          => null,
+                        'version' => $row['os_version'] ?? null,
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name'         => null,
-                        'version'      => null,
+                        'name' => null,
+                        'version' => null,
                         'manufacturer' => null,
                     ],
                 ];
