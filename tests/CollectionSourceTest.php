@@ -20,6 +20,8 @@ final class CollectionSourceTest extends TestCase
     /**
      * @throws \PHPUnit\Framework\Exception
      * @throws \InvalidArgumentException
+     *
+     * @return void
      */
     public function testConstruct(): void
     {

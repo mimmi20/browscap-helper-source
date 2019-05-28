@@ -153,6 +153,8 @@ final class UapCoreSource implements SourceInterface
      *
      * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \RuntimeException
+     *
+     * @return void
      */
     private function processFixture(SplFileInfo $fixture, array &$tests): void
     {

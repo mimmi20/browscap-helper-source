@@ -36,6 +36,8 @@ final class LogFileReader implements ReaderInterface
 
     /**
      * @param string $file
+     *
+     * @return void
      */
     public function addLocalFile(string $file): void
     {
