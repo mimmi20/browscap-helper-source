@@ -240,6 +240,11 @@ final class PiwikSource implements SourceInterface
         return !$this->isDesktop($data);
     }
 
+    /**
+     * @param array $data
+     *
+     * @return bool
+     */
     private function isDesktop(array $data): bool
     {
         $osShort = $data['os']['short_name'];
