@@ -12,6 +12,9 @@ parameters:
   ignoreErrors:
     - '~Construct empty\(\) is not allowed\. Use more strict comparison~'
     - '~Language construct isset\(\) should not be used~'
+    - '~Language construct empty\(\) should not be used~'
+    - '~Control structures using switch should not be used~'
+    - '~Error suppression via "@" should not be used~'
     - '~Class http\\Header not found~'
     - '~Call to static method parse\(\) on an unknown class http\\Header~'
     - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception given~'
