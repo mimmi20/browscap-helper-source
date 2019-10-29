@@ -27,7 +27,7 @@
     "ext-simplexml": "*",
     "browscap/browscap": "dev-update-dependencies",
     "donatj/phpuseragentparser": "dev-master",
-    "endorphin-studio/browser-detector": "^3.0",
+    "endorphin-studio/browser-detector": "^5.0",
     "friendsofphp/php-cs-fixer": "^2.15",
     "infection/infection": "^0.12.0 || ^0.13.0",
     "jaybizzle/crawler-detect": "dev-master",
