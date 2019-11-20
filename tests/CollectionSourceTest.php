@@ -32,6 +32,6 @@ final class CollectionSourceTest extends TestCase
 
         $object = new CollectionSource($sourceOne, $sourceTwo);
 
-        static::assertSame(2, $object->count());
+        self::assertSame(2, $object->count());
     }
 }
