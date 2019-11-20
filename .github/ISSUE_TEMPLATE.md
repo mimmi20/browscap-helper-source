@@ -1,6 +1,6 @@
 | Q                       | A
 | ------------------------| ---------------
-| BrowserDetector version | x.y.z
+| browscap-helper-source version | x.y.z
 | PHP version             | x.y.z
 
 
