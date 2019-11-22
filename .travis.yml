@@ -24,8 +24,6 @@ stages:
   - composer validate
   - static code analysis
   - test
-  - test with coverage
-  - infection
 
 before_install:
   - stty cols 130
@@ -38,7 +36,7 @@ before_install:
 
 install: travis_retry composer update --optimize-autoloader --prefer-dist --prefer-stable --no-progress --no-interaction --no-suggest $COMPOSER_FLAGS -vv
 
-script: vendor/bin/phpunit -c phpunit.xml --colors --columns 117 --no-coverage
+script: skip
 
 jobs:
   allow_failures:
@@ -48,23 +46,6 @@ jobs:
   include:
     - php: nightly
       env: COMPOSER_FLAGS="--ignore-platform-reqs"
-
-    - stage: test with coverage
-      php: 7.1
-      env:
-        - COVERAGE=yes
-        - COMPOSER_FLAGS=""
-      before_install:
-        - stty cols 130
-        - echo 'opcache.enable=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-        - echo 'opcache.enable_cli=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-        - echo 'zend.assertions=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
-        - echo 'assert.exception=On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
-        - composer self-update
-      script: vendor/bin/phpunit --colors --columns 121 --coverage-clover=clover.xml --coverage-text
-      after_success:
-        - wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.1.0/php-coveralls.phar && php -n php-coveralls.phar --verbose --coverage_clover=clover.xml
-        - bash <(curl -s https://codecov.io/bash) -f clover.xml -F phpunit
 
     - stage: composer validate
       os: linux
@@ -97,20 +78,6 @@ jobs:
         - TEST=phpstan
         - COMPOSER_FLAGS=""
       script: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=768M --no-progress
-
-    - stage: infection
-      php: 7.1
-      env:
-        - COVERAGE=yes
-        - COMPOSER_FLAGS=""
-      before_install:
-        - stty cols 130
-        - echo 'opcache.enable=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-        - echo 'opcache.enable_cli=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-        - echo 'zend.assertions=1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
-        - echo 'assert.exception=On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
-        - composer self-update
-      script: vendor/bin/infection --only-covered --min-covered-msi=50 --min-msi=50
 
 notifications:
   email: false

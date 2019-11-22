@@ -20,6 +20,8 @@ use Symfony\Component\Yaml\Yaml;
 
 final class PiwikSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -45,31 +47,23 @@ final class PiwikSource implements SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $row) {
+            $ua    = explode("\n", $row['user_agent']);
+            $ua    = array_map('trim', $ua);
+            $agent = trim(implode(' ', $ua));
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -81,24 +75,84 @@ final class PiwikSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $row) {
+            $ua    = explode("\n", $row['user_agent']);
+            $ua    = array_map('trim', $ua);
+            $agent = trim(implode(' ', $ua));
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => $row['device']['model'] ?? null,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => (!empty($row['device']['brand']) ? DeviceParserAbstract::getFullName($row['device']['brand']) : null),
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => $row['device']['type'] ?? null,
+                    'simCount' => null,
+                    'market' => [
+                        'regions' => null,
+                        'countries' => null,
+                        'vendors' => null,
+                    ],
+                    'connections' => null,
+                    'ismobile' => $this->isMobile($row),
+                ],
+                'browser' => [
+                    'name' => $row['client']['name'] ?? null,
+                    'modus' => null,
+                    'version' => $row['client']['version'] ?? null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ],
+                'platform' => [
+                    'name' => $row['os']['name'] ?? null,
+                    'marketingName' => null,
+                    'version' => $row['os']['version'] ?? null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                ],
+                'engine' => [
+                    'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
+                    'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
+                    'manufacturer' => null,
+                ],
+            ];
+        }
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
         $path = 'vendor/piwik/device-detector/Tests/fixtures';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -126,66 +180,7 @@ final class PiwikSource implements SourceInterface
                     continue;
                 }
 
-                $ua    = explode("\n", $row['user_agent']);
-                $ua    = array_map('trim', $ua);
-                $agent = trim(implode(' ', $ua));
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                $agent = (string) UserAgent::fromUseragent($agent);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent => [
-                    'device' => [
-                        'deviceName' => $data['device']['model'] ?? null,
-                        'marketingName' => null,
-                        'manufacturer' => null,
-                        'brand' => (!empty($data['device']['brand']) ? DeviceParserAbstract::getFullName($data['device']['brand']) : null),
-                        'display' => [
-                            'width' => null,
-                            'height' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'size' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'type' => $data['device']['type'] ?? null,
-                        'simCount' => null,
-                        'market' => [
-                            'regions' => null,
-                            'countries' => null,
-                            'vendors' => null,
-                        ],
-                        'connections' => null,
-                        'ismobile' => $this->isMobile($data),
-                    ],
-                    'browser' => [
-                        'name' => $data['client']['name'] ?? null,
-                        'modus' => null,
-                        'version' => $data['client']['version'] ?? null,
-                        'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => $data['os']['name'] ?? null,
-                        'marketingName' => null,
-                        'version' => $data['os']['version'] ?? null,
-                        'manufacturer' => null,
-                        'bits' => null,
-                    ],
-                    'engine' => [
-                        'name' => (!empty($data['client']['engine']) ? $data['client']['engine'] : null),
-                        'version' => (!empty($data['client']['engine_version']) ? $data['client']['engine_version'] : null),
-                        'manufacturer' => null,
-                    ],
-                ];
+                yield $row;
             }
         }
     }

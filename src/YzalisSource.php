@@ -18,6 +18,8 @@ use Symfony\Component\Yaml\Yaml;
 
 final class YzalisSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -43,31 +45,19 @@ final class YzalisSource implements SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $providerName => $data) {
+            $ua    = UserAgent::fromUseragent(trim($data[0]));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -79,7 +69,100 @@ final class YzalisSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        $tests = [];
+
+        foreach ($this->loadFromPath() as $providerName => $data) {
+            $agent = trim($data[0]);
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            if (!array_key_exists($agent, $tests)) {
+                $tests[$agent] = [
+                    'device' => [
+                        'deviceName' => null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'market' => [
+                            'regions' => null,
+                            'countries' => null,
+                            'vendors' => null,
+                        ],
+                        'connections' => null,
+                        'ismobile' => null,
+                    ],
+                    'browser' => [
+                        'name' => null,
+                        'modus' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
+                    ],
+                    'platform' => [
+                        'name' => null,
+                        'marketingName' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                    ],
+                ];
+            }
+
+            switch ($providerName) {
+                case 'browsers.yml':
+                    $tests[$agent]['browser']['name']    = $data[1];
+                    $tests[$agent]['browser']['version'] = $data[2] . '.' . $data[3] . '.' . $data[4];
+
+                    break;
+                case 'devices.yml':
+                    $tests[$agent]['device']['name']  = $data[2];
+                    $tests[$agent]['device']['brand'] = $data[1];
+                    $tests[$agent]['device']['type']  = $data[3];
+
+                    break;
+                case 'operating_systems.yml':
+                    $tests[$agent]['platform']['name']    = $data[1];
+                    $tests[$agent]['platform']['version'] = $data[2] . (null !== $data[3] ? '.' . $data[3] . (null !== $data[4] ? '.' . $data[4] : '') : '');
+
+                    break;
+                case 'rendering_engines.yml':
+                    $tests[$agent]['engine']['name']    = $data[1];
+                    $tests[$agent]['engine']['version'] = $data[2];
+
+                    break;
+                // Skipping other files because we dont test this
+            }
+        }
+
+        foreach ($tests as $agent => $test) {
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => $test;
+        }
     }
 
     /**
@@ -93,10 +176,12 @@ final class YzalisSource implements SourceInterface
         $path = 'vendor/yzalis/ua-parser/tests/UAParser/Tests/Fixtures';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -110,8 +195,6 @@ final class YzalisSource implements SourceInterface
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
         $finder->in($path);
-
-        $tests = [];
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -128,92 +211,8 @@ final class YzalisSource implements SourceInterface
             $providerName = $file->getFilename();
 
             foreach ($provider as $data) {
-                $ua = $data[0];
-
-                if (!array_key_exists($ua, $tests)) {
-                    $tests[$ua] = [
-                        'device' => [
-                            'deviceName' => null,
-                            'marketingName' => null,
-                            'manufacturer' => null,
-                            'brand' => null,
-                            'display' => [
-                                'width' => null,
-                                'height' => null,
-                                'touch' => null,
-                                'type' => null,
-                                'size' => null,
-                            ],
-                            'dualOrientation' => null,
-                            'type' => null,
-                            'simCount' => null,
-                            'market' => [
-                                'regions' => null,
-                                'countries' => null,
-                                'vendors' => null,
-                            ],
-                            'connections' => null,
-                            'ismobile' => null,
-                        ],
-                        'browser' => [
-                            'name' => null,
-                            'modus' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
-                            'type' => null,
-                            'isbot' => null,
-                        ],
-                        'platform' => [
-                            'name' => null,
-                            'marketingName' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
-                        ],
-                        'engine' => [
-                            'name' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                        ],
-                    ];
-                }
-
-                switch ($providerName) {
-                    case 'browsers.yml':
-                        $tests[$ua]['browser']['name']    = $data[1];
-                        $tests[$ua]['browser']['version'] = $data[2] . '.' . $data[3] . '.' . $data[4];
-
-                        break;
-                    case 'devices.yml':
-                        $tests[$ua]['device']['name']  = $data[2];
-                        $tests[$ua]['device']['brand'] = $data[1];
-                        $tests[$ua]['device']['type']  = $data[3];
-
-                        break;
-                    case 'operating_systems.yml':
-                        $tests[$ua]['platform']['name']    = $data[1];
-                        $tests[$ua]['platform']['version'] = $data[2] . (null !== $data[3] ? '.' . $data[3] . (null !== $data[4] ? '.' . $data[4] : '') : '');
-
-                        break;
-                    case 'rendering_engines.yml':
-                        $tests[$ua]['engine']['name']    = $data[1];
-                        $tests[$ua]['engine']['version'] = $data[2];
-
-                        break;
-                    // Skipping other files because we dont test this
-                }
+                yield $providerName => $data;
             }
-        }
-
-        foreach ($tests as $agent => $test) {
-            $agent = (string) UserAgent::fromUseragent((string) $agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent => $test;
         }
     }
 }

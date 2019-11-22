@@ -2,7 +2,6 @@ parameters:
   level: max
   paths:
     - src
-    - tests
   autoload_files:
     - %currentWorkingDirectory%/vendor/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/autoload.php
@@ -18,9 +17,12 @@ parameters:
     - '~Class http\\Header not found~'
     - '~Call to static method parse\(\) on an unknown class http\\Header~'
     - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception given~'
-    - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception\&Throwable given~'
-    - '~Method BrowscapHelper\\Source\\Helper\\FilePath::getPath\(\) has a nullable return type declaration~'
-    - '~PHPDoc tag @throws with type Psr\\SimpleCache\\InvalidArgumentException\|RuntimeException is not subtype of Throwable~'
+#    - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception\&Throwable given~'
+#    - '~Method BrowscapHelper\\Source\\Helper\\FilePath::getPath\(\) has a nullable return type declaration~'
+#    - '~PHPDoc tag @throws with type Psr\\SimpleCache\\InvalidArgumentException\|RuntimeException is not subtype of Throwable~'
+    - '~has a nullable return type declaration~'
+    - '~Else branch is unreachable because ternary operator condition is always true~'
+    - '~Strict comparison using !== between null and string will always evaluate to true~'
   exceptionRules:
     reportUnusedCatchesOfUncheckedExceptions: false
     uncheckedExceptions: []
@@ -29,8 +31,6 @@ parameters:
 
 includes:
   - vendor/phpstan/phpstan-strict-rules/rules.neon
-  - vendor/phpstan/phpstan-phpunit/extension.neon
-  - vendor/phpstan/phpstan-phpunit/rules.neon
   - vendor/pepakriz/phpstan-exception-rules/extension.neon
   - vendor/phpstan/phpstan-deprecation-rules/rules.neon
   - vendor/localheinz/phpstan-rules/rules.neon

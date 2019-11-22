@@ -19,6 +19,8 @@ use Symfony\Component\Finder\Finder;
 
 final class LogFileSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var string
      */
@@ -50,30 +52,19 @@ final class LogFileSource implements SourceInterface
     /**
      * @throws \LogicException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $agent) {
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -84,54 +75,9 @@ final class LogFileSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        if (!file_exists($this->sourcesDirectory)) {
-            return;
-        }
-
-        $this->logger->info('    reading path ' . $this->sourcesDirectory);
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->notName('*.filepart');
-        $finder->notName('*.sql');
-        $finder->notName('*.rename');
-        $finder->notName('*.txt');
-        $finder->notName('*.zip');
-        $finder->notName('*.rar');
-        $finder->notName('*.php');
-        $finder->notName('*.gitkeep');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($this->sourcesDirectory);
-
-        $filepathHelper = new FilePath();
-        $reader         = new LogFileReader($this->logger);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $filepathHelper->getPath($file);
-
-            if (null === $filepath) {
-                continue;
-            }
-
-            $reader->addLocalFile($filepath);
-        }
-
-        foreach ($reader->getAgents($this->logger) as $agent) {
-            $agent = (string) UserAgent::fromUseragent($agent);
+        foreach ($this->loadFromPath() as $agent) {
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
 
             if (empty($agent)) {
                 continue;
@@ -183,6 +129,56 @@ final class LogFileSource implements SourceInterface
                     'manufacturer' => null,
                 ],
             ];
+        }
+    }
+
+    /**
+     * @throws \LogicException
+     *
+     * @return iterable|string[]
+     */
+    private function loadFromPath(): iterable
+    {
+        if (!file_exists($this->sourcesDirectory)) {
+            $this->logger->warning(sprintf('    path %s not found', $this->sourcesDirectory));
+
+            return;
+        }
+
+        $this->logger->info(sprintf('    reading path %s', $this->sourcesDirectory));
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->notName('*.filepart');
+        $finder->notName('*.sql');
+        $finder->notName('*.rename');
+        $finder->notName('*.txt');
+        $finder->notName('*.zip');
+        $finder->notName('*.rar');
+        $finder->notName('*.php');
+        $finder->notName('*.gitkeep');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->sourcesDirectory);
+
+        $filepathHelper = new FilePath();
+        $reader         = new LogFileReader($this->logger);
+
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $filepath = $filepathHelper->getPath($file);
+
+            if (null === $filepath) {
+                continue;
+            }
+
+            $reader->addLocalFile($filepath);
+        }
+
+        foreach ($reader->getAgents($this->logger) as $agent) {
+            yield $agent;
         }
     }
 }

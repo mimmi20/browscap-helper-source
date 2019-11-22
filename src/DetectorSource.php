@@ -19,6 +19,8 @@ use Symfony\Component\Finder\Finder;
 
 final class DetectorSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -37,38 +39,26 @@ final class DetectorSource implements SourceInterface
      */
     public function getName(): string
     {
-        return 'mimmi20/browser-detector-tests';
+        return 'mimmi20/browser-detector';
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $test) {
+            $ua    = UserAgent::fromHeaderArray($test['headers']);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -80,24 +70,80 @@ final class DetectorSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $test) {
+            $ua    = UserAgent::fromHeaderArray($test['headers']);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => $test['result']['device']['deviceName'],
+                    'marketingName' => $test['result']['device']['marketingName'],
+                    'manufacturer' => $test['result']['device']['manufacturer'],
+                    'brand' => $test['result']['device']['brand'],
+                    'display' => [
+                        'width' => $test['result']['device']['display']['width'],
+                        'height' => $test['result']['device']['display']['height'],
+                        'touch' => $test['result']['device']['display']['touch'],
+                        'type' => $test['result']['device']['display']['type'] ?? null,
+                        'size' => $test['result']['device']['display']['size'],
+                    ],
+                    'dualOrientation' => $test['result']['device']['dualOrientation'] ?? null,
+                    'type' => $test['result']['device']['type'],
+                    'simCount' => $test['result']['device']['simCount'] ?? null,
+                    'market' => [
+                        'regions' => $test['result']['device']['market']['regions'] ?? null,
+                        'countries' => $test['result']['device']['market']['countries'] ?? null,
+                        'vendors' => $test['result']['device']['market']['vendors'] ?? null,
+                    ],
+                    'connections' => $test['result']['device']['connections'] ?? null,
+                    'ismobile' => (new \UaDeviceType\TypeLoader())->load($test['result']['device']['type'])->isMobile(),
+                ],
+                'browser' => [
+                    'name' => $test['result']['browser']['name'],
+                    'modus' => $test['result']['browser']['modus'],
+                    'version' => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
+                    'manufacturer' => $test['result']['browser']['manufacturer'],
+                    'bits' => $test['result']['browser']['bits'],
+                    'type' => $test['result']['browser']['type'],
+                    'isbot' => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
+                ],
+                'platform' => [
+                    'name' => $test['result']['os']['name'],
+                    'marketingName' => $test['result']['os']['marketingName'],
+                    'version' => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
+                    'manufacturer' => $test['result']['os']['manufacturer'],
+                    'bits' => $test['result']['os']['bits'],
+                ],
+                'engine' => [
+                    'name' => $test['result']['engine']['name'],
+                    'version' => $test['result']['engine']['version'],
+                    'manufacturer' => $test['result']['engine']['manufacturer'],
+                ],
+            ];
+        }
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
-        $path = 'vendor/mimmi20/browser-detector-tests/tests/issues';
+        $path = 'vendor/mimmi20/browser-detector/tests/data';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -138,58 +184,7 @@ final class DetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                $agent = (string) UserAgent::fromHeaderArray($test['headers']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent => [
-                    'device' => [
-                        'deviceName' => $test['result']['device']['deviceName'],
-                        'marketingName' => $test['result']['device']['marketingName'],
-                        'manufacturer' => $test['result']['device']['manufacturer'],
-                        'brand' => $test['result']['device']['brand'],
-                        'display' => [
-                            'width' => $test['result']['device']['display']['width'],
-                            'height' => $test['result']['device']['display']['height'],
-                            'touch' => $test['result']['device']['display']['touch'],
-                            'type' => $test['result']['device']['display']['type'],
-                            'size' => $test['result']['device']['display']['size'],
-                        ],
-                        'dualOrientation' => $test['result']['device']['dualOrientation'],
-                        'type' => $test['result']['device']['type'],
-                        'simCount' => $test['result']['device']['simCount'],
-                        'market' => [
-                            'regions' => $test['result']['device']['market']['regions'],
-                            'countries' => $test['result']['device']['market']['countries'],
-                            'vendors' => $test['result']['device']['market']['vendors'],
-                        ],
-                        'connections' => $test['result']['device']['connections'],
-                        'ismobile' => (new \UaDeviceType\TypeLoader())->load($test['result']['device']['type'])->isMobile(),
-                    ],
-                    'browser' => [
-                        'name' => $test['result']['browser']['name'],
-                        'modus' => $test['result']['browser']['modus'],
-                        'version' => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
-                        'manufacturer' => $test['result']['browser']['manufacturer'],
-                        'bits' => $test['result']['browser']['bits'],
-                        'type' => $test['result']['browser']['type'],
-                        'isbot' => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
-                    ],
-                    'platform' => [
-                        'name' => $test['result']['os']['name'],
-                        'marketingName' => $test['result']['os']['marketingName'],
-                        'version' => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
-                        'manufacturer' => $test['result']['os']['manufacturer'],
-                        'bits' => $test['result']['os']['bits'],
-                    ],
-                    'engine' => [
-                        'name' => $test['result']['engine']['name'],
-                        'version' => $test['result']['engine']['version'],
-                        'manufacturer' => $test['result']['engine']['manufacturer'],
-                    ],
-                ];
+                yield $test;
             }
         }
     }

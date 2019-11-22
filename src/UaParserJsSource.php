@@ -19,6 +19,8 @@ use Symfony\Component\Finder\Finder;
 
 final class UaParserJsSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -44,31 +46,21 @@ final class UaParserJsSource implements SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $providerName => $data) {
+            $agent = trim($data['ua']);
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -80,24 +72,113 @@ final class UaParserJsSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        $agents = [];
+        $base   = [
+            'device' => [
+                'deviceName' => null,
+                'marketingName' => null,
+                'manufacturer' => null,
+                'brand' => null,
+                'display' => [
+                    'width' => null,
+                    'height' => null,
+                    'touch' => null,
+                    'type' => null,
+                    'size' => null,
+                ],
+                'dualOrientation' => null,
+                'type' => null,
+                'simCount' => null,
+                'market' => [
+                    'regions' => null,
+                    'countries' => null,
+                    'vendors' => null,
+                ],
+                'connections' => null,
+                'ismobile' => null,
+            ],
+            'browser' => [
+                'name' => null,
+                'modus' => null,
+                'version' => null,
+                'manufacturer' => null,
+                'bits' => null,
+                'type' => null,
+                'isbot' => null,
+            ],
+            'platform' => [
+                'name' => null,
+                'marketingName' => null,
+                'version' => null,
+                'manufacturer' => null,
+                'bits' => null,
+            ],
+            'engine' => [
+                'name' => null,
+                'version' => null,
+                'manufacturer' => null,
+            ],
+        ];
+
+        foreach ($this->loadFromPath() as $providerName => $data) {
+            $agent = trim($data['ua']);
+
+            if (!isset($agents[$agent])) {
+                $agents[$agent] = $base;
+            }
+
+            switch ($providerName) {
+                case 'browser-test.json':
+                    $agents[$agent]['browser']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
+                    $agents[$agent]['browser']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
+
+                    break;
+                case 'device-test.json':
+                    $agents[$agent]['device']['name']  = 'undefined' === $data['expect']['model'] ? '' : $data['expect']['model'];
+                    $agents[$agent]['device']['brand'] = 'undefined' === $data['expect']['vendor'] ? '' : $data['expect']['vendor'];
+                    $agents[$agent]['device']['type']  = 'undefined' === $data['expect']['type'] ? '' : $data['expect']['type'];
+
+                    break;
+                case 'os-test.json':
+                    $agents[$agent]['platform']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
+                    $agents[$agent]['platform']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
+
+                    break;
+                // Skipping cpu-test.json because we don't look at CPU data, which is all that file tests against
+                // Skipping engine-test.json because we don't look at Engine data // @todo: fix
+                // Skipping mediaplayer-test.json because it seems that this file isn't used in this project's actual tests (see test.js)
+            }
+        }
+
+        foreach ($agents as $agent => $test) {
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => $test;
+        }
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
         $path = 'node_modules/ua-parser-js/test';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -107,8 +188,6 @@ final class UaParserJsSource implements SourceInterface
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
         $finder->in($path);
-
-        $agents = [];
 
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
@@ -133,52 +212,6 @@ final class UaParserJsSource implements SourceInterface
             }
 
             $providerName = $file->getFilename();
-            $base         = [
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
-                    'ismobile' => null,
-                ],
-                'browser' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
 
             foreach ($provider as $data) {
                 $agent = trim($data['ua']);
@@ -187,42 +220,8 @@ final class UaParserJsSource implements SourceInterface
                     continue;
                 }
 
-                if (!isset($agents[$agent])) {
-                    $agents[$agent] = $base;
-                }
-
-                switch ($providerName) {
-                    case 'browser-test.json':
-                        $agents[$agent]['browser']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
-                        $agents[$agent]['browser']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
-
-                        break;
-                    case 'device-test.json':
-                        $agents[$agent]['device']['name']  = 'undefined' === $data['expect']['model'] ? '' : $data['expect']['model'];
-                        $agents[$agent]['device']['brand'] = 'undefined' === $data['expect']['vendor'] ? '' : $data['expect']['vendor'];
-                        $agents[$agent]['device']['type']  = 'undefined' === $data['expect']['type'] ? '' : $data['expect']['type'];
-
-                        break;
-                    case 'os-test.json':
-                        $agents[$agent]['platform']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
-                        $agents[$agent]['platform']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
-
-                        break;
-                    // Skipping cpu-test.json because we don't look at CPU data, which is all that file tests against
-                    // Skipping engine-test.json because we don't look at Engine data // @todo: fix
-                    // Skipping mediaplayer-test.json because it seems that this file isn't used in this project's actual tests (see test.js)
-                }
+                yield $providerName => $data;
             }
-        }
-
-        foreach ($agents as $agent => $test) {
-            $agent = (string) UserAgent::fromUseragent($agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent => $test;
         }
     }
 }
