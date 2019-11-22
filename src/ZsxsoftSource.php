@@ -17,6 +17,8 @@ use Symfony\Component\Finder\Finder;
 
 final class ZsxsoftSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -41,30 +43,21 @@ final class ZsxsoftSource implements SourceInterface
     /**
      * @throws \LogicException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $data) {
+            $agent = trim($data[0][0]);
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -75,25 +68,95 @@ final class ZsxsoftSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        $brands = $this->getBrands();
+
+        foreach ($this->loadFromPath() as $data) {
+            $agent = trim($data[0][0]);
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            $model = '';
+
+            foreach ($brands as $brand) {
+                if (false !== mb_strpos($data[1][8], $brand)) {
+                    $model = trim(str_replace($brand, '', $data[1][8]));
+
+                    break;
+                }
+
+                $brand = '';
+            }
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => $model,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => $brand ?? '',
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => null,
+                    'simCount' => null,
+                    'market' => [
+                        'regions' => null,
+                        'countries' => null,
+                        'vendors' => null,
+                    ],
+                    'connections' => null,
+                    'ismobile' => null,
+                ],
+                'browser' => [
+                    'name' => $data[1][2],
+                    'modus' => null,
+                    'version' => $data[1][3],
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ],
+                'platform' => [
+                    'name' => $data[1][5],
+                    'marketingName' => null,
+                    'version' => $data[1][6],
+                    'manufacturer' => null,
+                    'bits' => null,
+                ],
+                'engine' => [
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                ],
+            ];
+        }
     }
 
     /**
      * @throws \LogicException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
         $path = 'vendor/zsxsoft/php-useragent/tests';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
-
-        $brands = $this->getBrands();
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -113,76 +176,7 @@ final class ZsxsoftSource implements SourceInterface
             $provider = require $filepath;
 
             foreach ($provider as $data) {
-                $agent = trim($data[0][0]);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                $model = '';
-
-                foreach ($brands as $brand) {
-                    if (false !== mb_strpos($data[1][8], $brand)) {
-                        $model = trim(str_replace($brand, '', $data[1][8]));
-
-                        break;
-                    }
-
-                    $brand = '';
-                }
-
-                $agent = (string) UserAgent::fromUseragent($agent);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent => [
-                    'device' => [
-                        'deviceName' => $model,
-                        'marketingName' => null,
-                        'manufacturer' => null,
-                        'brand' => $brand ?? '',
-                        'display' => [
-                            'width' => null,
-                            'height' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'size' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
-                        'market' => [
-                            'regions' => null,
-                            'countries' => null,
-                            'vendors' => null,
-                        ],
-                        'connections' => null,
-                        'ismobile' => null,
-                    ],
-                    'browser' => [
-                        'name' => $data[1][2],
-                        'modus' => null,
-                        'version' => $data[1][3],
-                        'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => $data[1][5],
-                        'marketingName' => null,
-                        'version' => $data[1][6],
-                        'manufacturer' => null,
-                        'bits' => null,
-                    ],
-                    'engine' => [
-                        'name' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                    ],
-                ];
+                yield $data;
             }
         }
     }
@@ -197,7 +191,7 @@ final class ZsxsoftSource implements SourceInterface
         $file->setFlags(\SplFileObject::DROP_NEW_LINE);
         while (!$file->eof()) {
             $line = trim($file->fgets());
-            preg_match('/^\$brand = ("|\')(.*)("|\');$/', $line, $matches);
+            preg_match('/^\$brand = (["\'])(.*)(["\']);$/', $line, $matches);
 
             if (0 < count($matches)) {
                 $brand = $matches[2];

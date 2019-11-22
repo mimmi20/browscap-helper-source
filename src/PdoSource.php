@@ -16,6 +16,8 @@ use Psr\Log\LoggerInterface;
 
 final class PdoSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \PDO
      */
@@ -45,28 +47,19 @@ final class PdoSource implements SourceInterface
     }
 
     /**
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->getAgents() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->getAgents() as $headers => $test) {
-            yield $headers;
+        foreach ($this->getAgents() as $row) {
+            $ua    = UserAgent::fromUseragent(trim($row->agent));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -75,30 +68,9 @@ final class PdoSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->getAgents();
-    }
-
-    /**
-     * @return iterable|string[]
-     */
-    private function getAgents(): iterable
-    {
-        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
-
-        $driverOptions = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
-
-        /** @var \PDOStatement $stmt */
-        $stmt = $this->pdo->prepare($sql, $driverOptions);
-        $stmt->execute();
-
-        while ($row = $stmt->fetch(\PDO::FETCH_OBJ)) {
-            $agent = trim($row->agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            $agent = (string) UserAgent::fromUseragent($agent);
+        foreach ($this->getAgents() as $row) {
+            $ua    = UserAgent::fromUseragent(trim($row->agent));
+            $agent = (string) $ua;
 
             if (empty($agent)) {
                 continue;
@@ -150,6 +122,24 @@ final class PdoSource implements SourceInterface
                     'manufacturer' => null,
                 ],
             ];
+        }
+    }
+
+    /**
+     * @return iterable|\stdClass[]
+     */
+    private function getAgents(): iterable
+    {
+        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
+
+        $driverOptions = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
+
+        /** @var \PDOStatement $stmt */
+        $stmt = $this->pdo->prepare($sql, $driverOptions);
+        $stmt->execute();
+
+        while ($row = $stmt->fetch(\PDO::FETCH_OBJ)) {
+            yield $row;
         }
     }
 }

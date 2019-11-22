@@ -29,7 +29,7 @@ interface SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable;
 

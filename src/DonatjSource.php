@@ -19,6 +19,8 @@ use Symfony\Component\Finder\Finder;
 
 final class DonatjSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -44,31 +46,19 @@ final class DonatjSource implements SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $test => $data) {
+            $ua    = UserAgent::fromUseragent(trim($test));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -80,24 +70,80 @@ final class DonatjSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $test => $data) {
+            $ua    = UserAgent::fromUseragent(trim($test));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => null,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => null,
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => null,
+                    'simCount' => null,
+                    'market' => [
+                        'regions' => null,
+                        'countries' => null,
+                        'vendors' => null,
+                    ],
+                    'connections' => null,
+                    'ismobile' => null,
+                ],
+                'browser' => [
+                    'name' => $data['browser'],
+                    'modus' => null,
+                    'version' => $data['version'],
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ],
+                'platform' => [
+                    'name' => $data['platform'],
+                    'marketingName' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                ],
+                'engine' => [
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                ],
+            ];
+        }
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
         $path = 'vendor/donatj/phpuseragentparser/Tests';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -136,64 +182,7 @@ final class DonatjSource implements SourceInterface
             }
 
             foreach ($provider as $test => $data) {
-                $agent = trim($test);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                $agent = (string) UserAgent::fromUseragent($agent);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent => [
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
-                        'manufacturer' => null,
-                        'brand' => null,
-                        'display' => [
-                            'width' => null,
-                            'height' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'size' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
-                        'market' => [
-                            'regions' => null,
-                            'countries' => null,
-                            'vendors' => null,
-                        ],
-                        'connections' => null,
-                        'ismobile' => null,
-                    ],
-                    'browser' => [
-                        'name' => $data['browser'],
-                        'modus' => null,
-                        'version' => $data['version'],
-                        'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => $data['platform'],
-                        'marketingName' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
-                    ],
-                    'engine' => [
-                        'name' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                    ],
-                ];
+                yield $test => $data;
             }
         }
     }

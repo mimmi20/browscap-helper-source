@@ -14,13 +14,13 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Ua\UserAgent;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
-use Psr\SimpleCache\InvalidArgumentException;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
 final class UapCoreSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -53,31 +53,19 @@ final class UapCoreSource implements SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $providerName => $data) {
+            $ua    = UserAgent::fromUseragent(addcslashes($data['user_agent_string'], "\n"));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -89,24 +77,139 @@ final class UapCoreSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        $tests = [];
+
+        foreach ($this->loadFromPath() as $providerName => $data) {
+            $ua = addcslashes($data['user_agent_string'], "\n");
+            if (empty($ua)) {
+                continue;
+            }
+
+            if (isset($tests[$ua])) {
+                $browser  = $tests[$ua]['browser'];
+                $platform = $tests[$ua]['platform'];
+                $device   = $tests[$ua]['device'];
+                $engine   = $tests[$ua]['engine'];
+            } else {
+                $browser = [
+                    'name' => null,
+                    'modus' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ];
+
+                $platform = [
+                    'name' => null,
+                    'marketingName' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                ];
+
+                $device = [
+                    'deviceName' => null,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => null,
+                    'pointingMethod' => null,
+                    'resolutionWidth' => null,
+                    'resolutionHeight' => null,
+                    'dualOrientation' => null,
+                    'type' => null,
+                    'ismobile' => null,
+                ];
+
+                $engine = [
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                ];
+            }
+
+            switch ($providerName) {
+                case 'test_device.yaml':
+                    $device = [
+                        'deviceName' => $data['model'],
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => $data['brand'],
+                        'pointingMethod' => null,
+                        'resolutionWidth' => null,
+                        'resolutionHeight' => null,
+                        'dualOrientation' => null,
+                        'type' => null,
+                        'ismobile' => null,
+                    ];
+
+                    break;
+                case 'test_os.yaml':
+                case 'additional_os_tests.yaml':
+                    $platform = [
+                        'name' => $data['family'],
+                        'marketingName' => null,
+                        'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ];
+
+                    break;
+                case 'test_ua.yaml':
+                case 'firefox_user_agent_strings.yaml':
+                case 'opera_mini_user_agent_strings.yaml':
+                case 'pgts_browser_list.yaml':
+                    $browser = [
+                        'name' => $data['family'],
+                        'modus' => null,
+                        'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
+                    ];
+
+                    break;
+            }
+
+            $tests[$ua] = [
+                'browser' => $browser,
+                'platform' => $platform,
+                'device' => $device,
+                'engine' => $engine,
+            ];
+        }
+
+        foreach ($tests as $agent => $test) {
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => $test;
+        }
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
         $path = 'vendor/ua-parser/uap-core/tests';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -121,200 +224,18 @@ final class UapCoreSource implements SourceInterface
             $finder->in('vendor/ua-parser/uap-core/test_resources');
         }
 
-        $tests = [];
-
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $filepath = $file->getPathname();
 
             $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
 
-            try {
-                $this->processFixture($file, $tests);
-            } catch (InvalidArgumentException $e) {
-                $this->logger->error($e);
-            }
-        }
-
-        foreach ($tests as $agent => $test) {
-            $agent = (string) UserAgent::fromUseragent($agent);
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent => $test;
-        }
-    }
-
-    /**
-     * @param \Symfony\Component\Finder\SplFileInfo $fixture
-     * @param array                                 $tests
-     *
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \RuntimeException
-     *
-     * @return void
-     */
-    private function processFixture(SplFileInfo $fixture, array &$tests): void
-    {
-        $key = (string) sha1_file($fixture->getPathname());
-        if ($this->cache->has($key)) {
-            $records = $this->cache->get($key);
-
-            foreach ($records as $ua => $data) {
-                $ua = addcslashes($ua, "\n");
-                if (!isset($tests[$ua])) {
-                    $tests[$ua] = [
-                        'device' => [
-                            'deviceName' => null,
-                            'marketingName' => null,
-                            'manufacturer' => null,
-                            'brand' => null,
-                            'display' => [
-                                'width' => null,
-                                'height' => null,
-                                'touch' => null,
-                                'type' => null,
-                                'size' => null,
-                            ],
-                            'dualOrientation' => null,
-                            'type' => null,
-                            'simCount' => null,
-                            'market' => [
-                                'regions' => null,
-                                'countries' => null,
-                                'vendors' => null,
-                            ],
-                            'connections' => null,
-                            'ismobile' => null,
-                        ],
-                        'browser' => [
-                            'name' => null,
-                            'modus' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
-                            'type' => null,
-                            'isbot' => null,
-                        ],
-                        'platform' => [
-                            'name' => null,
-                            'marketingName' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
-                        ],
-                        'engine' => [
-                            'name' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                        ],
-                    ];
-                }
-
-                $tests[$ua] = array_replace_recursive($tests[$ua], $data);
-            }
-        } else {
-            $provider = Yaml::parse($fixture->getContents());
-
-            $records = [];
+            $provider     = Yaml::parse($file->getContents());
+            $providerName = $file->getFilename();
 
             foreach ($provider['test_cases'] as $data) {
-                $ua = $data['user_agent_string'];
-                if (!empty($ua)) {
-                    if (isset($tests[addcslashes($ua, "\n")])) {
-                        $browser  = $tests[$ua]['browser'];
-                        $platform = $tests[$ua]['platform'];
-                        $device   = $tests[$ua]['device'];
-                        $engine   = $tests[$ua]['engine'];
-                    } else {
-                        $browser = [
-                            'name' => null,
-                            'modus' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
-                            'type' => null,
-                            'isbot' => null,
-                        ];
-
-                        $platform = [
-                            'name' => null,
-                            'marketingName' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
-                        ];
-
-                        $device = [
-                            'deviceName' => null,
-                            'marketingName' => null,
-                            'manufacturer' => null,
-                            'brand' => null,
-                            'pointingMethod' => null,
-                            'resolutionWidth' => null,
-                            'resolutionHeight' => null,
-                            'dualOrientation' => null,
-                            'type' => null,
-                            'ismobile' => null,
-                        ];
-
-                        $engine = [
-                            'name' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                        ];
-                    }
-
-                    switch ($fixture->getFilename()) {
-                        case 'test_device.yaml':
-                            $device = [
-                                'name' => $data['model'],
-                                'brand' => $data['brand'],
-                                'type' => null,
-                                'ismobile' => null,
-                            ];
-
-                            $records[$ua]['device'] = $device;
-
-                            break;
-                        case 'test_os.yaml':
-                        case 'additional_os_tests.yaml':
-                            $platform = [
-                                'name' => $data['family'],
-                                'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
-                            ];
-
-                            $records[$ua]['platform'] = $platform;
-
-                            break;
-                        case 'test_ua.yaml':
-                        case 'firefox_user_agent_strings.yaml':
-                        case 'opera_mini_user_agent_strings.yaml':
-                        case 'pgts_browser_list.yaml':
-                            $browser = [
-                                'name' => $data['family'],
-                                'version' => $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : ''),
-                            ];
-
-                            $records[$ua]['browser'] = $browser;
-
-                            break;
-                    }
-
-                    $expected = [
-                        'browser' => $browser,
-                        'platform' => $platform,
-                        'device' => $device,
-                        'engine' => $engine,
-                    ];
-
-                    $tests[addcslashes($ua, "\n")] = $expected;
-                }
+                yield $providerName => $data;
             }
-
-            $this->cache->set($key, $records);
         }
     }
 }

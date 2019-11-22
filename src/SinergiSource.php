@@ -17,6 +17,8 @@ use Symfony\Component\Finder\Finder;
 
 final class SinergiSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -42,31 +44,23 @@ final class SinergiSource implements SourceInterface
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $field) {
+            $ua    = explode("\n", (string) $field->field[6]);
+            $ua    = array_map('trim', $ua);
+            $agent = trim(implode(' ', $ua));
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -78,24 +72,92 @@ final class SinergiSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $field) {
+            $ua    = explode("\n", (string) $field->field[6]);
+            $ua    = array_map('trim', $ua);
+            $agent = trim(implode(' ', $ua));
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            $browser        = (string) $field->field[0];
+            $browserVersion = (string) $field->field[1];
+
+            $platform        = (string) $field->field[2];
+            $platformVersion = (string) $field->field[3];
+
+            $device = (string) $field->field[4];
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => $device,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => null,
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => null,
+                    'simCount' => null,
+                    'market' => [
+                        'regions' => null,
+                        'countries' => null,
+                        'vendors' => null,
+                    ],
+                    'connections' => null,
+                    'ismobile' => null,
+                ],
+                'browser' => [
+                    'name' => $browser,
+                    'modus' => null,
+                    'version' => $browserVersion,
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ],
+                'platform' => [
+                    'name' => $platform,
+                    'marketingName' => null,
+                    'version' => $platformVersion,
+                    'manufacturer' => null,
+                    'bits' => null,
+                ],
+                'engine' => [
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                ],
+            ];
+        }
     }
 
     /**
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return iterable|string[]
+     * @return iterable|\SimpleXMLElement[]
      */
     private function loadFromPath(): iterable
     {
         $path = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -128,73 +190,7 @@ final class SinergiSource implements SourceInterface
 
             foreach ($provider->strings as $string) {
                 foreach ($string as $field) {
-                    $ua    = explode("\n", (string) $field->field[6]);
-                    $ua    = array_map('trim', $ua);
-                    $agent = trim(implode(' ', $ua));
-
-                    if (empty($agent)) {
-                        continue;
-                    }
-
-                    $browser        = (string) $field->field[0];
-                    $browserVersion = (string) $field->field[1];
-
-                    $platform        = (string) $field->field[2];
-                    $platformVersion = (string) $field->field[3];
-
-                    $device = (string) $field->field[4];
-                    $agent  = (string) UserAgent::fromUseragent($agent);
-
-                    if (empty($agent)) {
-                        continue;
-                    }
-
-                    yield $agent => [
-                        'device' => [
-                            'deviceName' => $device,
-                            'marketingName' => null,
-                            'manufacturer' => null,
-                            'brand' => null,
-                            'display' => [
-                                'width' => null,
-                                'height' => null,
-                                'touch' => null,
-                                'type' => null,
-                                'size' => null,
-                            ],
-                            'dualOrientation' => null,
-                            'type' => null,
-                            'simCount' => null,
-                            'market' => [
-                                'regions' => null,
-                                'countries' => null,
-                                'vendors' => null,
-                            ],
-                            'connections' => null,
-                            'ismobile' => null,
-                        ],
-                        'browser' => [
-                            'name' => $browser,
-                            'modus' => null,
-                            'version' => $browserVersion,
-                            'manufacturer' => null,
-                            'bits' => null,
-                            'type' => null,
-                            'isbot' => null,
-                        ],
-                        'platform' => [
-                            'name' => $platform,
-                            'marketingName' => null,
-                            'version' => $platformVersion,
-                            'manufacturer' => null,
-                            'bits' => null,
-                        ],
-                        'engine' => [
-                            'name' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                        ],
-                    ];
+                    yield $field;
                 }
             }
         }

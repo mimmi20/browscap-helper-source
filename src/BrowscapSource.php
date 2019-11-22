@@ -18,6 +18,8 @@ use Symfony\Component\Finder\Finder;
 
 final class BrowscapSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var \Psr\Log\LoggerInterface
      */
@@ -42,30 +44,19 @@ final class BrowscapSource implements SourceInterface
     /**
      * @throws \LogicException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $row) {
+            $ua    = UserAgent::fromUseragent(trim($row['ua']));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -76,23 +67,145 @@ final class BrowscapSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $row) {
+            $ua    = UserAgent::fromUseragent(trim($row['ua']));
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            $deviceTypeLoader = new \UaDeviceType\TypeLoader();
+
+            try {
+                $deviceType = $deviceTypeLoader->load($row['properties']['Device_Type'] ?? '');
+
+                $isMobile = $deviceType->isMobile();
+                $type1    = $deviceType->getType();
+            } catch (NotFoundException $e) {
+                $this->logger->info($e);
+
+                $isMobile = null;
+                $type1    = null;
+
+                try {
+                    $deviceReflection = new \ReflectionClass($deviceTypeLoader);
+
+                    foreach ($deviceReflection->getConstant('OPTIONS') as $type => $className) {
+                        /** @var \UaDeviceType\TypeInterface $class */
+                        $class = new $className();
+
+                        if ($row['properties']['Device_Type'] ?? '' !== $class->getType()) {
+                            continue;
+                        }
+
+                        $isMobile = $class->isMobile();
+                        $type1    = $class->getType();
+                    }
+                } catch (\ReflectionException $e) {
+                    $this->logger->error($e);
+                }
+            }
+
+            $browserTypeLoader = new \UaBrowserType\TypeLoader();
+
+            try {
+                $browserType = $browserTypeLoader->load($row['properties']['Browser_Type'] ?? '');
+
+                $isBot = $browserType->isBot();
+                $type2 = $browserType->getType();
+            } catch (NotFoundException $e) {
+                $this->logger->info($e);
+
+                $isBot = null;
+                $type2 = null;
+
+                try {
+                    $browserReflection = new \ReflectionClass($browserTypeLoader);
+
+                    foreach ($browserReflection->getConstant('OPTIONS') as $type => $className) {
+                        /** @var \UaBrowserType\TypeInterface $class */
+                        $class = new $className();
+
+                        if ($row['properties']['Browser_Type'] ?? '' !== $class->getType()) {
+                            continue;
+                        }
+
+                        $isBot = $class->isBot();
+                        $type2 = $class->getType();
+                    }
+                } catch (\ReflectionException $e) {
+                    $this->logger->error($e);
+                }
+            }
+
+            $pointingMethod = $row['properties']['Device_Pointing_Method'] ?? null;
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
+                    'marketingName' => $row['properties']['Device_Name'] ?? null,
+                    'manufacturer' => $row['properties']['Device_Maker'] ?? null,
+                    'brand' => $row['properties']['Device_Brand_Name'] ?? null,
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => ('touchscreen' === $pointingMethod),
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => $type1,
+                    'simCount' => null,
+                    'market' => [
+                        'regions' => null,
+                        'countries' => null,
+                        'vendors' => null,
+                    ],
+                    'connections' => null,
+                    'ismobile' => $isMobile,
+                ],
+                'browser' => [
+                    'name' => $row['properties']['Browser'] ?? null,
+                    'modus' => $row['properties']['Browser_Modus'] ?? null,
+                    'version' => $row['properties']['Version'] ?? null,
+                    'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
+                    'bits' => $row['properties']['Browser_Bits'] ?? null,
+                    'type' => $type2,
+                    'isbot' => $isBot,
+                ],
+                'platform' => [
+                    'name' => $row['properties']['Platform'] ?? null,
+                    'marketingName' => null,
+                    'version' => $row['properties']['Platform_Version'] ?? null,
+                    'manufacturer' => $row['properties']['Platform_Maker'] ?? null,
+                    'bits' => $row['properties']['Platform_Bits'] ?? null,
+                ],
+                'engine' => [
+                    'name' => $row['properties']['RenderingEngine_Name'] ?? null,
+                    'version' => $row['properties']['RenderingEngine_Version'] ?? null,
+                    'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
+                ],
+            ];
+        }
     }
 
     /**
      * @throws \LogicException
      *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     private function loadFromPath(): iterable
     {
         $path = 'vendor/browscap/browscap/tests/issues';
 
         if (!file_exists($path)) {
+            $this->logger->warning(sprintf('    path %s not found', $path));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $path);
+        $this->logger->info(sprintf('    reading path %s', $path));
 
         $finder = new Finder();
         $finder->files();
@@ -119,130 +232,7 @@ final class BrowscapSource implements SourceInterface
                     continue;
                 }
 
-                $agent = trim($row['ua']);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                $agent = (string) UserAgent::fromUseragent($agent);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                $deviceTypeLoader = new \UaDeviceType\TypeLoader();
-
-                try {
-                    $deviceType = $deviceTypeLoader->load($row['properties']['Device_Type'] ?? '');
-
-                    $isMobile = $deviceType->isMobile();
-                    $type1    = $deviceType->getType();
-                } catch (NotFoundException $e) {
-                    $this->logger->info($e);
-
-                    $isMobile = null;
-                    $type1    = null;
-
-                    try {
-                        $deviceReflection = new \ReflectionClass($deviceTypeLoader);
-
-                        foreach ($deviceReflection->getConstant('OPTIONS') as $type => $className) {
-                            /** @var \UaDeviceType\TypeInterface $class */
-                            $class = new $className();
-
-                            if ($row['properties']['Device_Type'] ?? '' !== $class->getType()) {
-                                continue;
-                            }
-
-                            $isMobile = $class->isMobile();
-                            $type1    = $class->getType();
-                        }
-                    } catch (\ReflectionException $e) {
-                        $this->logger->error($e);
-                    }
-                }
-
-                $browserTypeLoader = new \UaBrowserType\TypeLoader();
-
-                try {
-                    $browserType = $browserTypeLoader->load($row['properties']['Browser_Type'] ?? '');
-
-                    $isBot = $browserType->isBot();
-                    $type2 = $browserType->getType();
-                } catch (NotFoundException $e) {
-                    $this->logger->info($e);
-
-                    $isBot = null;
-                    $type2 = null;
-
-                    try {
-                        $browserReflection = new \ReflectionClass($browserTypeLoader);
-
-                        foreach ($browserReflection->getConstant('OPTIONS') as $type => $className) {
-                            /** @var \UaBrowserType\TypeInterface $class */
-                            $class = new $className();
-
-                            if ($row['properties']['Browser_Type'] ?? '' !== $class->getType()) {
-                                continue;
-                            }
-
-                            $isBot = $class->isBot();
-                            $type2 = $class->getType();
-                        }
-                    } catch (\ReflectionException $e) {
-                        $this->logger->error($e);
-                    }
-                }
-
-                $pointingMethod = $row['properties']['Device_Pointing_Method'] ?? null;
-
-                yield $agent => [
-                    'device' => [
-                        'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
-                        'marketingName' => $row['properties']['Device_Name'] ?? null,
-                        'manufacturer' => $row['properties']['Device_Maker'] ?? null,
-                        'brand' => $row['properties']['Device_Brand_Name'] ?? null,
-                        'display' => [
-                            'width' => null,
-                            'height' => null,
-                            'touch' => ('touchscreen' === $pointingMethod),
-                            'type' => null,
-                            'size' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'type' => $type1,
-                        'simCount' => null,
-                        'market' => [
-                            'regions' => null,
-                            'countries' => null,
-                            'vendors' => null,
-                        ],
-                        'connections' => null,
-                        'ismobile' => $isMobile,
-                    ],
-                    'browser' => [
-                        'name' => $row['properties']['Browser'] ?? null,
-                        'modus' => $row['properties']['Browser_Modus'] ?? null,
-                        'version' => $row['properties']['Version'] ?? null,
-                        'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
-                        'bits' => $row['properties']['Browser_Bits'] ?? null,
-                        'type' => $type2,
-                        'isbot' => $isBot,
-                    ],
-                    'platform' => [
-                        'name' => $row['properties']['Platform'] ?? null,
-                        'marketingName' => null,
-                        'version' => $row['properties']['Platform_Version'] ?? null,
-                        'manufacturer' => $row['properties']['Platform_Maker'] ?? null,
-                        'bits' => $row['properties']['Platform_Bits'] ?? null,
-                    ],
-                    'engine' => [
-                        'name' => $row['properties']['RenderingEngine_Name'] ?? null,
-                        'version' => $row['properties']['RenderingEngine_Version'] ?? null,
-                        'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
-                    ],
-                ];
+                yield $row;
             }
         }
     }

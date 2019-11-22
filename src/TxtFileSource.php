@@ -17,6 +17,8 @@ use Symfony\Component\Finder\Finder;
 
 final class TxtFileSource implements SourceInterface
 {
+    use GetUserAgentsTrait;
+
     /**
      * @var string
      */
@@ -48,30 +50,19 @@ final class TxtFileSource implements SourceInterface
     /**
      * @throws \LogicException
      *
-     * @return iterable|string[]
-     */
-    public function getUserAgents(): iterable
-    {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            $headers = UserAgent::fromString($headers)->getHeader();
-
-            if (!array_key_exists('user-agent', $headers)) {
-                continue;
-            }
-
-            yield $headers['user-agent'];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
+     * @return array[]|iterable
      */
     public function getHeaders(): iterable
     {
-        foreach ($this->loadFromPath() as $headers => $test) {
-            yield $headers;
+        foreach ($this->loadFromPath() as $line) {
+            $ua    = UserAgent::fromUseragent($line);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $ua->getHeaders();
         }
     }
 
@@ -82,7 +73,61 @@ final class TxtFileSource implements SourceInterface
      */
     public function getProperties(): iterable
     {
-        yield from $this->loadFromPath();
+        foreach ($this->loadFromPath() as $line) {
+            $ua    = UserAgent::fromUseragent($line);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            yield $agent => [
+                'device' => [
+                    'deviceName' => null,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => null,
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => null,
+                    'simCount' => null,
+                    'market' => [
+                        'regions' => null,
+                        'countries' => null,
+                        'vendors' => null,
+                    ],
+                    'connections' => null,
+                    'ismobile' => null,
+                ],
+                'browser' => [
+                    'name' => null,
+                    'modus' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ],
+                'platform' => [
+                    'name' => null,
+                    'marketingName' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                ],
+                'engine' => [
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                ],
+            ];
+        }
     }
 
     /**
@@ -93,10 +138,12 @@ final class TxtFileSource implements SourceInterface
     private function loadFromPath(): iterable
     {
         if (!file_exists($this->dir)) {
+            $this->logger->warning(sprintf('    path %s not found', $this->dir));
+
             return;
         }
 
-        $this->logger->info('    reading path ' . $this->dir);
+        $this->logger->info(sprintf('    reading path %s', $this->dir));
 
         $finder = new Finder();
         $finder->files();
@@ -127,11 +174,8 @@ final class TxtFileSource implements SourceInterface
                 if (false === $line) {
                     continue;
                 }
-                ++$i;
 
-                if (empty($line)) {
-                    continue;
-                }
+                ++$i;
 
                 $line = trim($line);
 
@@ -139,58 +183,7 @@ final class TxtFileSource implements SourceInterface
                     continue;
                 }
 
-                $agent = (string) UserAgent::fromUseragent($line);
-
-                if (empty($agent)) {
-                    continue;
-                }
-
-                yield $agent => [
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
-                        'manufacturer' => null,
-                        'brand' => null,
-                        'display' => [
-                            'width' => null,
-                            'height' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'size' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
-                        'market' => [
-                            'regions' => null,
-                            'countries' => null,
-                            'vendors' => null,
-                        ],
-                        'connections' => null,
-                        'ismobile' => null,
-                    ],
-                    'browser' => [
-                        'name' => null,
-                        'modus' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => null,
-                        'marketingName' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
-                    ],
-                    'engine' => [
-                        'name' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                    ],
-                ];
+                yield $line;
             }
 
             fclose($handle);

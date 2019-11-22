@@ -33,7 +33,7 @@ final class UserAgent
     /**
      * @return array
      */
-    public function getHeader(): array
+    public function getHeaders(): array
     {
         return $this->header;
     }
