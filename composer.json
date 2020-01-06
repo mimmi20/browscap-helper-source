@@ -25,7 +25,7 @@
     "ext-json": "*",
     "ext-pdo": "*",
     "ext-simplexml": "*",
-    "browscap/browscap": "dev-update-dependencies",
+    "browscap/browscap": "dev-master",
     "donatj/phpuseragentparser": "dev-master",
     "friendsofphp/php-cs-fixer": "^2.16.1",
     "jaybizzle/crawler-detect": "dev-master",
@@ -86,10 +86,6 @@
     {
       "type": "git",
       "url": "https://github.com/mimmi20/uap-core"
-    },
-    {
-      "type": "git",
-      "url": "https://github.com/mimmi20/browscap"
     }
   ],
   "minimum-stability": "dev",
