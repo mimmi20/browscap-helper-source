@@ -63,6 +63,7 @@ final class ZsxsoftSource implements SourceInterface
 
     /**
      * @throws \LogicException
+     * @throws \RuntimeException
      *
      * @return array[]|iterable
      */
@@ -182,6 +183,9 @@ final class ZsxsoftSource implements SourceInterface
     }
 
     /**
+     * @throws \LogicException
+     * @throws \RuntimeException
+     *
      * @return string[]
      */
     private function getBrands(): array
@@ -202,7 +206,7 @@ final class ZsxsoftSource implements SourceInterface
         }
         $brands = array_unique($brands);
 
-        usort($brands, static function ($a, $b) {
+        usort($brands, static function ($a, $b): int {
             return mb_strlen($b) - mb_strlen($a);
         });
 

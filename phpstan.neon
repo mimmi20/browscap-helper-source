@@ -26,11 +26,13 @@ parameters:
   exceptionRules:
     reportUnusedCatchesOfUncheckedExceptions: false
     uncheckedExceptions: []
-  classesAllowedToBeExtended:
-  	- UnexpectedValueException
+  ergebnis:
+    classesAllowedToBeExtended:
+      - UnexpectedValueException
+  checkMissingIterableValueType: false
 
 includes:
   - vendor/phpstan/phpstan-strict-rules/rules.neon
   - vendor/pepakriz/phpstan-exception-rules/extension.neon
   - vendor/phpstan/phpstan-deprecation-rules/rules.neon
-  - vendor/localheinz/phpstan-rules/rules.neon
+  - vendor/ergebnis/phpstan-rules/rules.neon
