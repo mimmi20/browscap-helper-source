@@ -28,7 +28,7 @@
     "browscap/browscap": "dev-master",
     "donatj/phpuseragentparser": "dev-master",
     "ergebnis/composer-normalize": "^2.2.0",
-    "ergebnis/phpstan-rules": "^0.14.0",
+    "ergebnis/phpstan-rules": "^0.14.2",
     "friendsofphp/php-cs-fixer": "^2.16.1",
     "jaybizzle/crawler-detect": "dev-master",
     "mimmi20/browser-detector": "~5.0.39",
