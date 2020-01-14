@@ -35,7 +35,7 @@
     "mobiledetect/mobiledetectlib": "dev-master",
     "pepakriz/phpstan-exception-rules": "^0.10.1",
     "phpstan/phpstan": "^0.12.5",
-    "phpstan/phpstan-deprecation-rules": "^0.12.1",
+    "phpstan/phpstan-deprecation-rules": "^0.12.2",
     "phpstan/phpstan-strict-rules": "^0.12.1",
     "piwik/device-detector": "dev-master",
     "sinergi/browser-detector": "dev-master",
