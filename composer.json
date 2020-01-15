@@ -27,7 +27,7 @@
     "ext-simplexml": "*",
     "browscap/browscap": "dev-master",
     "donatj/phpuseragentparser": "dev-master",
-    "ergebnis/composer-normalize": "^2.2.1",
+    "ergebnis/composer-normalize": "^2.2.2",
     "ergebnis/phpstan-rules": "^0.14.2",
     "friendsofphp/php-cs-fixer": "^2.16.1",
     "jaybizzle/crawler-detect": "dev-master",
