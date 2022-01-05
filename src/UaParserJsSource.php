@@ -65,7 +65,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
      */
     public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath($message, $messageLength) as $providerName => $data) {
+        foreach ($this->loadFromPath($message, $messageLength) as $data) {
             $agent = trim($data['ua']);
 
             $ua    = UserAgent::fromUseragent($agent);

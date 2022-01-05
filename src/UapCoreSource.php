@@ -57,7 +57,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
      */
     public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath($message, $messageLength) as $providerName => $data) {
+        foreach ($this->loadFromPath($message, $messageLength) as $data) {
             $ua    = UserAgent::fromUseragent(addcslashes($data['user_agent_string'], "\n"));
             $agent = (string) $ua;
 
