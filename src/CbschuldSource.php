@@ -14,37 +14,35 @@ namespace BrowscapHelper\Source;
 
 use FilterIterator;
 use Iterator;
-use JsonException;
-use LogicException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use UaDeviceType\TypeLoader;
+use UnexpectedValueException;
 
 use function assert;
+use function fclose;
+use function feof;
+use function fgets;
 use function file_exists;
-use function file_get_contents;
-use function is_array;
+use function fopen;
 use function is_string;
-use function json_decode;
 use function mb_strlen;
 use function sprintf;
 use function str_pad;
 use function str_replace;
+use function trim;
 
-use const JSON_THROW_ON_ERROR;
-use const PHP_EOL;
 use const STR_PAD_RIGHT;
 
-final class DetectorSource implements OutputAwareInterface, SourceInterface
+final class CbschuldSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'mimmi20/browser-detector';
+    private const NAME = 'cbschuld/browser.php';
     private const PATH = 'vendor/mimmi20/browser-detector/tests/data';
 
     /**
@@ -65,11 +63,13 @@ final class DetectorSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @throws LogicException
      * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
+        require_once 'vendor/cbschuld/browser.php/tests/TabDelimitedFileIterator.php';
+
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -79,7 +79,7 @@ final class DetectorSource implements OutputAwareInterface, SourceInterface
         $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
-        $files    = new class ($iterator, 'json') extends FilterIterator {
+        $files    = new class ($iterator, 'txt') extends FilterIterator {
             private string $extension;
 
             /**
@@ -115,75 +115,54 @@ final class DetectorSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $content = file_get_contents($filepath);
+            $tabIterator = new \TabDelimitedFileIterator($pathName);
 
-            if (false === $content || '' === $content || PHP_EOL === $content) {
-                continue;
-            }
-
-            try {
-                $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException $e) {
-                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln('    <error>parsing file content [' . $filepath . '] failed</error>', OutputInterface::VERBOSITY_NORMAL);
-
-                continue;
-            }
-
-            if (!is_array($data)) {
-                continue;
-            }
-
-            foreach ($data as $test) {
-                if (!is_array($test['headers']) || !isset($test['headers']['user-agent'])) {
-                    continue;
-                }
-
-                if ('this is a fake ua to trigger the fallback' === $test['headers']['user-agent']) {
+            foreach ($tabIterator as $testData) {
+                if (empty($testData[0])) {
                     continue;
                 }
 
                 yield [
-                    'headers' => $test['headers'],
+                    'headers' => ['user-agent' => $testData[0]],
                     'device' => [
-                        'deviceName' => $test['result']['device']['deviceName'],
-                        'marketingName' => $test['result']['device']['marketingName'],
-                        'manufacturer' => $test['result']['device']['manufacturer'],
-                        'brand' => $test['result']['device']['brand'],
+                        'deviceName' => null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => null,
                         'display' => [
-                            'width' => $test['result']['device']['display']['width'],
-                            'height' => $test['result']['device']['display']['height'],
-                            'touch' => $test['result']['device']['display']['touch'],
-                            'type' => $test['result']['device']['display']['type'] ?? null,
-                            'size' => $test['result']['device']['display']['size'],
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
                         ],
-                        'dualOrientation' => $test['result']['device']['dualOrientation'] ?? null,
-                        'type' => $test['result']['device']['type'],
-                        'simCount' => $test['result']['device']['simCount'] ?? null,
-                        'ismobile' => (new TypeLoader())->load($test['result']['device']['type'])->isMobile(),
+                        'dualOrientation' => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'ismobile' => null,
                     ],
                     'client' => [
-                        'name' => $test['result']['browser']['name'],
-                        'modus' => $test['result']['browser']['modus'],
-                        'version' => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
-                        'manufacturer' => $test['result']['browser']['manufacturer'],
-                        'bits' => $test['result']['browser']['bits'],
-                        'type' => $test['result']['browser']['type'],
-                        'isbot' => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
+                        'name' => $testData[2],
+                        'modus' => null,
+                        'version' => $testData[3],
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
                     ],
                     'platform' => [
-                        'name' => $test['result']['os']['name'],
-                        'marketingName' => $test['result']['os']['marketingName'],
-                        'version' => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
-                        'manufacturer' => $test['result']['os']['manufacturer'],
-                        'bits' => $test['result']['os']['bits'],
+                        'name' => $testData[5] ?? null,
+                        'marketingName' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
                     ],
                     'engine' => [
-                        'name' => $test['result']['engine']['name'],
-                        'version' => $test['result']['engine']['version'],
-                        'manufacturer' => $test['result']['engine']['manufacturer'],
+                        'name' => null,
+                        'version' => null,
+                        'manufacturer' => null,
                     ],
-                    'raw' => $test['result'],
+                    'raw' => $testData,
                     'file' => $filepath,
                 ];
             }
