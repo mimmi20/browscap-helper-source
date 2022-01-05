@@ -19,20 +19,16 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
+use TabDelimitedFileIterator;
 use UnexpectedValueException;
 
 use function assert;
-use function fclose;
-use function feof;
-use function fgets;
 use function file_exists;
-use function fopen;
 use function is_string;
 use function mb_strlen;
 use function sprintf;
 use function str_pad;
 use function str_replace;
-use function trim;
 
 use const STR_PAD_RIGHT;
 
@@ -115,7 +111,7 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $tabIterator = new \TabDelimitedFileIterator($pathName);
+            $tabIterator = new TabDelimitedFileIterator($pathName);
 
             foreach ($tabIterator as $testData) {
                 if (empty($testData[0])) {

@@ -21,12 +21,15 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
+use function array_merge;
 use function assert;
 use function file_exists;
 use function is_array;
 use function mb_strlen;
+use function mb_strpos;
 use function sprintf;
 use function str_pad;
+use function str_replace;
 
 use const STR_PAD_RIGHT;
 
@@ -156,7 +159,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            if (isset($provider['checkList']['name']) && mb_strpos($filepath, '/browser/') !== false) {
+            if (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/browser/')) {
                 $expected = [
                     'client' => [
                         'name' => $provider['checkList']['name'],
@@ -169,7 +172,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                         'type' => $provider['checkList']['type'],
                     ];
                 }
-            } elseif (isset($provider['checkList']['name']) && mb_strpos($filepath, '/device/') !== false) {
+            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/device/')) {
                 $expected = [
                     'device' => [
                         'name' => $provider['checkList']['name'],
@@ -182,19 +185,18 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                         'type' => $provider['checkList']['type'],
                     ];
                 }
-            } elseif (isset($provider['checkList']['name']) && mb_strpos($filepath, '/os/') !== false) {
-                if ($provider['checkList']['name'] === 'Windows' && isset($provider['checkList']['version'])) {
+            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/os/')) {
+                if ('Windows' === $provider['checkList']['name'] && isset($provider['checkList']['version'])) {
                     $name = $provider['checkList']['name'] . $provider['checkList']['version'];
                 } else {
                     $name = $provider['checkList']['name'];
                 }
+
                 $expected = [
-                    'platform' => [
-                        'name' => $name,
-                    ],
+                    'platform' => ['name' => $name],
                     'raw' => $provider['checkList'],
                 ];
-            } elseif (isset($provider['checkList']['name']) && mb_strpos($filepath, '/robot/') !== false) {
+            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/robot/')) {
                 $expected = [
                     'client' => [
                         'name' => $provider['checkList']['name'],
@@ -211,15 +213,13 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($provider['uaList'] as $ua) {
-                $agent = (string)$ua;
+                $agent = (string) $ua;
 
                 if (isset($agents[$agent])) {
                     $agents[$agent] = array_merge(
                         $agents[$agent],
                         [
-                            'headers' => [
-                                'user-agent' => $agent,
-                            ],
+                            'headers' => ['user-agent' => $agent],
                         ],
                         $expected
                     );
@@ -227,9 +227,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                     $agents[$agent] = array_merge(
                         $base,
                         [
-                            'headers' => [
-                                'user-agent' => $agent,
-                            ],
+                            'headers' => ['user-agent' => $agent],
                         ],
                         $expected
                     );
