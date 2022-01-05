@@ -86,7 +86,6 @@
       "mobiledetect/mobiledetectlib": "source",
       "piwik/device-detector": "source",
       "sinergi/browser-detector": "source",
-      "ua-parser/uap-core": "source",
       "whichbrowser/parser": "source",
       "woothee/woothee-testset": "source",
       "yzalis/ua-parser": "source",
