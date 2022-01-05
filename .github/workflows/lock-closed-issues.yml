@@ -5,12 +5,15 @@ on:
     types: [closed]
 
 permissions:
-  actions: read
-  checks: read
+  actions: none
+  checks: none
   contents: read
   deployments: none
+  id-token: none
   issues: read
+  discussions: none
   packages: none
+  pages: none
   pull-requests: read
   repository-projects: none
   security-events: none

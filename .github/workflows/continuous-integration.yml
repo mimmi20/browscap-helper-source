@@ -7,13 +7,16 @@ on:
 name: "Continuous Integration"
 
 permissions:
-  actions: read
-  checks: read
+  actions: none
+  checks: none
   contents: read
   deployments: none
-  issues: read
+  id-token: none
+  issues: none
+  discussions: none
   packages: none
-  pull-requests: read
+  pages: none
+  pull-requests: none
   repository-projects: none
   security-events: none
   statuses: none
