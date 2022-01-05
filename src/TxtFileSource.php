@@ -1,60 +1,80 @@
 <?php
 /**
- * This file is part of the browscap-helper-source package.
+ * This file is part of the browscap-helper package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
+use FilterIterator;
+use Iterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
+use UnexpectedValueException;
 
-final class TxtFileSource implements SourceInterface
+use function assert;
+use function fclose;
+use function feof;
+use function fgets;
+use function file_exists;
+use function fopen;
+use function is_string;
+use function mb_strlen;
+use function sprintf;
+use function str_pad;
+use function str_replace;
+use function trim;
+
+use const STR_PAD_RIGHT;
+
+final class TxtFileSource implements OutputAwareInterface, SourceInterface
 {
-    use GetUserAgentsTrait;
+    use GetNameTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'txt-files';
+
+    private string $dir;
 
     /**
-     * @var string
+     * @throws void
      */
-    private $dir;
-
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param string                   $dir
-     */
-    public function __construct(LoggerInterface $logger, string $dir)
+    public function __construct(string $dir)
     {
-        $this->logger = $logger;
-        $this->dir    = $dir;
+        $this->dir = $dir;
     }
 
     /**
-     * @return string
+     * @throws void
      */
-    public function getName(): string
+    public function isReady(string $parentMessage): bool
     {
-        return 'txt-files';
+        if (file_exists($this->dir)) {
+            return true;
+        }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @throws \LogicException
+     * @return iterable<array<string, string>>
      *
-     * @return array[]|iterable
+     * @throws UnexpectedValueException
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $line) {
+        foreach ($this->loadFromPath($message, $messageLength) as $line) {
             $ua    = UserAgent::fromUseragent($line);
             $agent = (string) $ua;
 
@@ -67,102 +87,61 @@ final class TxtFileSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
+     * @return array<string>|iterable
      *
-     * @return array[]|iterable
+     * @throws UnexpectedValueException
      */
-    public function getProperties(): iterable
+    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $line) {
-            $ua    = UserAgent::fromUseragent($line);
-            $agent = (string) $ua;
+        $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
-            if (empty($agent)) {
-                continue;
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
+
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
+        $files    = new class ($iterator, 'txt') extends FilterIterator {
+            private string $extension;
+
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             */
+            public function __construct(Iterator $iterator, string $extension)
+            {
+                parent::__construct($iterator);
+                $this->extension = $extension;
             }
 
-            yield $agent => [
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
-                    'ismobile' => null,
-                ],
-                'browser' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
 
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        if (!file_exists($this->dir)) {
-            $this->logger->warning(sprintf('    path %s not found', $this->dir));
+                assert($file instanceof SplFileInfo);
 
-            return;
-        }
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
 
-        $this->logger->info(sprintf('    reading path %s', $this->dir));
+        foreach ($files as $file) {
+            $pathName = $file->getPathname();
+            $filepath = str_replace('\\', '/', $pathName);
+            assert(is_string($filepath));
 
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.txt');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($this->dir);
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
 
-        foreach ($finder as $file) {
-            $filepath = $file->getPathname();
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
             $handle = @fopen($filepath, 'r');
 
             if (false === $handle) {
-                $this->logger->emergency(new \RuntimeException('reading file ' . $filepath . ' caused an error'));
+                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
+                $this->writeln('<error>reading file ' . $filepath . ' caused an error</error>', OutputInterface::VERBOSITY_NORMAL);
                 continue;
             }
 

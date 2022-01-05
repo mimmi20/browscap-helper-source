@@ -9,47 +9,51 @@
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
+use LogicException;
+use PDO;
+use PDOStatement;
+use RuntimeException;
+use stdClass;
 
-final class PdoSource implements SourceInterface
+use function assert;
+use function trim;
+
+final class PdoSource implements OutputAwareInterface, SourceInterface
 {
-    use GetUserAgentsTrait;
+    use GetNameTrait;
+    use OutputAwareTrait;
 
-    /**
-     * @var \PDO
-     */
-    private $pdo;
+    private const NAME = 'pdo-source';
 
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
+    private PDO $pdo;
 
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \PDO                     $pdo
-     */
-    public function __construct(LoggerInterface $logger, \PDO $pdo)
+    public function __construct(PDO $pdo)
     {
-        $this->logger = $logger;
-        $this->pdo    = $pdo;
+        $this->pdo = $pdo;
     }
 
     /**
-     * @return string
+     * @throws void
+     *
+     * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
-    public function getName(): string
+    public function isReady(string $parentMessage): bool
     {
-        return 'PDO';
+        return true;
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable<array<non-empty-string, non-empty-string>>
+     *
+     * @throws RuntimeException
+     *
+     * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
         foreach ($this->getAgents() as $row) {
             $ua    = UserAgent::fromUseragent(trim($row->agent));
@@ -64,9 +68,15 @@ final class PdoSource implements SourceInterface
     }
 
     /**
-     * @return array[]|iterable
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     *
+     * @throws LogicException
+     * @throws RuntimeException
+     *
+     * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
-    public function getProperties(): iterable
+    public function getProperties(string $message, int &$messageLength = 0): iterable
     {
         foreach ($this->getAgents() as $row) {
             $ua    = UserAgent::fromUseragent(trim($row->agent));
@@ -76,7 +86,8 @@ final class PdoSource implements SourceInterface
                 continue;
             }
 
-            yield $agent => [
+            yield [
+                'headers' => ['user-agent' => $agent],
                 'device' => [
                     'deviceName' => null,
                     'marketingName' => null,
@@ -89,18 +100,10 @@ final class PdoSource implements SourceInterface
                         'type' => null,
                         'size' => null,
                     ],
-                    'dualOrientation' => null,
                     'type' => null,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
                     'ismobile' => null,
                 ],
-                'browser' => [
+                'client' => [
                     'name' => null,
                     'modus' => null,
                     'version' => null,
@@ -126,19 +129,19 @@ final class PdoSource implements SourceInterface
     }
 
     /**
-     * @return iterable|\stdClass[]
+     * @return iterable|stdClass[]
      */
     private function getAgents(): iterable
     {
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
 
-        $driverOptions = [\PDO::ATTR_CURSOR => \PDO::CURSOR_FWDONLY];
+        $driverOptions = [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY];
 
-        /** @var \PDOStatement $stmt */
         $stmt = $this->pdo->prepare($sql, $driverOptions);
+        assert($stmt instanceof PDOStatement);
         $stmt->execute();
 
-        while ($row = $stmt->fetch(\PDO::FETCH_OBJ)) {
+        while ($row = $stmt->fetch(PDO::FETCH_OBJ)) {
             yield $row;
         }
     }

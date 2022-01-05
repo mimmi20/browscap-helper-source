@@ -4,10 +4,22 @@ on:
   issues:
     types: [closed]
 
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  deployments: none
+  issues: read
+  packages: none
+  pull-requests: read
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 jobs:
   lock:
     runs-on: ubuntu-latest
     steps:
-      - uses: Dunning-Kruger/lock-issues@v1
+      - uses: Dunning-Kruger/lock-issues@v1.1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}

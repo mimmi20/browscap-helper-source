@@ -9,15 +9,21 @@
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
+
+use LogicException;
+use RuntimeException;
+
+use function array_key_exists;
 
 trait GetUserAgentsTrait
 {
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
      * @return iterable|string[]
+     *
+     * @throws LogicException
+     * @throws RuntimeException
      */
     public function getUserAgents(): iterable
     {

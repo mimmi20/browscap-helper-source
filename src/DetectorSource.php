@@ -1,56 +1,74 @@
 <?php
 /**
- * This file is part of the browscap-helper-source package.
+ * This file is part of the browscap-helper package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use ExceptionalJSON\DecodeErrorException;
-use JsonClass\Json;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
+use FilterIterator;
+use Iterator;
+use JsonException;
+use LogicException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
 
-final class DetectorSource implements SourceInterface
+use function assert;
+use function file_exists;
+use function file_get_contents;
+use function is_array;
+use function is_string;
+use function json_decode;
+use function mb_strlen;
+use function sprintf;
+use function str_pad;
+use function str_replace;
+use function unlink;
+
+use const JSON_THROW_ON_ERROR;
+use const PHP_EOL;
+use const STR_PAD_RIGHT;
+
+final class DetectorSource implements OutputAwareInterface, SourceInterface
 {
-    use GetUserAgentsTrait;
+    use GetNameTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'mimmi20/browser-detector';
+    private const PATH = 'vendor/mimmi20/browser-detector/tests/data';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @throws void
      */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     */
-    public function __construct(LoggerInterface $logger)
+    public function isReady(string $parentMessage): bool
     {
-        $this->logger = $logger;
+        if (file_exists(self::PATH)) {
+            return true;
+        }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'mimmi20/browser-detector';
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<string, string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $test) {
+        foreach ($this->loadFromPath($message, $messageLength) as $test) {
             $ua    = UserAgent::fromHeaderArray($test['headers']);
             $agent = (string) $ua;
 
@@ -63,104 +81,117 @@ final class DetectorSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    public function getProperties(): iterable
+    public function getProperties(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $test) {
-            $ua    = UserAgent::fromHeaderArray($test['headers']);
+        foreach ($this->loadFromPath($message, $messageLength) as $line) {
+            $ua    = UserAgent::fromUseragent($line);
             $agent = (string) $ua;
 
             if (empty($agent)) {
                 continue;
             }
 
-            yield $agent => [
+            yield [
+                'headers' => ['user-agent' => $agent],
                 'device' => [
-                    'deviceName' => $test['result']['device']['deviceName'],
-                    'marketingName' => $test['result']['device']['marketingName'],
-                    'manufacturer' => $test['result']['device']['manufacturer'],
-                    'brand' => $test['result']['device']['brand'],
+                    'deviceName' => null,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => null,
                     'display' => [
-                        'width' => $test['result']['device']['display']['width'],
-                        'height' => $test['result']['device']['display']['height'],
-                        'touch' => $test['result']['device']['display']['touch'],
-                        'type' => $test['result']['device']['display']['type'] ?? null,
-                        'size' => $test['result']['device']['display']['size'],
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
                     ],
-                    'dualOrientation' => $test['result']['device']['dualOrientation'] ?? null,
-                    'type' => $test['result']['device']['type'],
-                    'simCount' => $test['result']['device']['simCount'] ?? null,
-                    'market' => [
-                        'regions' => $test['result']['device']['market']['regions'] ?? null,
-                        'countries' => $test['result']['device']['market']['countries'] ?? null,
-                        'vendors' => $test['result']['device']['market']['vendors'] ?? null,
-                    ],
-                    'connections' => $test['result']['device']['connections'] ?? null,
-                    'ismobile' => (new \UaDeviceType\TypeLoader())->load($test['result']['device']['type'])->isMobile(),
+                    'type' => null,
+                    'ismobile' => null,
                 ],
-                'browser' => [
-                    'name' => $test['result']['browser']['name'],
-                    'modus' => $test['result']['browser']['modus'],
-                    'version' => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
-                    'manufacturer' => $test['result']['browser']['manufacturer'],
-                    'bits' => $test['result']['browser']['bits'],
-                    'type' => $test['result']['browser']['type'],
-                    'isbot' => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
+                'client' => [
+                    'name' => null,
+                    'modus' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
                 ],
                 'platform' => [
-                    'name' => $test['result']['os']['name'],
-                    'marketingName' => $test['result']['os']['marketingName'],
-                    'version' => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
-                    'manufacturer' => $test['result']['os']['manufacturer'],
-                    'bits' => $test['result']['os']['bits'],
+                    'name' => null,
+                    'marketingName' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                    'bits' => null,
                 ],
                 'engine' => [
-                    'name' => $test['result']['engine']['name'],
-                    'version' => $test['result']['engine']['version'],
-                    'manufacturer' => $test['result']['engine']['manufacturer'],
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
                 ],
             ];
         }
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<string, string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    private function loadFromPath(): iterable
+    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
     {
-        $path = 'vendor/mimmi20/browser-detector/tests/data';
+        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
-        if (!file_exists($path)) {
-            $this->logger->warning(sprintf('    path %s not found', $path));
-
-            return;
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
         }
 
-        $this->logger->info(sprintf('    reading path %s', $path));
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.json');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        $files    = new class ($iterator, 'json') extends FilterIterator {
+            private string $extension;
 
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             */
+            public function __construct(Iterator $iterator, string $extension)
+            {
+                parent::__construct($iterator);
+                $this->extension = $extension;
+            }
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
 
-            $content = $file->getContents();
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
+
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
+            $pathName = $file->getPathname();
+            $filepath = str_replace('\\', '/', $pathName);
+            assert(is_string($filepath));
+
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+
+            $content = file_get_contents($filepath);
 
             if ('' === $content || PHP_EOL === $content) {
                 unlink($filepath);
@@ -169,12 +200,10 @@ final class DetectorSource implements SourceInterface
             }
 
             try {
-                $data = (new Json())->decode(
-                    $content,
-                    true
-                );
-            } catch (DecodeErrorException $e) {
-                $this->logger->critical(new \Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
+                $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
+                $this->writeln('    <error>parsing file content [' . $filepath . '] failed</error>', OutputInterface::VERBOSITY_NORMAL);
 
                 continue;
             }

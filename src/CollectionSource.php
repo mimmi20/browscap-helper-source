@@ -9,38 +9,34 @@
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
+
+use LogicException;
+use RuntimeException;
+
+use function count;
 
 final class CollectionSource implements SourceInterface
 {
-    /**
-     * @var \BrowscapHelper\Source\SourceInterface[]
-     */
-    private $collection;
+    /** @var SourceInterface[] */
+    private array $collection;
 
-    /**
-     * CollectionSource constructor.
-     *
-     * @param \BrowscapHelper\Source\SourceInterface ...$collection
-     */
     public function __construct(SourceInterface ...$collection)
     {
         $this->collection = $collection;
     }
 
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return 'collection';
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
      * @return iterable|string[]
+     *
+     * @throws LogicException
+     * @throws RuntimeException
      */
     public function getUserAgents(): iterable
     {
@@ -50,34 +46,32 @@ final class CollectionSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<non-empty-string, non-empty-string>>
      *
-     * @return array[]|iterable
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
         foreach ($this->collection as $source) {
-            yield from $source->getHeaders();
+            yield from $source->getHeaders($message, $messageLength);
         }
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    public function getProperties(): iterable
+    public function getProperties(string $message, int &$messageLength = 0): iterable
     {
         foreach ($this->collection as $source) {
-            yield from $source->getProperties();
+            yield from $source->getProperties($message, $messageLength);
         }
     }
 
-    /**
-     * @return int
-     */
     public function count(): int
     {
         return count($this->collection);

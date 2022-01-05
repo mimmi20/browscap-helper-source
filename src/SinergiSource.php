@@ -9,46 +9,62 @@
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
+use FilterIterator;
+use Iterator;
+use LogicException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
 
-final class SinergiSource implements SourceInterface
+use function array_map;
+use function assert;
+use function explode;
+use function file_exists;
+use function implode;
+use function mb_strlen;
+use function simplexml_load_string;
+use function sprintf;
+use function str_pad;
+use function trim;
+
+use const STR_PAD_RIGHT;
+
+final class SinergiSource implements OutputAwareInterface, SourceInterface
 {
-    use GetUserAgentsTrait;
+    use GetNameTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'sinergi/browser-detector';
+    private const PATH = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @throws void
      */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     */
-    public function __construct(LoggerInterface $logger)
+    public function isReady(string $parentMessage): bool
     {
-        $this->logger = $logger;
+        if (file_exists(self::PATH)) {
+            return true;
+        }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'sinergi/browser-detector';
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<non-empty-string, non-empty-string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $field) {
+        foreach ($this->loadFromPath($message, $messageLength) as $field) {
             $ua    = explode("\n", (string) $field->field[6]);
             $ua    = array_map('trim', $ua);
             $agent = trim(implode(' ', $ua));
@@ -65,14 +81,15 @@ final class SinergiSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    public function getProperties(): iterable
+    public function getProperties(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $field) {
+        foreach ($this->loadFromPath($message, $messageLength) as $field) {
             $ua    = explode("\n", (string) $field->field[6]);
             $ua    = array_map('trim', $ua);
             $agent = trim(implode(' ', $ua));
@@ -92,7 +109,8 @@ final class SinergiSource implements SourceInterface
 
             $device = (string) $field->field[4];
 
-            yield $agent => [
+            yield [
+                'headers' => ['user-agent' => $agent],
                 'device' => [
                     'deviceName' => $device,
                     'marketingName' => null,
@@ -105,18 +123,10 @@ final class SinergiSource implements SourceInterface
                         'type' => null,
                         'size' => null,
                     ],
-                    'dualOrientation' => null,
                     'type' => null,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
                     'ismobile' => null,
                 ],
-                'browser' => [
+                'client' => [
                     'name' => $browser,
                     'modus' => null,
                     'version' => $browserVersion,
@@ -142,37 +152,54 @@ final class SinergiSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<non-empty-string, non-empty-string>>
      *
-     * @return iterable|\SimpleXMLElement[]
+     * @throws RuntimeException
      */
-    private function loadFromPath(): iterable
+    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
     {
-        $path = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
+        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
-        if (!file_exists($path)) {
-            $this->logger->warning(sprintf('    path %s not found', $path));
-
-            return;
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
         }
 
-        $this->logger->info(sprintf('    reading path %s', $path));
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.xml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        $files    = new class ($iterator, 'xml') extends FilterIterator {
+            private string $extension;
 
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             */
+            public function __construct(Iterator $iterator, string $extension)
+            {
+                parent::__construct($iterator);
+                $this->extension = $extension;
+            }
+
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
+
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
+
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
             $filepath = $file->getPathname();
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
             $content = $file->getContents();
 
@@ -181,7 +208,7 @@ final class SinergiSource implements SourceInterface
                 continue;
             }
 
-            $provider = \simplexml_load_string($content);
+            $provider = simplexml_load_string($content);
 
             if (false === $provider) {
                 $this->logger->error('    reading file ' . $filepath . ' failed.');

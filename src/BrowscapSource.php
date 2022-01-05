@@ -9,46 +9,60 @@
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use BrowserDetector\Loader\NotFoundException;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
+use FilterIterator;
+use Iterator;
+use LogicException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
 
-final class BrowscapSource implements SourceInterface
+use function array_key_exists;
+use function assert;
+use function file_exists;
+use function is_array;
+use function mb_strlen;
+use function sprintf;
+use function str_pad;
+use function trim;
+
+use const STR_PAD_RIGHT;
+
+final class BrowscapSource implements OutputAwareInterface, SourceInterface
 {
-    use GetUserAgentsTrait;
+    use GetNameTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'browscap/browscap';
+    private const PATH = 'vendor/browscap/browscap/tests/issues';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @throws void
      */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     */
-    public function __construct(LoggerInterface $logger)
+    public function isReady(string $parentMessage): bool
     {
-        $this->logger = $logger;
+        if (file_exists(self::PATH)) {
+            return true;
+        }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'browscap/browscap';
-    }
-
-    /**
-     * @throws \LogicException
+     * @return iterable<array<non-empty-string, non-empty-string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $row) {
+        foreach ($this->loadFromPath($message, $messageLength) as $row) {
             $ua    = UserAgent::fromUseragent(trim($row['ua']));
             $agent = (string) $ua;
 
@@ -61,13 +75,15 @@ final class BrowscapSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    public function getProperties(): iterable
+    public function getProperties(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $row) {
+        foreach ($this->loadFromPath($message, $messageLength) as $row) {
             $ua    = UserAgent::fromUseragent(trim($row['ua']));
             $agent = (string) $ua;
 
@@ -75,73 +91,10 @@ final class BrowscapSource implements SourceInterface
                 continue;
             }
 
-            $deviceTypeLoader = new \UaDeviceType\TypeLoader();
-
-            try {
-                $deviceType = $deviceTypeLoader->load($row['properties']['Device_Type'] ?? '');
-
-                $isMobile = $deviceType->isMobile();
-                $type1    = $deviceType->getType();
-            } catch (NotFoundException $e) {
-                $this->logger->info($e);
-
-                $isMobile = null;
-                $type1    = null;
-
-                try {
-                    $deviceReflection = new \ReflectionClass($deviceTypeLoader);
-
-                    foreach ($deviceReflection->getConstant('OPTIONS') as $type => $className) {
-                        /** @var \UaDeviceType\TypeInterface $class */
-                        $class = new $className();
-
-                        if ($row['properties']['Device_Type'] ?? '' !== $class->getType()) {
-                            continue;
-                        }
-
-                        $isMobile = $class->isMobile();
-                        $type1    = $class->getType();
-                    }
-                } catch (\ReflectionException $e) {
-                    $this->logger->error($e);
-                }
-            }
-
-            $browserTypeLoader = new \UaBrowserType\TypeLoader();
-
-            try {
-                $browserType = $browserTypeLoader->load($row['properties']['Browser_Type'] ?? '');
-
-                $isBot = $browserType->isBot();
-                $type2 = $browserType->getType();
-            } catch (NotFoundException $e) {
-                $this->logger->info($e);
-
-                $isBot = null;
-                $type2 = null;
-
-                try {
-                    $browserReflection = new \ReflectionClass($browserTypeLoader);
-
-                    foreach ($browserReflection->getConstant('OPTIONS') as $type => $className) {
-                        /** @var \UaBrowserType\TypeInterface $class */
-                        $class = new $className();
-
-                        if ($row['properties']['Browser_Type'] ?? '' !== $class->getType()) {
-                            continue;
-                        }
-
-                        $isBot = $class->isBot();
-                        $type2 = $class->getType();
-                    }
-                } catch (\ReflectionException $e) {
-                    $this->logger->error($e);
-                }
-            }
-
             $pointingMethod = $row['properties']['Device_Pointing_Method'] ?? null;
 
-            yield $agent => [
+            yield [
+                'headers' => ['user-agent' => $agent],
                 'device' => [
                     'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
                     'marketingName' => $row['properties']['Device_Name'] ?? null,
@@ -154,25 +107,17 @@ final class BrowscapSource implements SourceInterface
                         'type' => null,
                         'size' => null,
                     ],
-                    'dualOrientation' => null,
-                    'type' => $type1,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
-                    'ismobile' => $isMobile,
+                    'type' => $row['properties']['Device_Type'] ?? null,
+                    'ismobile' => null,
                 ],
-                'browser' => [
+                'client' => [
                     'name' => $row['properties']['Browser'] ?? null,
                     'modus' => $row['properties']['Browser_Modus'] ?? null,
                     'version' => $row['properties']['Version'] ?? null,
                     'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
                     'bits' => $row['properties']['Browser_Bits'] ?? null,
-                    'type' => $type2,
-                    'isbot' => $isBot,
+                    'type' => $row['properties']['Browser_Type'] ?? null,
+                    'isbot' => null,
                 ],
                 'platform' => [
                     'name' => $row['properties']['Platform'] ?? null,
@@ -191,36 +136,55 @@ final class BrowscapSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
+     * @return iterable<array<non-empty-string, non-empty-string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    private function loadFromPath(): iterable
+    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
     {
-        $path = 'vendor/browscap/browscap/tests/issues';
+        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
-        if (!file_exists($path)) {
-            $this->logger->warning(sprintf('    path %s not found', $path));
-
-            return;
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
         }
 
-        $this->logger->info(sprintf('    reading path %s', $path));
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.php');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        $files    = new class ($iterator, 'php') extends FilterIterator {
+            private string $extension;
 
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             */
+            public function __construct(Iterator $iterator, string $extension)
+            {
+                parent::__construct($iterator);
+                $this->extension = $extension;
+            }
+
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
+
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
+
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
             $filepath = $file->getPathname();
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+
             $data = include $filepath;
 
             if (!is_array($data)) {

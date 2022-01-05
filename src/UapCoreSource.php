@@ -9,55 +9,55 @@
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
+use LogicException;
+use RuntimeException;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
-final class UapCoreSource implements SourceInterface
+use function addcslashes;
+use function file_exists;
+use function mb_strlen;
+use function sprintf;
+use function str_pad;
+
+use const STR_PAD_RIGHT;
+
+final class UapCoreSource implements OutputAwareInterface, SourceInterface
 {
-    use GetUserAgentsTrait;
+    use GetNameTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'ua-parser/uap-core';
+    private const PATH = 'vendor/ua-parser/uap-core/tests';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @throws void
      */
-    private $logger;
-
-    /**
-     * @var \Psr\SimpleCache\CacheInterface
-     */
-    private $cache;
-
-    /**
-     * @param \Psr\Log\LoggerInterface        $logger
-     * @param \Psr\SimpleCache\CacheInterface $cache
-     */
-    public function __construct(LoggerInterface $logger, CacheInterface $cache)
+    public function isReady(string $parentMessage): bool
     {
-        $this->logger = $logger;
-        $this->cache  = $cache;
+        if (file_exists(self::PATH)) {
+            return true;
+        }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'ua-parser/uap-core';
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<string, string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    public function getHeaders(): iterable
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $providerName => $data) {
+        foreach ($this->loadFromPath($message, $messageLength) as $providerName => $data) {
             $ua    = UserAgent::fromUseragent(addcslashes($data['user_agent_string'], "\n"));
             $agent = (string) $ua;
 
@@ -70,16 +70,17 @@ final class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws LogicException
+     * @throws RuntimeException
      */
-    public function getProperties(): iterable
+    public function getProperties(string $message, int &$messageLength = 0): iterable
     {
         $tests = [];
 
-        foreach ($this->loadFromPath() as $providerName => $data) {
+        foreach ($this->loadFromPath($message, $messageLength) as $providerName => $data) {
             $ua = addcslashes($data['user_agent_string'], "\n");
             if (empty($ua)) {
                 continue;
@@ -117,7 +118,6 @@ final class UapCoreSource implements SourceInterface
                     'pointingMethod' => null,
                     'resolutionWidth' => null,
                     'resolutionHeight' => null,
-                    'dualOrientation' => null,
                     'type' => null,
                     'ismobile' => null,
                 ];
@@ -139,7 +139,6 @@ final class UapCoreSource implements SourceInterface
                         'pointingMethod' => null,
                         'resolutionWidth' => null,
                         'resolutionHeight' => null,
-                        'dualOrientation' => null,
                         'type' => null,
                         'ismobile' => null,
                     ];
@@ -174,6 +173,7 @@ final class UapCoreSource implements SourceInterface
             }
 
             $tests[$ua] = [
+                'headers' => ['user-agent' => $ua],
                 'browser' => $browser,
                 'platform' => $platform,
                 'device' => $device,
@@ -194,22 +194,19 @@ final class UapCoreSource implements SourceInterface
     }
 
     /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<string, string>>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    private function loadFromPath(): iterable
+    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
     {
-        $path = 'vendor/ua-parser/uap-core/tests';
+        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
-        if (!file_exists($path)) {
-            $this->logger->warning(sprintf('    path %s not found', $path));
-
-            return;
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
         }
 
-        $this->logger->info(sprintf('    reading path %s', $path));
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
         $finder = new Finder();
         $finder->files();
@@ -218,17 +215,23 @@ final class UapCoreSource implements SourceInterface
         $finder->ignoreVCS(true);
         $finder->sortByName();
         $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        $finder->in(self::PATH);
 
         if (file_exists('vendor/ua-parser/uap-core/test_resources')) {
             $finder->in('vendor/ua-parser/uap-core/test_resources');
         }
 
         foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            /** @var SplFileInfo $file */
             $filepath = $file->getPathname();
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
             $provider     = Yaml::parse($file->getContents());
             $providerName = $file->getFilename();

@@ -1,38 +1,28 @@
 parameters:
   level: max
+  parallel:
+    maximumNumberOfProcesses: 1
+    processTimeout: 200.0
   paths:
     - src
-  autoload_files:
+  scanFiles:
     - %currentWorkingDirectory%/vendor/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/autoload.php
     - %currentWorkingDirectory%/vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
-  excludes_analyse:
-    - */tests/*/data/*
-  ignoreErrors:
-    - '~Construct empty\(\) is not allowed\. Use more strict comparison~'
-    - '~Language construct isset\(\) should not be used~'
-    - '~Language construct empty\(\) should not be used~'
-    - '~Control structures using switch should not be used~'
-    - '~Error suppression via "@" should not be used~'
-    - '~Class http\\Header not found~'
-    - '~Call to static method parse\(\) on an unknown class http\\Header~'
-    - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception given~'
-#    - '~Parameter #1 \$message of method Psr\\Log\\LoggerInterface::.*\(\) expects string, .*Exception\&Throwable given~'
-#    - '~Method BrowscapHelper\\Source\\Helper\\FilePath::getPath\(\) has a nullable return type declaration~'
-#    - '~PHPDoc tag @throws with type Psr\\SimpleCache\\InvalidArgumentException\|RuntimeException is not subtype of Throwable~'
-    - '~has a nullable return type declaration~'
-    - '~Else branch is unreachable because ternary operator condition is always true~'
-    - '~Strict comparison using !== between null and string will always evaluate to true~'
-  exceptionRules:
-    reportUnusedCatchesOfUncheckedExceptions: false
-    uncheckedExceptions: []
-  ergebnis:
-    classesAllowedToBeExtended:
-      - UnexpectedValueException
+  checkGenericClassInNonGenericObjectType: false
   checkMissingIterableValueType: false
-
-includes:
-  - vendor/phpstan/phpstan-strict-rules/rules.neon
-  - vendor/pepakriz/phpstan-exception-rules/extension.neon
-  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
-  - vendor/ergebnis/phpstan-rules/rules.neon
+  treatPhpDocTypesAsCertain: false
+  exceptions:
+    implicitThrows: false
+    checkedExceptionRegexes:
+      - '#Exception#'
+      - '#Throwable#'
+    check:
+      missingCheckedExceptionInThrows: true
+      tooWideThrowType: true
+  ignoreErrors:
+    - '~expects string,~'
+    - '~PHPDoc tag @throws with type .* is not subtype of Throwable~'
+    - '~Cannot call method get\(\) on Symfony\\Component\\Console\\Helper\\HelperSet\|null~'
+    - '~on mixed~'
+    - '~mixed given~'
