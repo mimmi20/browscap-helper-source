@@ -9,13 +9,11 @@ permissions:
   checks: none
   contents: read
   deployments: none
-  id-token: none
   issues: read
   discussions: none
   packages: none
   pages: none
   pull-requests: read
-  repository-projects: none
   security-events: none
   statuses: none
 

@@ -13,13 +13,11 @@ permissions:
   checks: none
   contents: none
   deployments: none
-  id-token: none
   issues: write
   discussions: none
   packages: none
   pages: none
   pull-requests: write
-  repository-projects: none
   security-events: none
   statuses: none
 
