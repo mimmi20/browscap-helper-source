@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,21 +12,17 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
 use Iterator;
-use LogicException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function array_key_exists;
-use function array_keys;
 use function assert;
 use function file_exists;
-use function is_array;
+use function is_int;
 use function mb_strlen;
 use function sprintf;
 use function str_pad;
@@ -37,6 +33,7 @@ use const STR_PAD_RIGHT;
 final class MobileDetectSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'mobiledetect/mobiledetectlib';
@@ -57,89 +54,12 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $agent) {
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
-     *
-     * @throws LogicException
-     * @throws RuntimeException
-     */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $agent) {
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<string, string>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws RuntimeException
      */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -184,21 +104,64 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $data = include $filepath;
-            $key  = $file->getBasename('.php');
+            $provider = include $filepath;
 
-            if (!is_array($data) || !array_key_exists($key, $data) || !is_array($data[$key])) {
-                continue;
-            }
+            foreach ($provider as $vendor => $vendorData) {
+                foreach ($vendorData as $ua => $testData) {
+                    if (is_int($ua)) {
+                        continue;
+                    }
 
-            foreach (array_keys($data[$key]) as $agent) {
-                $agent = trim($agent);
+                    $agent = trim($ua);
 
-                if (empty($agent)) {
-                    continue;
+                    if ('' === $agent) {
+                        continue;
+                    }
+
+                    yield [
+                        'headers' => ['user-agent' => $agent],
+                        'device' => [
+                            'deviceName' => $testData['model'] ?? null,
+                            'marketingName' => null,
+                            'manufacturer' => null,
+                            'brand' => null,
+                            'display' => [
+                                'width' => null,
+                                'height' => null,
+                                'touch' => null,
+                                'type' => null,
+                                'size' => null,
+                            ],
+                            'dualOrientation' => null,
+                            'type' => null,
+                            'simCount' => null,
+                            'ismobile' => isset($testData['isMobile']) && $testData['isMobile'],
+                        ],
+                        'client' => [
+                            'name' => null,
+                            'modus' => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type' => null,
+                            'isbot' => null,
+                        ],
+                        'platform' => [
+                            'name' => null,
+                            'marketingName' => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                            'bits' => null,
+                        ],
+                        'engine' => [
+                            'name' => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                        ],
+                        'raw' => $testData,
+                        'file' => $filepath,
+                    ];
                 }
-
-                yield $agent;
             }
         }
     }

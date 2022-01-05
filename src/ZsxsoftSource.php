@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -41,6 +41,7 @@ use const STR_PAD_RIGHT;
 final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'zsxsoft/php-useragent';
@@ -61,108 +62,16 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $data) {
-            $agent = trim($data[0][0]);
-
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $brands = $this->getBrands();
 
-        foreach ($this->loadFromPath($message, $messageLength) as $data) {
-            $agent = trim($data[0][0]);
-
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            $model = '';
-
-            foreach ($brands as $brand) {
-                if (false !== mb_strpos($data[1][8], $brand)) {
-                    $model = trim(str_replace($brand, '', $data[1][8]));
-
-                    break;
-                }
-
-                $brand = '';
-            }
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => $model,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => $brand ?? null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => $data[1][2],
-                    'modus' => null,
-                    'version' => $data[1][3],
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => $data[1][5],
-                    'marketingName' => null,
-                    'version' => $data[1][6],
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
-    {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -209,7 +118,71 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             $provider = require $filepath;
 
             foreach ($provider as $data) {
-                yield $data;
+                $agent = trim($data[0][0]);
+
+                $ua    = UserAgent::fromUseragent($agent);
+                $agent = (string) $ua;
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                $model = null;
+                $brand = null;
+
+                foreach ($brands as $brand) {
+                    if (false !== mb_strpos($data[1][8], $brand)) {
+                        $model = trim(str_replace($brand, '', $data[1][8]));
+
+                        break;
+                    }
+
+                    $brand = null;
+                }
+
+                yield [
+                    'headers' => ['user-agent' => $agent],
+                    'device' => [
+                        'deviceName' => empty($model) ? null : $model,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => empty($brand) ? null : $brand,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'ismobile' => null,
+                    ],
+                    'client' => [
+                        'name' => empty($data[1][2]) ? null : $data[1][2],
+                        'modus' => null,
+                        'version' => empty($data[1][3]) ? null : $data[1][3],
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
+                    ],
+                    'platform' => [
+                        'name' => empty($data[1][5]) ? null : $data[1][5],
+                        'marketingName' => null,
+                        'version' => empty($data[1][6]) ? null : $data[1][6],
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $data,
+                    'file' => $filepath,
+                ];
             }
         }
     }
@@ -226,7 +199,12 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
         $file   = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
         $file->setFlags(SplFileObject::DROP_NEW_LINE);
         while (!$file->eof()) {
-            $line = trim($file->fgets());
+            $line = $file->fgets();
+            if (false === $line) {
+                continue;
+            }
+
+            $line = trim($line);
             preg_match('/^\$brand = (["\'])(.*)(["\']);$/', $line, $matches);
 
             if (0 >= count($matches)) {

@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the browscap-helper package.
+ * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -24,7 +24,15 @@ interface SourceInterface
     public function isReady(string $parentMessage): bool;
 
     /**
-     * @return iterable<array<string, string>>
+     * @return iterable<int, non-empty-string>
+     *
+     * @throws LogicException
+     * @throws RuntimeException
+     */
+    public function getUserAgents(string $message, int &$messageLength = 0): iterable;
+
+    /**
+     * @return iterable<array<non-empty-string, non-empty-string>>
      *
      * @throws LogicException
      * @throws RuntimeException
@@ -33,12 +41,12 @@ interface SourceInterface
 
     /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable;
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable;
 
     /**
      * @throws void

@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,10 +12,8 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
 use Iterator;
-use LogicException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -35,6 +33,7 @@ use const STR_PAD_RIGHT;
 final class YamlFileSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'yaml-files';
@@ -61,89 +60,12 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $headers) {
-            $ua    = UserAgent::fromHeaderArray($headers);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
-     *
-     * @throws LogicException
-     * @throws RuntimeException
-     */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $headers) {
-            $ua    = UserAgent::fromHeaderArray($headers);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws RuntimeException
      */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
@@ -188,14 +110,56 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $data = Yaml::parse($file->getContents());
+            $data = Yaml::parseFile($filepath);
 
             if (!is_array($data)) {
                 continue;
             }
 
             foreach ($data as $headers) {
-                yield $headers;
+                yield [
+                    'headers' => $headers,
+                    'device' => [
+                        'deviceName' => null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'ismobile' => null,
+                    ],
+                    'client' => [
+                        'name' => null,
+                        'modus' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
+                    ],
+                    'platform' => [
+                        'name' => null,
+                        'marketingName' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $headers,
+                    'file' => $filepath,
+                ];
             }
         }
     }

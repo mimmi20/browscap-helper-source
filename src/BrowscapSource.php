@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -36,6 +36,7 @@ use const STR_PAD_RIGHT;
 final class BrowscapSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'browscap/browscap';
@@ -56,91 +57,13 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $row) {
-            $ua    = UserAgent::fromUseragent(trim($row['ua']));
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $row) {
-            $ua    = UserAgent::fromUseragent(trim($row['ua']));
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            $pointingMethod = $row['properties']['Device_Pointing_Method'] ?? null;
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
-                    'marketingName' => $row['properties']['Device_Name'] ?? null,
-                    'manufacturer' => $row['properties']['Device_Maker'] ?? null,
-                    'brand' => $row['properties']['Device_Brand_Name'] ?? null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => ('touchscreen' === $pointingMethod),
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => $row['properties']['Device_Type'] ?? null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => $row['properties']['Browser'] ?? null,
-                    'modus' => $row['properties']['Browser_Modus'] ?? null,
-                    'version' => $row['properties']['Version'] ?? null,
-                    'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
-                    'bits' => $row['properties']['Browser_Bits'] ?? null,
-                    'type' => $row['properties']['Browser_Type'] ?? null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => $row['properties']['Platform'] ?? null,
-                    'marketingName' => null,
-                    'version' => $row['properties']['Platform_Version'] ?? null,
-                    'manufacturer' => $row['properties']['Platform_Maker'] ?? null,
-                    'bits' => $row['properties']['Platform_Bits'] ?? null,
-                ],
-                'engine' => [
-                    'name' => $row['properties']['RenderingEngine_Name'] ?? null,
-                    'version' => $row['properties']['RenderingEngine_Version'] ?? null,
-                    'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -196,7 +119,74 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                yield $row;
+                $ua    = UserAgent::fromUseragent(trim($row['ua']));
+                $agent = (string) $ua;
+
+                if ('' === $agent) {
+                    continue;
+                }
+
+                $pointingMethod = $row['properties']['Device_Pointing_Method'] ?? null;
+
+                $isMobile = false;
+
+                if (isset($row['properties']['Device_Type'])) {
+                    switch ($row['properties']['Device_Type']) {
+                        case 'Mobile Phone':
+                        case 'Tablet':
+                        case 'Console':
+                        case 'Digital Camera':
+                        case 'Ebook Reader':
+                        case 'Mobile Device':
+                            $isMobile = true;
+
+                            break;
+                    }
+                }
+
+                yield [
+                    'headers' => ['user-agent' => $agent],
+                    'device' => [
+                        'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
+                        'marketingName' => $row['properties']['Device_Name'] ?? null,
+                        'manufacturer' => $row['properties']['Device_Maker'] ?? null,
+                        'brand' => $row['properties']['Device_Brand_Name'] ?? null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => ('touchscreen' === $pointingMethod),
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => $row['properties']['Device_Type'] ?? null,
+                        'simCount' => null,
+                        'ismobile' => $isMobile,
+                    ],
+                    'client' => [
+                        'name' => $row['properties']['Browser'] ?? null,
+                        'modus' => $row['properties']['Browser_Modus'] ?? null,
+                        'version' => $row['properties']['Version'] ?? null,
+                        'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
+                        'bits' => $row['properties']['Browser_Bits'] ?? null,
+                        'type' => $row['properties']['Browser_Type'] ?? null,
+                        'isbot' => array_key_exists('Crawler', $row['properties']) ? $row['properties']['Crawler'] : null,
+                    ],
+                    'platform' => [
+                        'name' => $row['properties']['Platform'] ?? null,
+                        'marketingName' => null,
+                        'version' => $row['properties']['Platform_Version'] ?? null,
+                        'manufacturer' => $row['properties']['Platform_Maker'] ?? null,
+                        'bits' => $row['properties']['Platform_Bits'] ?? null,
+                    ],
+                    'engine' => [
+                        'name' => $row['properties']['RenderingEngine_Name'] ?? null,
+                        'version' => $row['properties']['RenderingEngine_Version'] ?? null,
+                        'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
+                    ],
+                    'raw' => $row,
+                    'file' => $filepath,
+                ];
             }
         }
     }

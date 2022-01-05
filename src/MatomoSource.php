@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the browscap-helper package.
+ * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
+use DeviceDetector\Parser\Client\Browser;
+use DeviceDetector\Parser\Device\AbstractDeviceParser;
 use FilterIterator;
 use Iterator;
 use LogicException;
@@ -28,6 +29,7 @@ use function assert;
 use function explode;
 use function file_exists;
 use function implode;
+use function in_array;
 use function is_array;
 use function is_string;
 use function mb_strlen;
@@ -41,6 +43,7 @@ use const STR_PAD_RIGHT;
 final class MatomoSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'matomo/device-detector';
@@ -61,93 +64,13 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $row) {
-            $ua    = explode("\n", $row['user_agent']);
-            $ua    = array_map('trim', $ua);
-            $agent = trim(implode(' ', $ua));
-
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $line) {
-            $ua    = UserAgent::fromUseragent($line);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return array<string, string>|iterable
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -181,6 +104,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
+            /** @var SplFileInfo $file */
             $pathName = $file->getPathname();
             $filepath = str_replace('\\', '/', $pathName);
             assert(is_string($filepath));
@@ -204,8 +128,140 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                yield $row;
+                $ua    = explode("\n", $row['user_agent']);
+                $ua    = array_map('trim', $ua);
+                $agent = trim(implode(' ', $ua));
+
+                if (empty($agent)) {
+                    continue;
+                }
+
+                yield [
+                    'headers' => ['user-agent' => $agent],
+                    'device' => [
+                        'deviceName' => $row['device']['model'] ?? null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => (!empty($row['device']['brand']) ? AbstractDeviceParser::getFullName($row['device']['brand']) : null),
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => $row['device']['type'] ?? null,
+                        'simCount' => null,
+                        'ismobile' => $this->isMobile($row),
+                    ],
+                    'client' => [
+                        'name' => $data['bot'] ? ($data['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
+                        'modus' => null,
+                        'version' => $data['bot'] ? null : ($data['client']['version'] ?? null),
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => $data['bot'] ? ($data['bot']['category'] ?? null) : ($data['client']['type'] ?? null),
+                        'isbot' => !empty($data['bot']),
+                    ],
+                    'platform' => [
+                        'name' => $row['os']['name'] ?? null,
+                        'marketingName' => null,
+                        'version' => $row['os']['version'] ?? null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
+                        'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $row,
+                    'file' => $filepath,
+                ];
             }
         }
+    }
+
+    /**
+     * @param array<mixed> $data
+     * @phpstan-param array{os: array{short_name: string|null}, client: array{type: string, short_name?: string}, os_family: string, device: array{type?: int}} $data
+     */
+    private function isMobile(array $data): bool
+    {
+        if (empty($data['device']['type'])) {
+            return false;
+        }
+
+        $device     = $data['device']['type'];
+        $deviceType = AbstractDeviceParser::getAvailableDeviceTypes()[$device];
+
+        if (!empty($deviceType)) {
+            // Mobile device types
+            if (
+                in_array(
+                    $deviceType,
+                    [
+                        AbstractDeviceParser::DEVICE_TYPE_FEATURE_PHONE,
+                        AbstractDeviceParser::DEVICE_TYPE_SMARTPHONE,
+                        AbstractDeviceParser::DEVICE_TYPE_TABLET,
+                        AbstractDeviceParser::DEVICE_TYPE_PHABLET,
+                        AbstractDeviceParser::DEVICE_TYPE_CAMERA,
+                        AbstractDeviceParser::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
+                    ],
+                    true
+                )
+            ) {
+                return true;
+            }
+
+            // non mobile device types
+            if (
+                in_array(
+                    $deviceType,
+                    [
+                        AbstractDeviceParser::DEVICE_TYPE_TV,
+                        AbstractDeviceParser::DEVICE_TYPE_SMART_DISPLAY,
+                        AbstractDeviceParser::DEVICE_TYPE_CONSOLE,
+                    ],
+                    true
+                )
+            ) {
+                return false;
+            }
+        }
+
+        // Check for browsers available for mobile devices only
+        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')) {
+            return true;
+        }
+
+        $osShort = $data['os']['short_name'];
+
+        if (empty($osShort) || 'UNK' === $osShort) {
+            return false;
+        }
+
+        return !$this->isDesktop($data);
+    }
+
+    /**
+     * @param array<mixed> $data
+     * @phpstan-param array{os: array{short_name: string|null}, client: array{type: string, short_name?: string}, os_family: string, device: array{type?: int}} $data
+     */
+    private function isDesktop(array $data): bool
+    {
+        $osShort = $data['os']['short_name'];
+
+        if (empty($osShort) || 'UNK' === $osShort) {
+            return false;
+        }
+
+        // Check for browsers available for mobile devices only
+        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')) {
+            return false;
+        }
+
+        return in_array($data['os_family'], ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'], true);
     }
 }

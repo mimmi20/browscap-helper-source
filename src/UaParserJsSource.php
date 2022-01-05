@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,12 +12,10 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use Exception;
 use FilterIterator;
 use Iterator;
 use JsonException;
-use LogicException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -26,6 +24,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function assert;
 use function file_exists;
+use function file_get_contents;
 use function is_array;
 use function json_decode;
 use function mb_strlen;
@@ -34,11 +33,13 @@ use function str_pad;
 use function trim;
 
 use const JSON_THROW_ON_ERROR;
+use const PHP_EOL;
 use const STR_PAD_RIGHT;
 
 final class UaParserJsSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'ua-parser-js';
@@ -59,38 +60,16 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $data) {
-            $agent = trim($data['ua']);
-
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $agents = [];
         $base   = [
-            'headers' => ['user-agent' => $agent],
+            'headers' => ['user-agent' => null],
             'device' => [
                 'deviceName' => null,
                 'marketingName' => null,
@@ -103,7 +82,9 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
                     'type' => null,
                     'size' => null,
                 ],
+                'dualOrientation' => null,
                 'type' => null,
+                'simCount' => null,
                 'ismobile' => null,
             ],
             'client' => [
@@ -127,57 +108,10 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
                 'version' => null,
                 'manufacturer' => null,
             ],
+            'raw' => [],
+            'file' => [],
         ];
 
-        foreach ($this->loadFromPath($message, $messageLength) as $providerName => $data) {
-            $agent = trim($data['ua']);
-
-            if (!isset($agents[$agent])) {
-                $agents[$agent] = $base;
-            }
-
-            switch ($providerName) {
-                case 'browser-test.json':
-                    $agents[$agent]['browser']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
-                    $agents[$agent]['browser']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
-
-                    break;
-                case 'device-test.json':
-                    $agents[$agent]['device']['name']  = 'undefined' === $data['expect']['model'] ? '' : $data['expect']['model'];
-                    $agents[$agent]['device']['brand'] = 'undefined' === $data['expect']['vendor'] ? '' : $data['expect']['vendor'];
-                    $agents[$agent]['device']['type']  = 'undefined' === $data['expect']['type'] ? '' : $data['expect']['type'];
-
-                    break;
-                case 'os-test.json':
-                    $agents[$agent]['platform']['name']    = 'undefined' === $data['expect']['name'] ? '' : $data['expect']['name'];
-                    $agents[$agent]['platform']['version'] = 'undefined' === $data['expect']['version'] ? '' : $data['expect']['version'];
-
-                    break;
-                // Skipping cpu-test.json because we don't look at CPU data, which is all that file tests against
-                // Skipping engine-test.json because we don't look at Engine data // @todo: fix
-                // Skipping mediaplayer-test.json because it seems that this file isn't used in this project's actual tests (see test.js)
-            }
-        }
-
-        foreach ($agents as $agent => $test) {
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent => $test;
-        }
-    }
-
-    /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
-    {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -221,16 +155,23 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
+            $content = file_get_contents($filepath);
+
+            if (false === $content || '' === $content || PHP_EOL === $content) {
+                continue;
+            }
+
             try {
                 $provider = json_decode(
-                    $file->getContents(),
+                    $content,
                     true,
                     512,
                     JSON_THROW_ON_ERROR
                 );
             } catch (JsonException $e) {
-                $this->logger->error(
-                    new Exception(sprintf('file %s contains invalid json.', $file->getPathname()), 0, $e)
+                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
+                $this->writeln(
+                    '<error>' . (new Exception(sprintf('file %s contains invalid json.', $filepath), 0, $e)) . '</error>'
                 );
                 continue;
             }
@@ -244,12 +185,56 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
             foreach ($provider as $data) {
                 $agent = trim($data['ua']);
 
-                if (empty($agent)) {
+                if ('' === $agent) {
                     continue;
                 }
 
-                yield $providerName => $data;
+                if (!isset($agents[$agent])) {
+                    $agents[$agent] = $base;
+
+                    $agents[$agent]['headers']['user-agent'] = $agent;
+                }
+
+                switch ($providerName) {
+                    case 'browser-test.json':
+                        $agents[$agent]['client']['name']    = 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
+                        $agents[$agent]['client']['version'] = 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+
+                        $agents[$agent]['raw'][$providerName]  = $data['expect'];
+                        $agents[$agent]['file'][$providerName] = $filepath;
+
+                        break;
+                    case 'device-test.json':
+                        $agents[$agent]['device']['name']  = 'undefined' === $data['expect']['model'] ? null : $data['expect']['model'];
+                        $agents[$agent]['device']['brand'] = 'undefined' === $data['expect']['vendor'] ? null : $data['expect']['vendor'];
+                        $agents[$agent]['device']['type']  = 'undefined' === $data['expect']['type'] ? null : $data['expect']['type'];
+
+                        $agents[$agent]['raw'][$providerName]  = $data['expect'];
+                        $agents[$agent]['file'][$providerName] = $filepath;
+
+                        break;
+                    case 'os-test.json':
+                        $agents[$agent]['platform']['name']    = 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
+                        $agents[$agent]['platform']['version'] = 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+
+                        $agents[$agent]['raw'][$providerName]  = $data['expect'];
+                        $agents[$agent]['file'][$providerName] = $filepath;
+
+                        break;
+                    case 'engine-test.json':
+                        $uas[$agent]['engine']['name']    = !isset($data['expect']['name']) || 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
+                        $uas[$agent]['engine']['version'] = !isset($data['expect']['version']) || 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+
+                        $agents[$agent]['raw'][$providerName]  = $data['expect'];
+                        $agents[$agent]['file'][$providerName] = $filepath;
+
+                        break;
+                    // Skipping cpu-test.json because we don't look at CPU data, which is all that file tests against
+                    // Skipping mediaplayer-test.json because it seems that this file isn't used in this project's actual tests (see test.js)
+                }
             }
         }
+
+        yield from $agents;
     }
 }

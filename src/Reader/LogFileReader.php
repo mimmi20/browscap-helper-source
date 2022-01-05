@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the browscap-helper package.
+ * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -106,7 +106,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
                     continue;
                 }
 
-                yield $agentOfLine;
+                yield $file => $agentOfLine;
             }
 
             fclose($handle);

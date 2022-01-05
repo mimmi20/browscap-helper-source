@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the browscap-helper package.
+ * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,6 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
 use Iterator;
 use JsonException;
@@ -22,6 +21,7 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
+use UaDeviceType\TypeLoader;
 
 use function assert;
 use function file_exists;
@@ -33,7 +33,6 @@ use function mb_strlen;
 use function sprintf;
 use function str_pad;
 use function str_replace;
-use function unlink;
 
 use const JSON_THROW_ON_ERROR;
 use const PHP_EOL;
@@ -42,6 +41,7 @@ use const STR_PAD_RIGHT;
 final class DetectorSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'mimmi20/browser-detector';
@@ -62,89 +62,13 @@ final class DetectorSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $test) {
-            $ua    = UserAgent::fromHeaderArray($test['headers']);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $line) {
-            $ua    = UserAgent::fromUseragent($line);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -193,9 +117,7 @@ final class DetectorSource implements OutputAwareInterface, SourceInterface
 
             $content = file_get_contents($filepath);
 
-            if ('' === $content || PHP_EOL === $content) {
-                unlink($filepath);
-
+            if (false === $content || '' === $content || PHP_EOL === $content) {
                 continue;
             }
 
@@ -213,7 +135,57 @@ final class DetectorSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $test) {
-                yield $test;
+                if (!is_array($test['headers']) || !isset($test['headers']['user-agent'])) {
+                    continue;
+                }
+
+                if ('this is a fake ua to trigger the fallback' === $test['headers']['user-agent']) {
+                    continue;
+                }
+
+                yield [
+                    'headers' => $test['headers'],
+                    'device' => [
+                        'deviceName' => $test['result']['device']['deviceName'],
+                        'marketingName' => $test['result']['device']['marketingName'],
+                        'manufacturer' => $test['result']['device']['manufacturer'],
+                        'brand' => $test['result']['device']['brand'],
+                        'display' => [
+                            'width' => $test['result']['device']['display']['width'],
+                            'height' => $test['result']['device']['display']['height'],
+                            'touch' => $test['result']['device']['display']['touch'],
+                            'type' => $test['result']['device']['display']['type'] ?? null,
+                            'size' => $test['result']['device']['display']['size'],
+                        ],
+                        'dualOrientation' => $test['result']['device']['dualOrientation'] ?? null,
+                        'type' => $test['result']['device']['type'],
+                        'simCount' => $test['result']['device']['simCount'] ?? null,
+                        'ismobile' => (new TypeLoader())->load($test['result']['device']['type'])->isMobile(),
+                    ],
+                    'client' => [
+                        'name' => $test['result']['browser']['name'],
+                        'modus' => $test['result']['browser']['modus'],
+                        'version' => ('0.0.0' === $test['result']['browser']['version'] ? null : $test['result']['browser']['version']),
+                        'manufacturer' => $test['result']['browser']['manufacturer'],
+                        'bits' => $test['result']['browser']['bits'],
+                        'type' => $test['result']['browser']['type'],
+                        'isbot' => (new \UaBrowserType\TypeLoader())->load($test['result']['browser']['type'])->isBot(),
+                    ],
+                    'platform' => [
+                        'name' => $test['result']['os']['name'],
+                        'marketingName' => $test['result']['os']['marketingName'],
+                        'version' => ('0.0.0' === $test['result']['os']['version'] ? null : $test['result']['os']['version']),
+                        'manufacturer' => $test['result']['os']['manufacturer'],
+                        'bits' => $test['result']['os']['bits'],
+                    ],
+                    'engine' => [
+                        'name' => $test['result']['engine']['name'],
+                        'version' => $test['result']['engine']['version'],
+                        'manufacturer' => $test['result']['engine']['manufacturer'],
+                    ],
+                    'raw' => $test['result'],
+                    'file' => $filepath,
+                ];
             }
         }
     }

@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the browscap-helper package.
+ * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,6 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
 use Iterator;
 use RecursiveDirectoryIterator;
@@ -38,6 +37,7 @@ use const STR_PAD_RIGHT;
 final class WootheeSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'woothee/woothee-testset';
@@ -58,30 +58,12 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<string, string>>
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws RuntimeException
      */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $agent) {
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
-     * @return array<string>|iterable
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -115,6 +97,7 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
+            /** @var SplFileInfo $file */
             $pathName = $file->getPathname();
             $filepath = str_replace('\\', '/', $pathName);
             assert(is_string($filepath));
@@ -140,11 +123,53 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
 
                 $agent = trim($row['target']);
 
-                if (empty($agent)) {
+                if ('' === $agent) {
                     continue;
                 }
 
-                yield $agent;
+                yield [
+                    'headers' => ['user-agent' => $agent],
+                    'device' => [
+                        'deviceName' => null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => !isset($row['category']) || 'crawler' === $row['category'] ? null : $row['category'],
+                        'simCount' => null,
+                        'ismobile' => null,
+                    ],
+                    'client' => [
+                        'name' => $row['name'] ?? null,
+                        'modus' => null,
+                        'version' => $row['version'] ?? null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => $row['category'] ?? null,
+                        'isbot' => isset($row['category']) && 'crawler' === $row['category'],
+                    ],
+                    'platform' => [
+                        'name' => isset($row['os']) && 'UNKNOWN' !== $row['os'] ? $row['os'] : null,
+                        'marketingName' => null,
+                        'version' => $row['os_version'] ?? null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $row,
+                    'file' => $filepath,
+                ];
             }
         }
     }

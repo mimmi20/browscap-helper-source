@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the browscap-helper package.
+ * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2015-2021, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,8 +12,8 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
+use Header;
 use Iterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -24,7 +24,11 @@ use Symfony\Component\Yaml\Yaml;
 
 use function array_key_exists;
 use function assert;
+use function class_exists;
 use function file_exists;
+use function function_exists;
+use function http_parse_headers;
+use function in_array;
 use function is_array;
 use function is_string;
 use function mb_strlen;
@@ -39,6 +43,7 @@ use const STR_PAD_RIGHT;
 final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'whichbrowser/parser';
@@ -59,36 +64,12 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws RuntimeException
      */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $row) {
-            $lowerHeaders = [];
-
-            foreach ($this->getHeadersFromRow($row) as $header => $value) {
-                $lowerHeaders[mb_strtolower((string) $header)] = $value;
-            }
-
-            $ua    = UserAgent::fromHeaderArray($lowerHeaders);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
-     * @return array<string, array<string, string>|string>|iterable
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -122,6 +103,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
+            /** @var SplFileInfo $file */
             $pathName = $file->getPathname();
             $filepath = str_replace('\\', '/', $pathName);
             assert(is_string($filepath));
@@ -141,7 +123,100 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
-                yield $row;
+                $lowerHeaders = [];
+
+                foreach ($this->getHeadersFromRow($row) as $header => $value) {
+                    $lowerHeaders[mb_strtolower((string) $header)] = $value;
+                }
+
+                $browserName    = null;
+                $browserVersion = null;
+
+                if (isset($row['result']['browser']['name'])) {
+                    $browserName = $row['result']['browser']['name'];
+                }
+
+                if (isset($row['result']['browser']['version'])) {
+                    if (is_array($row['result']['browser']['version'])) {
+                        $browserVersion = $row['result']['browser']['version']['value'] ?? null;
+                    } else {
+                        $browserVersion = $row['result']['browser']['version'];
+                    }
+                }
+
+                $engineName    = null;
+                $engineVersion = null;
+
+                if (isset($row['result']['engine']['name'])) {
+                    $engineName = $row['result']['engine']['name'];
+                }
+
+                if (isset($row['result']['engine']['version'])) {
+                    if (is_array($row['result']['engine']['version'])) {
+                        $engineVersion = $row['result']['engine']['version']['value'] ?? null;
+                    } else {
+                        $engineVersion = $row['result']['engine']['version'];
+                    }
+                }
+
+                $osName    = null;
+                $osVersion = null;
+
+                if (isset($row['result']['os']['name'])) {
+                    $osName = $row['result']['os']['name'];
+                }
+
+                if (isset($row['result']['os']['version'])) {
+                    if (is_array($row['result']['os']['version'])) {
+                        $osVersion = $row['result']['os']['version']['value'] ?? null;
+                    } else {
+                        $osVersion = $row['result']['os']['version'];
+                    }
+                }
+
+                yield [
+                    'headers' => $lowerHeaders,
+                    'device' => [
+                        'deviceName' => $row['result']['device']['model'] ?? null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => $row['result']['device']['manufacturer'] ?? null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => $row['result']['device']['type'] ?? null,
+                        'simCount' => null,
+                        'ismobile' => $this->isMobile($row['result']),
+                    ],
+                    'client' => [
+                        'name' => $browserName,
+                        'modus' => null,
+                        'version' => $browserVersion,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => $row['result']['browser']['type'] ?? null,
+                        'isbot' => isset($row['result']['device']['type']) && 'bot' === $row['result']['device']['type'],
+                    ],
+                    'platform' => [
+                        'name' => $osName,
+                        'marketingName' => null,
+                        'version' => $osVersion,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => $engineName,
+                        'version' => $engineVersion,
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $row,
+                    'file' => $filepath,
+                ];
             }
         }
     }
@@ -155,18 +230,63 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
      */
     private function getHeadersFromRow(array $row): array
     {
+        if (array_key_exists('useragent', $row) && is_string($row['useragent'])) {
+            return ['user-agent' => $row['useragent']];
+        }
+
         if (array_key_exists('headers', $row)) {
             if (is_array($row['headers'])) {
                 return $row['headers'];
             }
 
-            if (is_string($row['headers']) && 0 === mb_strpos($row['headers'], 'User-Agent: ')) {
+            if (!is_string($row['headers'])) {
+                return [];
+            }
+
+            $headers = false;
+
+            if (class_exists(Header::class)) {
+                // pecl_http versions 2.x/3.x
+                $headers = Header::parse($row['headers']);
+            } elseif (function_exists('\http_parse_headers')) {
+                // pecl_http version 1.x
+                $headers = http_parse_headers($row['headers']);
+            } elseif (0 === mb_strpos($row['headers'], 'User-Agent: ')) {
                 return ['user-agent' => str_replace('User-Agent: ', '', $row['headers'])];
             }
 
-            return [];
+            if (!is_array($headers)) {
+                return [];
+            }
+
+            return $headers;
         }
 
         return [];
+    }
+
+    /**
+     * @param array<mixed> $data
+     * @phpstan-param array<string, array<string, string>> $data
+     */
+    private function isMobile(array $data): ?bool
+    {
+        if (!isset($data['device']['type'])) {
+            return null;
+        }
+
+        $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
+
+        if (in_array($data['device']['type'], $mobileTypes, true)) {
+            return true;
+        }
+
+        if ('gaming' === $data['device']['type']) {
+            if (isset($data['device']['subtype']) && 'portable' === $data['device']['subtype']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

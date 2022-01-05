@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,10 +12,8 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
 use Iterator;
-use LogicException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -26,6 +24,7 @@ use function array_map;
 use function assert;
 use function explode;
 use function file_exists;
+use function file_get_contents;
 use function implode;
 use function mb_strlen;
 use function simplexml_load_string;
@@ -33,11 +32,13 @@ use function sprintf;
 use function str_pad;
 use function trim;
 
+use const PHP_EOL;
 use const STR_PAD_RIGHT;
 
 final class SinergiSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'sinergi/browser-detector';
@@ -58,105 +59,12 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $field) {
-            $ua    = explode("\n", (string) $field->field[6]);
-            $ua    = array_map('trim', $ua);
-            $agent = trim(implode(' ', $ua));
-
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
-     *
-     * @throws LogicException
-     * @throws RuntimeException
-     */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $field) {
-            $ua    = explode("\n", (string) $field->field[6]);
-            $ua    = array_map('trim', $ua);
-            $agent = trim(implode(' ', $ua));
-
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            $browser        = (string) $field->field[0];
-            $browserVersion = (string) $field->field[1];
-
-            $platform        = (string) $field->field[2];
-            $platformVersion = (string) $field->field[3];
-
-            $device = (string) $field->field[4];
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => $device,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => $browser,
-                    'modus' => null,
-                    'version' => $browserVersion,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => $platform,
-                    'marketingName' => null,
-                    'version' => $platformVersion,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws RuntimeException
      */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -201,23 +109,83 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $content = $file->getContents();
+            $content = file_get_contents($filepath);
 
-            if (empty($content)) {
-                $this->logger->error('    reading file ' . $filepath . ' failed. The file is empty.');
+            if (false === $content || '' === $content || PHP_EOL === $content) {
                 continue;
             }
 
             $provider = simplexml_load_string($content);
 
             if (false === $provider) {
-                $this->logger->error('    reading file ' . $filepath . ' failed.');
+                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
+                $this->writeln(
+                    '<error>' . sprintf('file %s contains invalid xml.', $filepath) . '</error>'
+                );
                 continue;
             }
 
             foreach ($provider->strings as $string) {
                 foreach ($string as $field) {
-                    yield $field;
+                    $ua    = explode("\n", (string) $field->field[6]);
+                    $ua    = array_map('trim', $ua);
+                    $agent = trim(implode(' ', $ua));
+
+                    if (empty($agent)) {
+                        continue;
+                    }
+
+                    $browser        = (string) $field->field[0];
+                    $browserVersion = (string) $field->field[1];
+
+                    $platform        = (string) $field->field[2];
+                    $platformVersion = (string) $field->field[3];
+
+                    $device = (string) $field->field[4];
+
+                    yield [
+                        'headers' => ['user-agent' => $agent],
+                        'device' => [
+                            'deviceName' => $device,
+                            'marketingName' => null,
+                            'manufacturer' => null,
+                            'brand' => null,
+                            'display' => [
+                                'width' => null,
+                                'height' => null,
+                                'touch' => null,
+                                'type' => null,
+                                'size' => null,
+                            ],
+                            'dualOrientation' => null,
+                            'type' => null,
+                            'simCount' => null,
+                            'ismobile' => null,
+                        ],
+                        'client' => [
+                            'name' => $browser,
+                            'modus' => null,
+                            'version' => $browserVersion,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type' => null,
+                            'isbot' => null,
+                        ],
+                        'platform' => [
+                            'name' => $platform,
+                            'marketingName' => null,
+                            'version' => $platformVersion,
+                            'manufacturer' => null,
+                            'bits' => null,
+                        ],
+                        'engine' => [
+                            'name' => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                        ],
+                        'raw' => $field->asXML(),
+                        'file' => $filepath,
+                    ];
                 }
             }
         }

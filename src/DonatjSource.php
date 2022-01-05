@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,6 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use Exception;
 use FilterIterator;
 use Iterator;
 use JsonException;
@@ -26,6 +25,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function assert;
 use function file_exists;
+use function file_get_contents;
 use function is_array;
 use function json_decode;
 use function mb_strlen;
@@ -40,10 +40,11 @@ use const STR_PAD_RIGHT;
 final class DonatjSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
+    use GetUserAgentsTrait;
     use OutputAwareTrait;
 
     private const NAME = 'donatj/phpuseragentparser';
-    private const PATH = 'vendor/donatj/phpuseragentparser/Tests';
+    private const PATH = 'vendor/donatj/phpuseragentparser/tests';
 
     /**
      * @throws void
@@ -60,89 +61,13 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $test => $data) {
-            $ua    = UserAgent::fromUseragent(trim($test));
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<string, string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
-        foreach ($this->loadFromPath($message, $messageLength) as $test => $data) {
-            $ua    = UserAgent::fromUseragent(trim($test));
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'type' => null,
-                    'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => $data['browser'],
-                    'modus' => null,
-                    'version' => $data['version'],
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => $data['platform'],
-                    'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @return iterable<array<string, string>>
-     *
-     * @throws RuntimeException
-     */
-    private function loadFromPath(string $parentMessage, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
@@ -187,21 +112,17 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $content = $file->getContents();
+            $content = file_get_contents($filepath);
 
-            if ('' === $content || PHP_EOL === $content) {
+            if (false === $content || '' === $content || PHP_EOL === $content) {
                 continue;
             }
 
             try {
-                $provider = json_decode(
-                    $content,
-                    true,
-                    512,
-                    JSON_THROW_ON_ERROR
-                );
+                $provider = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
-                $this->logger->critical(new Exception('    parsing file content [' . $filepath . '] failed', 0, $e));
+                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
+                $this->writeln('    <error>parsing file content [' . $filepath . '] failed</error>', OutputInterface::VERBOSITY_NORMAL);
 
                 continue;
             }
@@ -211,7 +132,56 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($provider as $test => $data) {
-                yield $test => $data;
+                $ua    = UserAgent::fromUseragent(trim($test));
+                $agent = (string) $ua;
+
+                if ('' === $agent) {
+                    continue;
+                }
+
+                yield [
+                    'headers' => ['user-agent' => $agent],
+                    'device' => [
+                        'deviceName' => null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => null,
+                        'simCount' => null,
+                        'ismobile' => null,
+                    ],
+                    'client' => [
+                        'name' => $data['browser'],
+                        'modus' => null,
+                        'version' => $data['version'],
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => null,
+                        'isbot' => null,
+                    ],
+                    'platform' => [
+                        'name' => $data['platform'],
+                        'marketingName' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => null,
+                        'version' => null,
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $data,
+                    'file' => $filepath,
+                ];
             }
         }
     }
