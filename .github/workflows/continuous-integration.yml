@@ -40,7 +40,7 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
+          - "8.1"
 
     steps:
       - name: "Checkout"
@@ -78,8 +78,6 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
-          - "8.0"
           - "8.1"
 
     steps:
@@ -124,8 +122,6 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
-          - "8.0"
           - "8.1"
 
         dependencies:
@@ -182,7 +178,7 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
+          - "8.1"
 
         dependencies:
           - "highest"
@@ -229,7 +225,7 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
+          - "8.1"
 
         dependencies:
           - "highest"
@@ -274,7 +270,7 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
+          - "8.1"
 
         dependencies:
           - "highest"
@@ -321,7 +317,7 @@ jobs:
           - "ubuntu-20.04"
 
         php-version:
-          - "7.4"
+          - "8.1"
 
         dependencies:
           - "highest"
