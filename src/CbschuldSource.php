@@ -19,14 +19,15 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use TabDelimitedFileIterator;
 use UnexpectedValueException;
 
 use function assert;
+use function file;
 use function file_exists;
 use function is_string;
 use function mb_strlen;
 use function sprintf;
+use function str_getcsv;
 use function str_pad;
 use function str_replace;
 
@@ -39,7 +40,7 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'cbschuld/browser.php';
-    private const PATH = 'vendor/mimmi20/browser-detector/tests/data';
+    private const PATH = 'vendor/cbschuld/browser.php/tests/lists';
 
     /**
      * @throws void
@@ -64,8 +65,6 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
      */
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
-        require_once 'vendor/cbschuld/browser.php/tests/TabDelimitedFileIterator.php';
-
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -111,9 +110,15 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $tabIterator = new TabDelimitedFileIterator($pathName);
+            $lines = file($filepath);
 
-            foreach ($tabIterator as $testData) {
+            if (false === $lines) {
+                continue;
+            }
+
+            foreach ($lines as $line) {
+                $testData = str_getcsv($line, "\t");
+
                 if (empty($testData[0])) {
                     continue;
                 }

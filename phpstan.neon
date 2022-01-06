@@ -22,6 +22,3 @@ parameters:
       tooWideThrowType: false
   ignoreErrors:
     - '~Generator expects value type~'
-    -
-      message: '~class TabDelimitedFileIterator~'
-      path: src/CbschuldSource.php
