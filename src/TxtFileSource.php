@@ -143,12 +143,12 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
 
                 $line = trim($line);
 
-                if (empty($line)) {
+                if ('' === $line) {
                     continue;
                 }
 
                 yield [
-                    'headers' => $line,
+                    'headers' => ['user-agent' => $line],
                     'device' => [
                         'deviceName' => null,
                         'marketingName' => null,

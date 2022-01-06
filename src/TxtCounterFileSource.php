@@ -155,7 +155,7 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
                 }
 
                 yield [
-                    'headers' => $parts[1],
+                    'headers' => ['user-agent' => $parts[1]],
                     'device' => [
                         'deviceName' => null,
                         'marketingName' => null,
