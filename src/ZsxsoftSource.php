@@ -13,18 +13,12 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Ua\UserAgent;
-use FilterIterator;
-use Iterator;
 use LogicException;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use RuntimeException;
-use SplFileInfo;
 use SplFileObject;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
-use function assert;
 use function count;
 use function file_exists;
 use function mb_strlen;
@@ -80,110 +74,114 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
 
         $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
-        $files    = new class ($iterator, 'php') extends FilterIterator {
-            private string $extension;
+        $brands = [];
+        $file   = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
+        $file->setFlags(SplFileObject::DROP_NEW_LINE);
+        while (!$file->eof()) {
+            $line = $file->fgets();
 
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
-            {
-                parent::__construct($iterator);
-                $this->extension = $extension;
+            if (false === $line) {
+                continue;
             }
 
-            public function accept(): bool
-            {
-                $file = $this->getInnerIterator()->current();
+            $line = trim($line);
+            preg_match('/^\$brand = ("|\')(.*)("|\');$/', $line, $matches);
 
-                assert($file instanceof SplFileInfo);
-
-                return $file->isFile() && $file->getExtension() === $this->extension;
-            }
-        };
-
-        foreach ($files as $file) {
-            /** @var SplFileInfo $file */
-            $filepath = $file->getPathname();
-
-            $message = $parentMessage . sprintf('- reading file %s', $filepath);
-
-            if (mb_strlen($message) > $messageLength) {
-                $messageLength = mb_strlen($message);
+            if (0 >= count($matches)) {
+                continue;
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $brand = $matches[2];
 
-            $provider = require $filepath;
+            if (empty($brand)) {
+                continue;
+            }
 
-            foreach ($provider as $data) {
-                $agent = trim($data[0][0]);
+            $brands[] = $brand;
+        }
 
-                $ua    = UserAgent::fromUseragent($agent);
-                $agent = (string) $ua;
+        $brands = array_unique($brands);
 
-                if (empty($agent)) {
-                    continue;
+        usort($brands, static fn ($a, $b) => mb_strlen($b) - mb_strlen($a));
+
+        $filepath = 'vendor/zsxsoft/php-useragent/tests/UserAgentList.php';
+
+        $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
+
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+
+        $provider = include $filepath;
+
+        foreach ($provider as $data) {
+            $agent = trim($data[0][0]);
+
+            $ua    = UserAgent::fromUseragent($agent);
+            $agent = (string) $ua;
+
+            if (empty($agent)) {
+                continue;
+            }
+
+            $model = null;
+            $brand = null;
+
+            foreach ($brands as $brand) {
+                if (false !== mb_strpos($data[1][8], $brand)) {
+                    $model = trim(str_replace($brand, '', $data[1][8]));
+
+                    break;
                 }
 
-                $model = null;
                 $brand = null;
-
-                foreach ($brands as $brand) {
-                    if (false !== mb_strpos($data[1][8], $brand)) {
-                        $model = trim(str_replace($brand, '', $data[1][8]));
-
-                        break;
-                    }
-
-                    $brand = null;
-                }
-
-                yield [
-                    'headers' => ['user-agent' => $agent],
-                    'device' => [
-                        'deviceName' => empty($model) ? null : $model,
-                        'marketingName' => null,
-                        'manufacturer' => null,
-                        'brand' => empty($brand) ? null : $brand,
-                        'display' => [
-                            'width' => null,
-                            'height' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'size' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
-                        'ismobile' => null,
-                    ],
-                    'client' => [
-                        'name' => empty($data[1][2]) ? null : $data[1][2],
-                        'modus' => null,
-                        'version' => empty($data[1][3]) ? null : $data[1][3],
-                        'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => empty($data[1][5]) ? null : $data[1][5],
-                        'marketingName' => null,
-                        'version' => empty($data[1][6]) ? null : $data[1][6],
-                        'manufacturer' => null,
-                        'bits' => null,
-                    ],
-                    'engine' => [
-                        'name' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                    ],
-                    'raw' => $data,
-                    'file' => $filepath,
-                ];
             }
+
+            yield [
+                'headers' => ['user-agent' => $agent],
+                'device' => [
+                    'deviceName' => empty($model) ? null : $model,
+                    'marketingName' => null,
+                    'manufacturer' => null,
+                    'brand' => empty($brand) ? null : $brand,
+                    'display' => [
+                        'width' => null,
+                        'height' => null,
+                        'touch' => null,
+                        'type' => null,
+                        'size' => null,
+                    ],
+                    'dualOrientation' => null,
+                    'type' => null,
+                    'simCount' => null,
+                    'ismobile' => null,
+                ],
+                'client' => [
+                    'name' => empty($data[1][2]) ? null : $data[1][2],
+                    'modus' => null,
+                    'version' => empty($data[1][3]) ? null : $data[1][3],
+                    'manufacturer' => null,
+                    'bits' => null,
+                    'type' => null,
+                    'isbot' => null,
+                ],
+                'platform' => [
+                    'name' => empty($data[1][5]) ? null : $data[1][5],
+                    'marketingName' => null,
+                    'version' => empty($data[1][6]) ? null : $data[1][6],
+                    'manufacturer' => null,
+                    'bits' => null,
+                ],
+                'engine' => [
+                    'name' => null,
+                    'version' => null,
+                    'manufacturer' => null,
+                ],
+                'raw' => $data,
+                'file' => $filepath,
+            ];
         }
     }
 
