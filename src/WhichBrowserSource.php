@@ -129,6 +129,10 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                     $lowerHeaders[mb_strtolower((string) $header)] = $value;
                 }
 
+                if ([] === $lowerHeaders) {
+                    continue;
+                }
+
                 $browserName    = null;
                 $browserVersion = null;
 
