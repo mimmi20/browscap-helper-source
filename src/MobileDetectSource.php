@@ -106,7 +106,7 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
 
             $provider = include $filepath;
 
-            foreach ($provider as $vendor => $vendorData) {
+            foreach ($provider as $vendorData) {
                 foreach ($vendorData as $ua => $testData) {
                     if (is_int($ua)) {
                         continue;

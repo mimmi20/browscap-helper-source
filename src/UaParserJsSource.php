@@ -222,8 +222,8 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
 
                         break;
                     case 'engine-test.json':
-                        $uas[$agent]['engine']['name']    = !isset($data['expect']['name']) || 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
-                        $uas[$agent]['engine']['version'] = !isset($data['expect']['version']) || 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+                        $agents[$agent]['engine']['name']    = !isset($data['expect']['name']) || 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
+                        $agents[$agent]['engine']['version'] = !isset($data['expect']['version']) || 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
 
                         $agents[$agent]['raw'][$providerName]  = $data['expect'];
                         $agents[$agent]['file'][$providerName] = $filepath;
