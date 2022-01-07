@@ -117,12 +117,13 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
         $provider = include $filepath;
 
         foreach ($provider as $data) {
+            if (!isset($data[0][0])) {
+                continue;
+            }
+
             $agent = trim($data[0][0]);
 
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
+            if ('' === $agent) {
                 continue;
             }
 
