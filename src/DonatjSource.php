@@ -12,7 +12,6 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use FilterIterator;
 use Iterator;
 use JsonException;
@@ -27,6 +26,7 @@ use function assert;
 use function file_exists;
 use function file_get_contents;
 use function is_array;
+use function is_int;
 use function json_decode;
 use function mb_strlen;
 use function sprintf;

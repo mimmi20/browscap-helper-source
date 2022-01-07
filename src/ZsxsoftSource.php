@@ -12,7 +12,6 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
 use LogicException;
 use RuntimeException;
 use SplFileObject;
