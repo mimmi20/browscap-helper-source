@@ -119,8 +119,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $ua    = UserAgent::fromUseragent(trim($row['ua']));
-                $agent = (string) $ua;
+                $agent = trim($row['ua']);
 
                 if ('' === $agent) {
                     continue;
