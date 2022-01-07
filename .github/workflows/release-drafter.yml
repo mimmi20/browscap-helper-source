@@ -1,0 +1,36 @@
+# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+
+on:
+  push:
+    # branches to consider in the event; optional, defaults to all
+    branches:
+      - master
+    tags:
+      - '*'
+
+name: "Release Drafter"
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  security-events: none
+  statuses: none
+
+jobs:
+  update-release-draft:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # Drafts your next Release notes as Pull Requests are merged into "master"
+      - name: "Release Drafter"
+        uses: "release-drafter/release-drafter@v5.15.0"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

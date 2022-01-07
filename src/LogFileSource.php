@@ -2,88 +2,124 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Helper\FilePath;
 use BrowscapHelper\Source\Reader\LogFileReader;
 use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
-final class LogFileSource implements SourceInterface
+use function file_exists;
+use function mb_strlen;
+use function sprintf;
+use function str_pad;
+
+use const STR_PAD_RIGHT;
+
+final class LogFileSource implements OutputAwareInterface, SourceInterface
 {
+    use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'log-files';
+
+    private string $dir;
 
     /**
-     * @var string
+     * @throws void
      */
-    private $sourcesDirectory;
-
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param string                   $sourcesDirectory
-     */
-    public function __construct(LoggerInterface $logger, string $sourcesDirectory)
+    public function __construct(string $sourcesDirectory)
     {
-        $this->logger           = $logger;
-        $this->sourcesDirectory = $sourcesDirectory;
+        $this->dir = $sourcesDirectory;
     }
 
     /**
-     * @return string
+     * @throws void
      */
-    public function getName(): string
+    public function isReady(string $parentMessage): bool
     {
-        return 'log-files';
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return array[]|iterable
-     */
-    public function getHeaders(): iterable
-    {
-        foreach ($this->loadFromPath() as $agent) {
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
+        if (file_exists($this->dir)) {
+            return true;
         }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @throws \LogicException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws DirectoryNotFoundException
      */
-    public function getProperties(): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $agent) {
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
+        $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
-            if (empty($agent)) {
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
+
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+
+        $finder = new Finder();
+        $finder->files();
+        $finder->notName('*.filepart');
+        $finder->notName('*.sql');
+        $finder->notName('*.rename');
+        $finder->notName('*.txt');
+        $finder->notName('*.ctxt');
+        $finder->notName('*.zip');
+        $finder->notName('*.rar');
+        $finder->notName('*.php');
+        $finder->notName('*.gitkeep');
+        $finder->ignoreDotFiles(true);
+        $finder->ignoreVCS(true);
+        $finder->sortByName();
+        $finder->ignoreUnreadableDirs();
+        $finder->in($this->dir);
+
+        $filepathHelper = new FilePath();
+        $reader         = new LogFileReader();
+
+        if (null !== $this->output) {
+            $reader->setOutput($this->output);
+        }
+
+        foreach ($finder as $file) {
+            /** @var SplFileInfo $file */
+            $filepath = $filepathHelper->getPath($file);
+
+            if (null === $filepath) {
                 continue;
             }
 
-            yield $agent => [
+            $reader->addLocalFile($filepath);
+        }
+
+        foreach ($reader->getAgents($parentMessage, $messageLength) as $file => $line) {
+            $ua    = UserAgent::fromUseragent($line);
+            $agent = (string) $ua;
+
+            if ('' === $agent) {
+                continue;
+            }
+
+            yield [
+                'headers' => ['user-agent' => $agent],
                 'device' => [
                     'deviceName' => null,
                     'marketingName' => null,
@@ -99,15 +135,9 @@ final class LogFileSource implements SourceInterface
                     'dualOrientation' => null,
                     'type' => null,
                     'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
                     'ismobile' => null,
                 ],
-                'browser' => [
+                'client' => [
                     'name' => null,
                     'modus' => null,
                     'version' => null,
@@ -128,57 +158,9 @@ final class LogFileSource implements SourceInterface
                     'version' => null,
                     'manufacturer' => null,
                 ],
+                'raw' => $line,
+                'file' => $file,
             ];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     *
-     * @return iterable|string[]
-     */
-    private function loadFromPath(): iterable
-    {
-        if (!file_exists($this->sourcesDirectory)) {
-            $this->logger->warning(sprintf('    path %s not found', $this->sourcesDirectory));
-
-            return;
-        }
-
-        $this->logger->info(sprintf('    reading path %s', $this->sourcesDirectory));
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->notName('*.filepart');
-        $finder->notName('*.sql');
-        $finder->notName('*.rename');
-        $finder->notName('*.txt');
-        $finder->notName('*.zip');
-        $finder->notName('*.rar');
-        $finder->notName('*.php');
-        $finder->notName('*.gitkeep');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($this->sourcesDirectory);
-
-        $filepathHelper = new FilePath();
-        $reader         = new LogFileReader($this->logger);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $filepathHelper->getPath($file);
-
-            if (null === $filepath) {
-                continue;
-            }
-
-            $reader->addLocalFile($filepath);
-        }
-
-        foreach ($reader->getAgents($this->logger) as $agent) {
-            yield $agent;
         }
     }
 }

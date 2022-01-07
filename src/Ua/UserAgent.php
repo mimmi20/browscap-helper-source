@@ -2,28 +2,31 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source\Ua;
 
 use BrowscapHelper\Source\SourceInterface;
 
+use function explode;
+use function implode;
+use function sprintf;
+
 final class UserAgent
 {
-    /**
-     * @var array
-     */
-    private $header = [];
+    /** @var array<string, string> */
+    private array $header = [];
 
     /**
-     * UserAgent constructor.
+     * @param array<string, string> $header
      *
-     * @param array $header
+     * @throws void
      */
     public function __construct(array $header)
     {
@@ -31,15 +34,7 @@ final class UserAgent
     }
 
     /**
-     * @return array
-     */
-    public function getHeaders(): array
-    {
-        return $this->header;
-    }
-
-    /**
-     * @return string
+     * @throws void
      */
     public function __toString(): string
     {
@@ -53,9 +48,17 @@ final class UserAgent
     }
 
     /**
-     * @param string $useragent
+     * @return array<string, string>
      *
-     * @return \BrowscapHelper\Source\Ua\UserAgent
+     * @throws void
+     */
+    public function getHeaders(): array
+    {
+        return $this->header;
+    }
+
+    /**
+     * @throws void
      */
     public static function fromUseragent(string $useragent): self
     {
@@ -63,9 +66,7 @@ final class UserAgent
     }
 
     /**
-     * @param string $string
-     *
-     * @return \BrowscapHelper\Source\Ua\UserAgent
+     * @throws void
      */
     public static function fromString(string $string): self
     {
@@ -82,9 +83,9 @@ final class UserAgent
     }
 
     /**
-     * @param array $headers
+     * @param array<string, string> $headers
      *
-     * @return \BrowscapHelper\Source\Ua\UserAgent
+     * @throws void
      */
     public static function fromHeaderArray(array $headers): self
     {

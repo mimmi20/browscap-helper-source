@@ -12,9 +12,13 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use UnexpectedValueException;
-
-final class SourceException extends UnexpectedValueException
+trait GetNameTrait
 {
-    // nothing to do here
+    /**
+     * @throws void
+     */
+    public function getName(): string
+    {
+        return self::NAME;
+    }
 }

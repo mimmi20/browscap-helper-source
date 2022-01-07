@@ -2,21 +2,29 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source\Helper;
+
+use function array_multisort;
+
+use const SORT_ASC;
+use const SORT_DESC;
 
 final class Sorter
 {
     /**
-     * @param array $agents
+     * @param array<string, int> $agents
      *
-     * @return array
+     * @return array<string, int>
+     *
+     * @throws void
      */
     public function sortAgents(array $agents): array
     {

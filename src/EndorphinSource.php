@@ -12,36 +12,35 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use AppendIterator;
 use FilterIterator;
 use Iterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
-use function addcslashes;
+use function array_merge;
 use function assert;
 use function file_exists;
-use function file_get_contents;
 use function is_array;
 use function mb_strlen;
+use function mb_strpos;
 use function sprintf;
 use function str_pad;
+use function str_replace;
 
-use const PHP_EOL;
 use const STR_PAD_RIGHT;
 
-final class UapCoreSource implements OutputAwareInterface, SourceInterface
+final class EndorphinSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'ua-parser/uap-core';
-    private const PATH = 'vendor/ua-parser/uap-core/tests';
+    private const NAME = 'endorphin-studio/browser-detector';
+    private const PATH = 'vendor/endorphin-studio/browser-detector-tests-data/data';
 
     /**
      * @throws void
@@ -118,10 +117,8 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
 
         $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
-        $appendIter = new AppendIterator();
-        $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/tests')));
-        $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/test_resources')));
-        $files = new class ($appendIter, 'yaml') extends FilterIterator {
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        $files    = new class ($iterator, 'yaml') extends FilterIterator {
             private string $extension;
 
             /**
@@ -137,7 +134,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
             {
                 $file = $this->getInnerIterator()->current();
 
-                assert($file instanceof \SplFileInfo);
+                assert($file instanceof SplFileInfo);
 
                 return $file->isFile() && $file->getExtension() === $this->extension;
             }
@@ -146,6 +143,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
         foreach ($files as $file) {
             /** @var SplFileInfo $file */
             $filepath = $file->getPathname();
+            $filepath = str_replace('\\', '/', $filepath);
 
             $message = $parentMessage . sprintf('- reading file %s', $filepath);
 
@@ -155,66 +153,84 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
 
             $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
 
-            $content = file_get_contents($filepath);
-
-            if (false === $content || '' === $content || PHP_EOL === $content) {
-                continue;
-            }
-
-            $provider = Yaml::parse($content);
+            $provider = Yaml::parseFile($filepath);
 
             if (!is_array($provider)) {
                 continue;
             }
 
-            $providerName = $file->getFilename();
+            if (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/browser/')) {
+                $expected = [
+                    'client' => [
+                        'name' => $provider['checkList']['name'],
+                    ],
+                    'raw' => $provider['checkList'],
+                ];
 
-            foreach ($provider['test_cases'] as $data) {
-                if (!is_array($data)) {
-                    continue;
+                if (isset($provider['checkList']['type'])) {
+                    $expected['device'] = [
+                        'type' => $provider['checkList']['type'],
+                    ];
+                }
+            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/device/')) {
+                $expected = [
+                    'device' => [
+                        'name' => $provider['checkList']['name'],
+                    ],
+                    'raw' => $provider['checkList'],
+                ];
+
+                if (isset($provider['checkList']['type'])) {
+                    $expected['device'] = [
+                        'type' => $provider['checkList']['type'],
+                    ];
+                }
+            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/os/')) {
+                if ('Windows' === $provider['checkList']['name'] && isset($provider['checkList']['version'])) {
+                    $name = $provider['checkList']['name'] . $provider['checkList']['version'];
+                } else {
+                    $name = $provider['checkList']['name'];
                 }
 
-                $agent = addcslashes($data['user_agent_string'], "\n");
+                $expected = [
+                    'platform' => ['name' => $name],
+                    'raw' => $provider['checkList'],
+                ];
+            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/robot/')) {
+                $expected = [
+                    'client' => [
+                        'name' => $provider['checkList']['name'],
+                        'isbot' => true,
+                    ],
+                    'raw' => $provider['checkList'],
+                ];
+            } else {
+                $expected = [];
+            }
 
-                if ('' === $agent) {
-                    continue;
-                }
+            if (empty($expected)) {
+                continue;
+            }
 
-                if (!isset($agents[$agent])) {
-                    $agents[$agent] = $base;
+            foreach ($provider['uaList'] as $ua) {
+                $agent = (string) $ua;
 
-                    $agents[$agent]['headers']['user-agent'] = $agent;
-                }
-
-                switch ($providerName) {
-                    case 'test_device.yaml':
-                        $agents[$agent]['device']['name']  = $data['model'] ?? null;
-                        $agents[$agent]['device']['brand'] = $data['brand'] ?? null;
-
-                        $agents[$agent]['raw'][$providerName]  = $data;
-                        $agents[$agent]['file'][$providerName] = $filepath;
-
-                        break;
-                    case 'test_os.yaml':
-                    case 'additional_os_tests.yaml':
-                        $agents[$agent]['platform']['name']    = $data['family'] ?? null;
-                        $agents[$agent]['platform']['version'] = $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : '');
-
-                        $agents[$agent]['raw'][$providerName]  = $data;
-                        $agents[$agent]['file'][$providerName] = $filepath;
-
-                        break;
-                    case 'test_ua.yaml':
-                    case 'firefox_user_agent_strings.yaml':
-                    case 'opera_mini_user_agent_strings.yaml':
-                    case 'pgts_browser_list.yaml':
-                        $agents[$agent]['client']['name']    = $data['family'] ?? null;
-                        $agents[$agent]['client']['version'] = $data['major'] . (!empty($data['minor']) ? '.' . $data['minor'] : '');
-
-                        $agents[$agent]['raw'][$providerName]  = $data;
-                        $agents[$agent]['file'][$providerName] = $filepath;
-
-                        break;
+                if (isset($agents[$agent])) {
+                    $agents[$agent] = array_merge(
+                        $agents[$agent],
+                        [
+                            'headers' => ['user-agent' => $agent],
+                        ],
+                        $expected
+                    );
+                } else {
+                    $agents[$agent] = array_merge(
+                        $base,
+                        [
+                            'headers' => ['user-agent' => $agent],
+                        ],
+                        $expected
+                    );
                 }
             }
         }

@@ -2,195 +2,190 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
+use FilterIterator;
+use Iterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
 
-final class SinergiSource implements SourceInterface
+use function array_map;
+use function assert;
+use function explode;
+use function file_exists;
+use function file_get_contents;
+use function implode;
+use function mb_strlen;
+use function simplexml_load_string;
+use function sprintf;
+use function str_pad;
+use function trim;
+
+use const PHP_EOL;
+use const STR_PAD_RIGHT;
+
+final class SinergiSource implements OutputAwareInterface, SourceInterface
 {
+    use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'sinergi/browser-detector';
+    private const PATH = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @throws void
      */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     */
-    public function __construct(LoggerInterface $logger)
+    public function isReady(string $parentMessage): bool
     {
-        $this->logger = $logger;
+        if (file_exists(self::PATH)) {
+            return true;
+        }
+
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+
+        return false;
     }
 
     /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'sinergi/browser-detector';
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @return array[]|iterable
+     * @throws RuntimeException
      */
-    public function getHeaders(): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
-        foreach ($this->loadFromPath() as $field) {
-            $ua    = explode("\n", (string) $field->field[6]);
-            $ua    = array_map('trim', $ua);
-            $agent = trim(implode(' ', $ua));
+        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
 
-            if (empty($agent)) {
-                continue;
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        $files    = new class ($iterator, 'xml') extends FilterIterator {
+            private string $extension;
+
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             */
+            public function __construct(Iterator $iterator, string $extension)
+            {
+                parent::__construct($iterator);
+                $this->extension = $extension;
             }
 
-            yield $ua->getHeaders();
-        }
-    }
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
 
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return array[]|iterable
-     */
-    public function getProperties(): iterable
-    {
-        foreach ($this->loadFromPath() as $field) {
-            $ua    = explode("\n", (string) $field->field[6]);
-            $ua    = array_map('trim', $ua);
-            $agent = trim(implode(' ', $ua));
+                assert($file instanceof SplFileInfo);
 
-            $ua    = UserAgent::fromUseragent($agent);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
+                return $file->isFile() && $file->getExtension() === $this->extension;
             }
+        };
 
-            $browser        = (string) $field->field[0];
-            $browserVersion = (string) $field->field[1];
-
-            $platform        = (string) $field->field[2];
-            $platformVersion = (string) $field->field[3];
-
-            $device = (string) $field->field[4];
-
-            yield $agent => [
-                'device' => [
-                    'deviceName' => $device,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
-                    'ismobile' => null,
-                ],
-                'browser' => [
-                    'name' => $browser,
-                    'modus' => null,
-                    'version' => $browserVersion,
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => $platform,
-                    'marketingName' => null,
-                    'version' => $platformVersion,
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return iterable|\SimpleXMLElement[]
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
-
-        if (!file_exists($path)) {
-            $this->logger->warning(sprintf('    path %s not found', $path));
-
-            return;
-        }
-
-        $this->logger->info(sprintf('    reading path %s', $path));
-
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.xml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
-
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
             $filepath = $file->getPathname();
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
 
-            $content = $file->getContents();
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
 
-            if (empty($content)) {
-                $this->logger->error('    reading file ' . $filepath . ' failed. The file is empty.');
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+
+            $content = file_get_contents($filepath);
+
+            if (false === $content || '' === $content || PHP_EOL === $content) {
                 continue;
             }
 
-            $provider = \simplexml_load_string($content);
+            $provider = simplexml_load_string($content);
 
             if (false === $provider) {
-                $this->logger->error('    reading file ' . $filepath . ' failed.');
+                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
+                $this->writeln(
+                    '<error>' . sprintf('file %s contains invalid xml.', $filepath) . '</error>'
+                );
                 continue;
             }
 
             foreach ($provider->strings as $string) {
                 foreach ($string as $field) {
-                    yield $field;
+                    $ua    = explode("\n", (string) $field->field[6]);
+                    $ua    = array_map('trim', $ua);
+                    $agent = trim(implode(' ', $ua));
+
+                    if (empty($agent)) {
+                        continue;
+                    }
+
+                    $browser        = (string) $field->field[0];
+                    $browserVersion = (string) $field->field[1];
+
+                    $platform        = (string) $field->field[2];
+                    $platformVersion = (string) $field->field[3];
+
+                    $device = (string) $field->field[4];
+
+                    yield [
+                        'headers' => ['user-agent' => $agent],
+                        'device' => [
+                            'deviceName' => $device,
+                            'marketingName' => null,
+                            'manufacturer' => null,
+                            'brand' => null,
+                            'display' => [
+                                'width' => null,
+                                'height' => null,
+                                'touch' => null,
+                                'type' => null,
+                                'size' => null,
+                            ],
+                            'dualOrientation' => null,
+                            'type' => null,
+                            'simCount' => null,
+                            'ismobile' => null,
+                        ],
+                        'client' => [
+                            'name' => $browser,
+                            'modus' => null,
+                            'version' => $browserVersion,
+                            'manufacturer' => null,
+                            'bits' => null,
+                            'type' => null,
+                            'isbot' => null,
+                        ],
+                        'platform' => [
+                            'name' => $platform,
+                            'marketingName' => null,
+                            'version' => $platformVersion,
+                            'manufacturer' => null,
+                            'bits' => null,
+                        ],
+                        'engine' => [
+                            'name' => null,
+                            'version' => null,
+                            'manufacturer' => null,
+                        ],
+                        'raw' => $field->asXML(),
+                        'file' => $filepath,
+                    ];
                 }
             }
         }

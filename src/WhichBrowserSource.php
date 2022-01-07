@@ -2,216 +2,267 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2019, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 declare(strict_types = 1);
+
 namespace BrowscapHelper\Source;
 
-use BrowscapHelper\Source\Ua\UserAgent;
-use http\Header;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Finder\Finder;
+use FilterIterator;
+use Header;
+use Iterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
-final class WhichBrowserSource implements SourceInterface
+use function array_key_exists;
+use function assert;
+use function class_exists;
+use function file_exists;
+use function function_exists;
+use function http_parse_headers;
+use function in_array;
+use function is_array;
+use function is_string;
+use function mb_strlen;
+use function mb_strpos;
+use function mb_strtolower;
+use function sprintf;
+use function str_pad;
+use function str_replace;
+
+use const STR_PAD_RIGHT;
+
+final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 {
+    use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
+
+    private const NAME = 'whichbrowser/parser';
+    private const PATH = 'vendor/whichbrowser/parser/tests/data';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @throws void
      */
-    private $logger;
-
-    /**
-     * @param \Psr\Log\LoggerInterface $logger
-     */
-    public function __construct(LoggerInterface $logger)
+    public function isReady(string $parentMessage): bool
     {
-        $this->logger = $logger;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'whichbrowser/parser';
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return array[]|iterable
-     */
-    public function getHeaders(): iterable
-    {
-        foreach ($this->loadFromPath() as $row) {
-            $lowerHeaders = [];
-
-            foreach ($this->getHeadersFromRow($row) as $header => $value) {
-                $lowerHeaders[mb_strtolower((string) $header)] = $value;
-            }
-
-            $ua    = UserAgent::fromHeaderArray($lowerHeaders);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $ua->getHeaders();
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return array[]|iterable
-     */
-    public function getProperties(): iterable
-    {
-        foreach ($this->loadFromPath() as $row) {
-            $lowerHeaders = [];
-
-            foreach ($this->getHeadersFromRow($row) as $header => $value) {
-                $lowerHeaders[mb_strtolower((string) $header)] = $value;
-            }
-
-            $ua    = UserAgent::fromHeaderArray($lowerHeaders);
-            $agent = (string) $ua;
-
-            if (empty($agent)) {
-                continue;
-            }
-
-            yield $agent => [
-                'device' => [
-                    'deviceName' => $row['device']['model'] ?? null,
-                    'marketingName' => null,
-                    'manufacturer' => null,
-                    'brand' => $row['device']['manufacturer'] ?? null,
-                    'display' => [
-                        'width' => null,
-                        'height' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'size' => null,
-                    ],
-                    'dualOrientation' => null,
-                    'type' => $row['device']['type'] ?? null,
-                    'simCount' => null,
-                    'market' => [
-                        'regions' => null,
-                        'countries' => null,
-                        'vendors' => null,
-                    ],
-                    'connections' => null,
-                    'ismobile' => $this->isMobile($row) ? true : false,
-                ],
-                'browser' => [
-                    'name' => $row['browser']['name'] ?? null,
-                    'modus' => null,
-                    'version' => (!empty($row['browser']['version']) ? is_array($row['browser']['version']) ? $row['browser']['version']['value'] : $row['browser']['version'] : null),
-                    'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => $row['os']['name'] ?? null,
-                    'marketingName' => null,
-                    'version' => (!empty($row['os']['version']) ? is_array($row['os']['version']) ? $row['os']['version']['value'] : $row['os']['version'] : null),
-                    'manufacturer' => null,
-                    'bits' => null,
-                ],
-                'engine' => [
-                    'name' => $row['engine']['name'] ?? null,
-                    'version' => $row['engine']['version'] ?? null,
-                    'manufacturer' => null,
-                ],
-            ];
-        }
-    }
-
-    /**
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
-     * @return array[]|iterable
-     */
-    private function loadFromPath(): iterable
-    {
-        $path = 'vendor/whichbrowser/parser/tests/data';
-
-        if (!file_exists($path)) {
-            $this->logger->warning(sprintf('    path %s not found', $path));
-
-            return;
+        if (file_exists(self::PATH)) {
+            return true;
         }
 
-        $this->logger->info(sprintf('    reading path %s', $path));
+        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
 
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.yaml');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-        $finder->in($path);
+        return false;
+    }
 
-        foreach ($finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $filepath = $file->getPathname();
+    /**
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     *
+     * @throws RuntimeException
+     */
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
+    {
+        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
-            $this->logger->info('    reading file ' . str_pad($filepath, 100, ' ', STR_PAD_RIGHT));
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
 
-            $data = Yaml::parse($file->getContents());
+        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        $files    = new class ($iterator, 'yaml') extends FilterIterator {
+            private string $extension;
+
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             */
+            public function __construct(Iterator $iterator, string $extension)
+            {
+                parent::__construct($iterator);
+                $this->extension = $extension;
+            }
+
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
+
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
+
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
+            $pathName = $file->getPathname();
+            $filepath = str_replace('\\', '/', $pathName);
+            assert(is_string($filepath));
+
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+
+            $data = Yaml::parseFile($filepath);
 
             if (!is_array($data)) {
                 continue;
             }
 
             foreach ($data as $row) {
-                yield $row;
+                $lowerHeaders = [];
+
+                foreach ($this->getHeadersFromRow($row) as $header => $value) {
+                    $lowerHeaders[mb_strtolower((string) $header)] = $value;
+                }
+
+                if ([] === $lowerHeaders) {
+                    continue;
+                }
+
+                $browserName    = null;
+                $browserVersion = null;
+
+                if (isset($row['result']['browser']['name'])) {
+                    $browserName = $row['result']['browser']['name'];
+                }
+
+                if (isset($row['result']['browser']['version'])) {
+                    if (is_array($row['result']['browser']['version'])) {
+                        $browserVersion = $row['result']['browser']['version']['value'] ?? null;
+                    } else {
+                        $browserVersion = $row['result']['browser']['version'];
+                    }
+                }
+
+                $engineName    = null;
+                $engineVersion = null;
+
+                if (isset($row['result']['engine']['name'])) {
+                    $engineName = $row['result']['engine']['name'];
+                }
+
+                if (isset($row['result']['engine']['version'])) {
+                    if (is_array($row['result']['engine']['version'])) {
+                        $engineVersion = $row['result']['engine']['version']['value'] ?? null;
+                    } else {
+                        $engineVersion = $row['result']['engine']['version'];
+                    }
+                }
+
+                $osName    = null;
+                $osVersion = null;
+
+                if (isset($row['result']['os']['name'])) {
+                    $osName = $row['result']['os']['name'];
+                }
+
+                if (isset($row['result']['os']['version'])) {
+                    if (is_array($row['result']['os']['version'])) {
+                        $osVersion = $row['result']['os']['version']['value'] ?? null;
+                    } else {
+                        $osVersion = $row['result']['os']['version'];
+                    }
+                }
+
+                yield [
+                    'headers' => $lowerHeaders,
+                    'device' => [
+                        'deviceName' => $row['result']['device']['model'] ?? null,
+                        'marketingName' => null,
+                        'manufacturer' => null,
+                        'brand' => $row['result']['device']['manufacturer'] ?? null,
+                        'display' => [
+                            'width' => null,
+                            'height' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'size' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'type' => $row['result']['device']['type'] ?? null,
+                        'simCount' => null,
+                        'ismobile' => $this->isMobile($row['result']),
+                    ],
+                    'client' => [
+                        'name' => $browserName,
+                        'modus' => null,
+                        'version' => $browserVersion,
+                        'manufacturer' => null,
+                        'bits' => null,
+                        'type' => $row['result']['browser']['type'] ?? null,
+                        'isbot' => isset($row['result']['device']['type']) && 'bot' === $row['result']['device']['type'],
+                    ],
+                    'platform' => [
+                        'name' => $osName,
+                        'marketingName' => null,
+                        'version' => $osVersion,
+                        'manufacturer' => null,
+                        'bits' => null,
+                    ],
+                    'engine' => [
+                        'name' => $engineName,
+                        'version' => $engineVersion,
+                        'manufacturer' => null,
+                    ],
+                    'raw' => $row,
+                    'file' => $filepath,
+                ];
             }
         }
     }
 
     /**
-     * @param array $row
+     * @param array<string, array<string, string>|string> $row
      *
-     * @return array
+     * @return array<string, string>
+     *
+     * @throws void
      */
     private function getHeadersFromRow(array $row): array
     {
-        $headers = [];
+        if (array_key_exists('useragent', $row) && is_string($row['useragent'])) {
+            return ['user-agent' => $row['useragent']];
+        }
 
         if (array_key_exists('headers', $row)) {
             if (is_array($row['headers'])) {
                 return $row['headers'];
             }
 
+            if (!is_string($row['headers'])) {
+                return [];
+            }
+
+            $headers = false;
+
             if (class_exists(Header::class)) {
                 // pecl_http versions 2.x/3.x
                 $headers = Header::parse($row['headers']);
             } elseif (function_exists('\http_parse_headers')) {
                 // pecl_http version 1.x
-                $headers = \http_parse_headers($row['headers']);
+                $headers = http_parse_headers($row['headers']);
             } elseif (0 === mb_strpos($row['headers'], 'User-Agent: ')) {
-                $headers = ['user-agent' => str_replace('User-Agent: ', '', $row['headers'])];
-            } else {
+                return ['user-agent' => str_replace('User-Agent: ', '', $row['headers'])];
+            }
+
+            if (!is_array($headers)) {
                 return [];
             }
-        }
 
-        if (is_array($headers)) {
             return $headers;
         }
 
@@ -219,14 +270,13 @@ final class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @param array $data
-     *
-     * @return bool
+     * @param array<mixed> $data
+     * @phpstan-param array<string, array<string, string>> $data
      */
-    private function isMobile(array $data): bool
+    private function isMobile(array $data): ?bool
     {
         if (!isset($data['device']['type'])) {
-            return false;
+            return null;
         }
 
         $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
