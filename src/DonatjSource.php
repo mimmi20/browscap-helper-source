@@ -132,8 +132,11 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($provider as $test => $data) {
-                $ua    = UserAgent::fromUseragent(trim($test));
-                $agent = (string) $ua;
+                if (is_int($test)) {
+                    continue;
+                }
+
+                $agent = trim($test);
 
                 if ('' === $agent) {
                     continue;
