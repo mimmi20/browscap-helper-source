@@ -25,7 +25,7 @@
     "ext-json": "*",
     "ext-pdo": "*",
     "ext-simplexml": "*",
-    "browscap/browscap": "dev-updates",
+    "browscap/browscap": "^6.0.x-dev",
     "cbschuld/browser.php": "^v1.9.6",
     "donatj/phpuseragentparser": "^v1.5.0",
     "endorphin-studio/browser-detector": "^6.0.1",
