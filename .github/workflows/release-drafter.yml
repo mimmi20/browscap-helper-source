@@ -10,19 +10,6 @@ on:
 
 name: "Release Drafter"
 
-permissions:
-  actions: none
-  checks: none
-  contents: read
-  deployments: none
-  issues: none
-  discussions: none
-  packages: none
-  pages: none
-  pull-requests: none
-  security-events: none
-  statuses: none
-
 jobs:
   update-release-draft:
 
