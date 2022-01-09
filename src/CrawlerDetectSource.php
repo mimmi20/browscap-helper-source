@@ -17,11 +17,14 @@ use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function assert;
 use function file;
 use function file_exists;
+use function is_string;
 use function mb_strlen;
 use function sprintf;
 use function str_pad;
+use function str_replace;
 
 use const FILE_IGNORE_NEW_LINES;
 use const FILE_SKIP_EMPTY_LINES;
@@ -134,6 +137,8 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
         }
 
         $filepath = self::PATH . '/devices.txt';
+        $filepath = str_replace('\\', '/', $filepath);
+        assert(is_string($filepath));
 
         $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 

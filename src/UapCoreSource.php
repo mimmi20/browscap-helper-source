@@ -28,9 +28,11 @@ use function assert;
 use function file_exists;
 use function file_get_contents;
 use function is_array;
+use function is_string;
 use function mb_strlen;
 use function sprintf;
 use function str_pad;
+use function str_replace;
 
 use const PHP_EOL;
 use const STR_PAD_RIGHT;
@@ -145,8 +147,10 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
-            /** @var SplFileInfo $file */
+            assert($file instanceof SplFileInfo);
             $filepath = $file->getPathname();
+            $filepath = str_replace('\\', '/', $filepath);
+            assert(is_string($filepath));
 
             $message = $parentMessage . sprintf('- reading file %s', $filepath);
 

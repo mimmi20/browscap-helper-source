@@ -26,6 +26,7 @@ use function array_merge;
 use function assert;
 use function file_exists;
 use function is_array;
+use function is_string;
 use function mb_strlen;
 use function mb_strpos;
 use function sprintf;
@@ -142,9 +143,10 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
-            /** @var SplFileInfo $file */
+            assert($file instanceof SplFileInfo);
             $filepath = $file->getPathname();
             $filepath = str_replace('\\', '/', $filepath);
+            assert(is_string($filepath));
 
             $message = $parentMessage . sprintf('- reading file %s', $filepath);
 

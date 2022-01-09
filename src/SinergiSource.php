@@ -27,10 +27,12 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function implode;
+use function is_string;
 use function mb_strlen;
 use function simplexml_load_string;
 use function sprintf;
 use function str_pad;
+use function str_replace;
 use function trim;
 
 use const PHP_EOL;
@@ -99,8 +101,10 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
-            /** @var SplFileInfo $file */
+            assert($file instanceof SplFileInfo);
             $filepath = $file->getPathname();
+            $filepath = str_replace('\\', '/', $filepath);
+            assert(is_string($filepath));
 
             $message = $parentMessage . sprintf('- reading file %s', $filepath);
 
