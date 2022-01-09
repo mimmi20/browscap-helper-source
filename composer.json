@@ -19,6 +19,7 @@
     "psr/log": "^1.1.4 || ^2.0.0 || ^3.0.0",
     "psr/simple-cache": "^1.0.1 || ^2.0.0 || ^3.0.0",
     "ramsey/uuid": "^4.2.3",
+    "symfony/console": "^v6.0.2",
     "symfony/finder": "^v6.0.2",
     "symfony/yaml": "^v6.0.2"
   },
@@ -57,18 +58,10 @@
     "mobiledetect/mobiledetectlib": "To read these useragents",
     "mongodb/mongodb": "To read these useragents",
     "sinergi/browser-detector": "To read these useragents",
-    "symfony/cache": "required for the UapCoreSource",
-    "ua-parser/uap-core": "To read these useragents",
     "whichbrowser/parser": "To read these useragents",
     "woothee/woothee-testset": "To read these useragents",
     "zsxsoft/php-useragent": "To read these useragents"
   },
-  "repositories": [
-    {
-      "type": "git",
-      "url": "https://github.com/mimmi20/uap-core"
-    }
-  ],
   "minimum-stability": "dev",
   "prefer-stable": true,
   "autoload": {
