@@ -15,6 +15,7 @@ namespace BrowscapHelper\Source;
 use Exception;
 use JsonException;
 use LogicException;
+use Ramsey\Uuid\Uuid;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
@@ -68,7 +69,7 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
 
     /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
      * @throws LogicException
      */
@@ -126,7 +127,9 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $headers) {
-                yield [
+                $uid = Uuid::uuid4()->toString();
+
+                yield $uid => [
                     'headers' => $headers,
                     'device' => [
                         'deviceName' => null,

@@ -16,36 +16,42 @@ use LogicException;
 use RuntimeException;
 
 use function array_key_exists;
+use function assert;
+use function is_string;
 
 trait GetUserAgentsTrait
 {
     /**
-     * @return iterable<int, non-empty-string>
+     * @return iterable<non-empty-string, non-empty-string>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
     public function getUserAgents(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->getHeaders($message, $messageLength) as $headers) {
+        foreach ($this->getHeaders($message, $messageLength) as $uid => $headers) {
             if (!array_key_exists('user-agent', $headers)) {
                 continue;
             }
 
-            yield $headers['user-agent'];
+            assert(is_string($uid));
+
+            yield $uid => $headers['user-agent'];
         }
     }
 
     /**
-     * @return iterable<array<non-empty-string, non-empty-string>>
+     * @return iterable<non-empty-string, array<non-empty-string, non-empty-string>>
      *
      * @throws LogicException
      * @throws RuntimeException
      */
     public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->getProperties($message, $messageLength) as $row) {
-            yield $row['headers'];
+        foreach ($this->getProperties($message, $messageLength) as $uid => $row) {
+            assert(is_string($uid));
+
+            yield $uid => $row['headers'];
         }
     }
 }
