@@ -110,7 +110,7 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
         };
 
         foreach ($files as $file) {
-            /** @var SplFileInfo $file */
+            assert($file instanceof SplFileInfo);
             $pathName = $file->getPathname();
             $filepath = str_replace('\\', '/', $pathName);
             assert(is_string($filepath));

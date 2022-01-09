@@ -21,6 +21,7 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
+use function assert;
 use function file_exists;
 use function mb_strlen;
 use function sprintf;
@@ -101,7 +102,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
         }
 
         foreach ($finder as $file) {
-            /** @var SplFileInfo $file */
+            assert($file instanceof SplFileInfo);
             $filepath = $filepathHelper->getPath($file);
 
             if (null === $filepath) {

@@ -20,14 +20,17 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function assert;
 use function fclose;
 use function feof;
 use function fgets;
 use function file_exists;
 use function fopen;
+use function is_string;
 use function mb_strlen;
 use function sprintf;
 use function str_pad;
+use function str_replace;
 use function trim;
 
 use const STR_PAD_RIGHT;
@@ -84,6 +87,8 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
 
         foreach ($files as $file) {
             $filepath = $file->getPathname();
+            $filepath = str_replace('\\', '/', $filepath);
+            assert(is_string($filepath));
 
             $message = $parentMessage . sprintf('- reading file %s', $filepath);
 
@@ -101,7 +106,7 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            $handle = @fopen($filepath, 'r');
+            $handle = @fopen($fullPath, 'r');
 
             if (false === $handle) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
