@@ -8,19 +8,6 @@ on:
   pull_request_review_comment:
     types: [created, edited]
 
-permissions:
-  actions: none
-  checks: none
-  contents: none
-  deployments: none
-  issues: write
-  discussions: none
-  packages: none
-  pages: none
-  pull-requests: write
-  security-events: none
-  statuses: none
-
 jobs:
   action:
     runs-on: ubuntu-latest

@@ -4,19 +4,6 @@ on:
   issues:
     types: [closed]
 
-permissions:
-  actions: none
-  checks: none
-  contents: read
-  deployments: none
-  issues: read
-  discussions: none
-  packages: none
-  pages: none
-  pull-requests: read
-  security-events: none
-  statuses: none
-
 jobs:
   lock:
     runs-on: ubuntu-latest
