@@ -48,7 +48,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'matomo/device-detector';
-    private const PATH = 'vendor/matomo/device-detector/regexes';
+    private const PATH = 'vendor/matomo/device-detector/Tests/fixtures';
 
     /**
      * @throws void
@@ -159,12 +159,12 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         'ismobile' => $this->isMobile($row),
                     ],
                     'client' => [
-                        'name' => $data['bot'] ? ($data['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
+                        'name' => isset($data['bot']) ? ($data['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
                         'modus' => null,
-                        'version' => $data['bot'] ? null : ($data['client']['version'] ?? null),
+                        'version' => isset($data['bot']) ? null : ($data['client']['version'] ?? null),
                         'manufacturer' => null,
                         'bits' => null,
-                        'type' => $data['bot'] ? ($data['bot']['category'] ?? null) : ($data['client']['type'] ?? null),
+                        'type' => isset($data['bot']) ? ($data['bot']['category'] ?? null) : ($data['client']['type'] ?? null),
                         'isbot' => !empty($data['bot']),
                     ],
                     'platform' => [
@@ -235,11 +235,14 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         }
 
         // Check for browsers available for mobile devices only
-        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')) {
+        if (isset($data['client']['type'])
+            && 'browser' === $data['client']['type']
+            && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
+        ) {
             return true;
         }
 
-        $osShort = $data['os']['short_name'];
+        $osShort = $data['os']['short_name'] ?? null;
 
         if (empty($osShort) || 'UNK' === $osShort) {
             return false;
