@@ -188,7 +188,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
     /**
      * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client: array{type: string, short_name?: string}, os_family: string, device: array{type?: int}} $data
+     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
      */
     private function isMobile(array $data): bool
     {
@@ -235,7 +235,8 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         }
 
         // Check for browsers available for mobile devices only
-        if (isset($data['client']['type'])
+        if (
+            isset($data['client']['type'])
             && 'browser' === $data['client']['type']
             && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
         ) {
@@ -253,7 +254,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
     /**
      * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client: array{type: string, short_name?: string}, os_family: string, device: array{type?: int}} $data
+     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
      */
     private function isDesktop(array $data): bool
     {
@@ -264,7 +265,11 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         }
 
         // Check for browsers available for mobile devices only
-        if ('browser' === $data['client']['type'] && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')) {
+        if (
+            isset($data['client']['type'])
+            && 'browser' === $data['client']['type']
+            && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
+        ) {
             return false;
         }
 
