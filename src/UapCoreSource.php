@@ -19,8 +19,8 @@ use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
 use function addcslashes;
@@ -147,13 +147,17 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
             {
                 $file = $this->getInnerIterator()->current();
 
-                assert($file instanceof \SplFileInfo);
+                assert($file instanceof SplFileInfo);
 
                 return $file->isFile() && $file->getExtension() === $this->extension;
             }
         };
 
         foreach ($files as $file) {
+            if (!$file instanceof SplFileInfo) {
+                continue;
+            }
+
             assert($file instanceof SplFileInfo);
             $filepath = $file->getPathname();
             $filepath = str_replace('\\', '/', $filepath);
