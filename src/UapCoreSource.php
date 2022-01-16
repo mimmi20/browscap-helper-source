@@ -123,12 +123,12 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
 
         $appendIter = new AppendIterator();
 
-        if (file_exists(__DIR__ . '/../vendor/ua-parser/uap-core/tests')) {
-            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/tests')));
+        if (file_exists('vendor/ua-parser/uap-core/tests')) {
+            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('vendor/ua-parser/uap-core/tests')));
         }
 
-        if (file_exists(__DIR__ . '/../vendor/ua-parser/uap-core/test_resources')) {
-            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/test_resources')));
+        if (file_exists('vendor/ua-parser/uap-core/test_resources')) {
+            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('vendor/ua-parser/uap-core/test_resources')));
         }
 
         $files = new class ($appendIter, 'yaml') extends FilterIterator {
