@@ -168,7 +168,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                     'client' => [
                         'name' => $test['browser']['name'],
                         'modus' => $test['browser']['modus'],
-                        'version' => ('0.0.0' === $test['browser']['version'] ? null : $test['browser']['version']),
+                        'version' => $test['browser']['version'] ?? null,
                         'manufacturer' => $test['browser']['manufacturer'],
                         'bits' => $test['browser']['bits'],
                         'type' => $test['browser']['type'],
@@ -177,7 +177,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                     'platform' => [
                         'name' => $test['os']['name'],
                         'marketingName' => $test['os']['marketingName'],
-                        'version' => ('0.0.0' === $test['os']['version'] ? null : $test['os']['version']),
+                        'version' => $test['os']['version'] ?? null,
                         'manufacturer' => $test['os']['manufacturer'],
                         'bits' => $test['os']['bits'],
                     ],

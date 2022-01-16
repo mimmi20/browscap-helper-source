@@ -122,8 +122,15 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
         $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
         $appendIter = new AppendIterator();
-        $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/tests')));
-        $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/test_resources')));
+
+        if (file_exists(__DIR__ . '/../vendor/ua-parser/uap-core/tests')) {
+            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/tests')));
+        }
+
+        if (file_exists(__DIR__ . '/../vendor/ua-parser/uap-core/test_resources')) {
+            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../vendor/ua-parser/uap-core/test_resources')));
+        }
+
         $files = new class ($appendIter, 'yaml') extends FilterIterator {
             private string $extension;
 

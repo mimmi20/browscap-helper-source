@@ -202,33 +202,33 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
 
                 switch ($providerName) {
                     case 'browser-test.json':
-                        $agents[$agent]['client']['name']    = 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
-                        $agents[$agent]['client']['version'] = 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+                        $agents[$agent]['client']['name']    = $data['expect']['name'] ?? null;
+                        $agents[$agent]['client']['version'] = $data['expect']['version'] ?? null;
 
                         $agents[$agent]['raw'][$providerName]  = $data['expect'];
                         $agents[$agent]['file'][$providerName] = $filepath;
 
                         break;
                     case 'device-test.json':
-                        $agents[$agent]['device']['name']  = 'undefined' === $data['expect']['model'] ? null : $data['expect']['model'];
-                        $agents[$agent]['device']['brand'] = 'undefined' === $data['expect']['vendor'] ? null : $data['expect']['vendor'];
-                        $agents[$agent]['device']['type']  = 'undefined' === $data['expect']['type'] ? null : $data['expect']['type'];
+                        $agents[$agent]['device']['name']  = $data['expect']['model'] ?? null;
+                        $agents[$agent]['device']['brand'] = $data['expect']['vendor'] ?? null;
+                        $agents[$agent]['device']['type']  = $data['expect']['type'] ?? null;
 
                         $agents[$agent]['raw'][$providerName]  = $data['expect'];
                         $agents[$agent]['file'][$providerName] = $filepath;
 
                         break;
                     case 'os-test.json':
-                        $agents[$agent]['platform']['name']    = 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
-                        $agents[$agent]['platform']['version'] = 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+                        $agents[$agent]['platform']['name']    = $data['expect']['name'] ?? null;
+                        $agents[$agent]['platform']['version'] = $data['expect']['version'] ?? null;
 
                         $agents[$agent]['raw'][$providerName]  = $data['expect'];
                         $agents[$agent]['file'][$providerName] = $filepath;
 
                         break;
                     case 'engine-test.json':
-                        $agents[$agent]['engine']['name']    = !isset($data['expect']['name']) || 'undefined' === $data['expect']['name'] ? null : $data['expect']['name'];
-                        $agents[$agent]['engine']['version'] = !isset($data['expect']['version']) || 'undefined' === $data['expect']['version'] ? null : $data['expect']['version'];
+                        $agents[$agent]['engine']['name']    = $data['expect']['name'] ?? null;
+                        $agents[$agent]['engine']['version'] = $data['expect']['version'] ?? null;
 
                         $agents[$agent]['raw'][$providerName]  = $data['expect'];
                         $agents[$agent]['file'][$providerName] = $filepath;
