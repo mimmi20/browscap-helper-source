@@ -34,7 +34,7 @@
     "endorphin-studio/browser-detector-tests": "^2.2.0 || ^3.1.0",
     "jaybizzle/crawler-detect": "^v1.2.110",
     "matomo/device-detector": "dev-master",
-    "mimmi20/browser-detector": "^7.0.1",
+    "mimmi20/browser-detector": "^7.0.2",
     "mimmi20/coding-standard": "^2.6.2",
     "mobiledetect/mobiledetectlib": "^2.8.37",
     "phpstan/extension-installer": "^1.1.0",
