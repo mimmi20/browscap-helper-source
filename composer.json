@@ -38,7 +38,7 @@
     "mimmi20/coding-standard": "^2.6.2",
     "mobiledetect/mobiledetectlib": "^2.8.37",
     "phpstan/extension-installer": "^1.1.0",
-    "phpstan/phpstan": "^1.4.2",
+    "phpstan/phpstan": "^1.4.5",
     "phpstan/phpstan-deprecation-rules": "^1.0.0",
     "sinergi/browser-detector": "^6.1.4",
     "squizlabs/php_codesniffer": "^3.6.2",
