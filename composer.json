@@ -19,7 +19,7 @@
     "psr/log": "^1.1.4 || ^2.0.0 || ^3.0.0",
     "psr/simple-cache": "^1.0.1 || ^2.0.0 || ^3.0.0",
     "ramsey/uuid": "^4.2.3",
-    "symfony/console": "^v6.0.3",
+    "symfony/console": "^v6.0.5",
     "symfony/finder": "^v6.0.3",
     "symfony/yaml": "^v6.0.3"
   },
@@ -38,7 +38,7 @@
     "mimmi20/coding-standard": "^2.6.3",
     "mobiledetect/mobiledetectlib": "^2.8.39",
     "phpstan/extension-installer": "^1.1.0",
-    "phpstan/phpstan": "^1.4.6",
+    "phpstan/phpstan": "^1.4.7",
     "phpstan/phpstan-deprecation-rules": "^1.0.0",
     "sinergi/browser-detector": "^6.1.4",
     "squizlabs/php_codesniffer": "^3.6.2",
