@@ -18,6 +18,7 @@ use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function assert;
@@ -86,6 +87,7 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
         $fileHelper = new FilePath();
 
         foreach ($files as $file) {
+            assert($file instanceof SplFileInfo);
             $filepath = $file->getPathname();
             $filepath = str_replace('\\', '/', $filepath);
             assert(is_string($filepath));
