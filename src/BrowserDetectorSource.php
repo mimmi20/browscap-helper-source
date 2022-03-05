@@ -24,6 +24,7 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use UaDeviceType\TypeLoader;
 
+use function array_change_key_case;
 use function assert;
 use function file_exists;
 use function file_get_contents;
@@ -35,6 +36,7 @@ use function sprintf;
 use function str_pad;
 use function str_replace;
 
+use const CASE_LOWER;
 use const JSON_THROW_ON_ERROR;
 use const PHP_EOL;
 use const STR_PAD_RIGHT;
@@ -147,7 +149,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => $test['headers'],
+                    'headers' => array_change_key_case($test['headers'], CASE_LOWER),
                     'device' => [
                         'deviceName' => $test['device']['deviceName'],
                         'marketingName' => $test['device']['marketingName'],
