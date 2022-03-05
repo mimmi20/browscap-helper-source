@@ -23,6 +23,7 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
+use function array_change_key_case;
 use function array_key_exists;
 use function assert;
 use function class_exists;
@@ -34,11 +35,11 @@ use function is_array;
 use function is_string;
 use function mb_strlen;
 use function mb_strpos;
-use function mb_strtolower;
 use function sprintf;
 use function str_pad;
 use function str_replace;
 
+use const CASE_LOWER;
 use const STR_PAD_RIGHT;
 
 final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
@@ -124,11 +125,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
-                $lowerHeaders = [];
-
-                foreach ($this->getHeadersFromRow($row) as $header => $value) {
-                    $lowerHeaders[mb_strtolower((string) $header)] = $value;
-                }
+                $lowerHeaders = array_change_key_case($this->getHeadersFromRow($row), CASE_LOWER);
 
                 if ([] === $lowerHeaders) {
                     continue;

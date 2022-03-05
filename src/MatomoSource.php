@@ -25,7 +25,10 @@ use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
+use function array_change_key_case;
+use function array_key_exists;
 use function array_map;
+use function array_merge;
 use function assert;
 use function explode;
 use function file_exists;
@@ -35,10 +38,12 @@ use function is_array;
 use function is_string;
 use function mb_strlen;
 use function sprintf;
+use function str_contains;
 use function str_pad;
 use function str_replace;
 use function trim;
 
+use const CASE_LOWER;
 use const STR_PAD_RIGHT;
 
 final class MatomoSource implements OutputAwareInterface, SourceInterface
@@ -125,22 +130,40 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
-                if (empty($row['user_agent'])) {
+                assert(is_array($row));
+                /** @phpstan-var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int, model?: string, brand?: string}} $row */
+                if (!array_key_exists('user_agent', $row) && !array_key_exists('headers', $row)) {
                     continue;
                 }
 
-                $ua    = explode("\n", $row['user_agent']);
-                $ua    = array_map('trim', $ua);
-                $agent = trim(implode(' ', $ua));
+                $headers = [];
 
-                if (empty($agent)) {
+                if (array_key_exists('user_agent', $row) && is_string($row['user_agent'])) {
+                    if (str_contains($row['user_agent'], "\n")) {
+                        $ua    = explode("\n", $row['user_agent']);
+                        $ua    = array_map('trim', $ua);
+                        $agent = trim(implode(' ', $ua));
+                    } else {
+                        $agent = trim($row['user_agent']);
+                    }
+
+                    if ('' !== $agent) {
+                        $headers = ['user-agent' => $agent];
+                    }
+                }
+
+                if (array_key_exists('headers', $row) && is_array($row['headers'])) {
+                    $headers = array_merge($headers, $row['headers']);
+                }
+
+                if ([] === $headers) {
                     continue;
                 }
 
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => ['user-agent' => $agent],
+                    'headers' => array_change_key_case($headers, CASE_LOWER),
                     'device' => [
                         'deviceName' => $row['device']['model'] ?? null,
                         'marketingName' => null,
