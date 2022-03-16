@@ -28,7 +28,7 @@ use const JSON_THROW_ON_ERROR;
 /**
  * use this schema
  * <code>
- * CREATE TABLE IF NOT EXISTS `Request` (
+ * CREATE TABLE IF NOT EXISTS `request` (
  * `id` int(11) NOT NULL AUTO_INCREMENT,
  * `date` date NOT NULL,
  * `headers` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
@@ -73,7 +73,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      */
     public function getProperties(string $message, int &$messageLength = 0): iterable
     {
-        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers` FROM `Request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
+        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
 
         $driverOptions = [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY];
 
