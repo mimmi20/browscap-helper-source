@@ -12,6 +12,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use JsonException;
 use PDO;
 use PDOStatement;
 use Ramsey\Uuid\Uuid;
@@ -19,8 +20,24 @@ use RuntimeException;
 
 use function assert;
 use function is_array;
+use function json_decode;
 use function trim;
 
+use const JSON_THROW_ON_ERROR;
+
+/**
+ * use this schema
+ * <code>
+ * CREATE TABLE IF NOT EXISTS `Request` (
+ * `id` int(11) NOT NULL AUTO_INCREMENT,
+ * `date` date NOT NULL,
+ * `headers` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+ * `count` int(11) NOT NULL DEFAULT 0,
+ * PRIMARY KEY (`id`) USING BTREE,
+ * UNIQUE KEY `idx_headers` (`headers`(190))
+ * ) ENGINE=InnoDB AUTO_INCREMENT=228817 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 ROW_FORMAT=COMPACT;
+ * </code>
+ */
 final class PdoSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
@@ -56,7 +73,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      */
     public function getProperties(string $message, int &$messageLength = 0): iterable
     {
-        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `agent` FROM `agents` ORDER BY `lastTimeFound` DESC, `count` DESC, `idAgents` DESC';
+        $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers` FROM `Request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
 
         $driverOptions = [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY];
 
@@ -69,16 +86,22 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            $agent = trim($row['agent']);
+            $headerString = trim($row['headers']);
 
-            if ('' === $agent) {
+            if ('' === $headerString) {
+                continue;
+            }
+
+            try {
+                $headers = json_decode($headerString, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
                 continue;
             }
 
             $uid = Uuid::uuid4()->toString();
 
             yield $uid => [
-                'headers' => ['user-agent' => $agent],
+                'headers' => $headers,
                 'device' => [
                     'deviceName' => null,
                     'marketingName' => null,
