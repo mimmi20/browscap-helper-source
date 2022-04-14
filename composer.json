@@ -42,7 +42,7 @@
     "phpstan/phpstan-deprecation-rules": "^1.0.0",
     "sinergi/browser-detector": "^6.1.4",
     "squizlabs/php_codesniffer": "^3.6.2",
-    "whichbrowser/parser": "^v2.1.2",
+    "whichbrowser/parser": "^v2.1.6",
     "woothee/woothee-testset": "^v1.13.0",
     "zsxsoft/php-useragent": "^1.5"
   },
