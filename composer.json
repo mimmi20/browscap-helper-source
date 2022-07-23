@@ -35,10 +35,10 @@
     "jaybizzle/crawler-detect": "^v1.2.111",
     "matomo/device-detector": "dev-master",
     "mimmi20/browser-detector": "^7.0.2",
-    "mimmi20/coding-standard": "^3.0.0",
+    "mimmi20/coding-standard": "^3.0.2",
     "mobiledetect/mobiledetectlib": "^2.8.39",
     "phpstan/extension-installer": "^1.1.0",
-    "phpstan/phpstan": "^1.8.1",
+    "phpstan/phpstan": "^1.8.2",
     "phpstan/phpstan-deprecation-rules": "^1.0.0",
     "sinergi/browser-detector": "^6.1.4",
     "squizlabs/php_codesniffer": "^3.7.1",
@@ -85,6 +85,7 @@
       "zsxsoft/php-useragent": "source",
       "*": "dist"
     },
+    "lock": false,
     "sort-packages": true,
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true,
