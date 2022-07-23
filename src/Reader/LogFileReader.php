@@ -70,6 +70,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
             if (false === $handle) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- reading file %s caused an error</error>', $file), OutputInterface::VERBOSITY_NORMAL);
+
                 continue;
             }
 

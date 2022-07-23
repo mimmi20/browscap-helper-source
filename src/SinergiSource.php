@@ -127,6 +127,7 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
                 $this->writeln(
                     '<error>' . sprintf('file %s contains invalid xml.', $filepath) . '</error>'
                 );
+
                 continue;
             }
 

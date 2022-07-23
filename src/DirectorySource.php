@@ -105,6 +105,7 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
             if (null === $fullPath) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln('<error>could not detect path for file "' . $filepath . '"</error>', OutputInterface::VERBOSITY_NORMAL);
+
                 continue;
             }
 
@@ -113,6 +114,7 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
             if (false === $handle) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln('<error>reading file ' . $filepath . ' caused an error</error>', OutputInterface::VERBOSITY_NORMAL);
+
                 continue;
             }
 
