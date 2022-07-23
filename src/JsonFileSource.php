@@ -119,6 +119,7 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
                 $this->writeln(
                     '<error>' . (new Exception(sprintf('file %s contains invalid json.', $filepath), 0, $e)) . '</error>'
                 );
+
                 continue;
             }
 

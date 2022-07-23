@@ -129,6 +129,7 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
             if (false === $handle) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln('<error>reading file ' . $filepath . ' caused an error</error>', OutputInterface::VERBOSITY_NORMAL);
+
                 continue;
             }
 

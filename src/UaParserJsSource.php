@@ -178,6 +178,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
                 $this->writeln(
                     '<error>' . (new Exception(sprintf('file %s contains invalid json.', $filepath), 0, $e)) . '</error>'
                 );
+
                 continue;
             }
 
@@ -234,8 +235,6 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
                         $agents[$agent]['file'][$providerName] = $filepath;
 
                         break;
-                    // Skipping cpu-test.json because we don't look at CPU data, which is all that file tests against
-                    // Skipping mediaplayer-test.json because it seems that this file isn't used in this project's actual tests (see test.js)
                 }
             }
         }
