@@ -74,6 +74,10 @@ final class UserAgent
         $headers       = [];
 
         foreach ($stringHeaders as $value) {
+            if ('' === $value) {
+                continue;
+            }
+
             [$name, $valueRow] = explode(SourceInterface::DELIMETER_HEADER_ROW, $value);
 
             $headers[$name] = $valueRow;
