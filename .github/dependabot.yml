@@ -18,7 +18,10 @@ updates:
     commit-message:
       include: "scope"
       prefix: "composer"
-#    ignore:
+    ignore:
+      - dependency-name: symfony/finder
+        versions:
+          - ">= 0"
 #      - dependency-name: ergebnis/json-normalizer
 #        versions:
 #          - ">= 0"
@@ -26,9 +29,6 @@ updates:
 #        versions:
 #          - ">= 0"
 #      - dependency-name: symfony/console
-#        versions:
-#          - ">= 0"
-#      - dependency-name: symfony/finder
 #        versions:
 #          - ">= 0"
 #      - dependency-name: symfony/yaml
