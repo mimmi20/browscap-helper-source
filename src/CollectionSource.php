@@ -82,9 +82,7 @@ final class CollectionSource implements SourceInterface
         }
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function count(): int
     {
         return count($this->collection);

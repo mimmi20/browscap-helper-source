@@ -39,9 +39,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
     /** @var array<string> */
     private array $files = [];
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function addLocalFile(string $file): void
     {
         $this->files[] = $file;
@@ -114,9 +112,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
         }
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     private function extractAgent(string $text): string
     {
         $parts = explode('"', $text);

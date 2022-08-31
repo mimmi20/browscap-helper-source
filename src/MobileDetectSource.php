@@ -42,9 +42,7 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'mobiledetect/mobiledetectlib';
     private const PATH = 'vendor/mobiledetect/mobiledetectlib/tests/providers/vendors';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -74,15 +72,10 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'php') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool

@@ -44,9 +44,7 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'woothee/woothee-testset';
     private const PATH = 'vendor/woothee/woothee-testset/testsets';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -76,15 +74,10 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'yaml') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool

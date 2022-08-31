@@ -20,8 +20,8 @@
     "psr/simple-cache": "^1.0.1 || ^2.0.0 || ^3.0.0",
     "ramsey/uuid": "^4.4.0",
     "symfony/console": "^v6.1.3",
-    "symfony/finder": "^v6.1.3",
-    "symfony/yaml": "^v6.1.3"
+    "symfony/finder": "^v6.1.4",
+    "symfony/yaml": "^v6.1.4"
   },
   "require-dev": {
     "ext-json": "*",
@@ -35,7 +35,7 @@
     "jaybizzle/crawler-detect": "^v1.2.111",
     "matomo/device-detector": "dev-master",
     "mimmi20/browser-detector": "^7.0.2",
-    "mimmi20/coding-standard": "^3.0.4",
+    "mimmi20/coding-standard": "^3.0.9",
     "mobiledetect/mobiledetectlib": "^2.8.39",
     "phpstan/extension-installer": "^1.1.0",
     "phpstan/phpstan": "^1.8.2",

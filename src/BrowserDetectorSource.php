@@ -50,9 +50,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
     private const NAME = 'mimmi20/browser-detector';
     private const PATH = 'vendor/mimmi20/browser-detector/tests/data';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -83,15 +81,10 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'json') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool
@@ -126,7 +119,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
             try {
                 $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException $e) {
+            } catch (JsonException) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln('    <error>parsing file content [' . $filepath . '] failed</error>', OutputInterface::VERBOSITY_NORMAL);
 

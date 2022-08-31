@@ -55,9 +55,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'matomo/device-detector';
     private const PATH = 'vendor/matomo/device-detector/Tests/fixtures';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -88,15 +86,10 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'yml') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool
@@ -235,7 +228,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         AbstractDeviceParser::DEVICE_TYPE_CAMERA,
                         AbstractDeviceParser::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
                     ],
-                    true
+                    true,
                 )
             ) {
                 return true;
@@ -250,7 +243,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         AbstractDeviceParser::DEVICE_TYPE_SMART_DISPLAY,
                         AbstractDeviceParser::DEVICE_TYPE_CONSOLE,
                     ],
-                    true
+                    true,
                 )
             ) {
                 return false;

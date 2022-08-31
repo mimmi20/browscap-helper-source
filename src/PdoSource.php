@@ -46,11 +46,8 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'pdo-source';
 
-    private PDO $pdo;
-
-    public function __construct(PDO $pdo)
+    public function __construct(private PDO $pdo)
     {
-        $this->pdo = $pdo;
     }
 
     /**
@@ -94,7 +91,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
 
             try {
                 $headers = json_decode($headerString, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException $e) {
+            } catch (JsonException) {
                 continue;
             }
 

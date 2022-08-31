@@ -51,9 +51,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'whichbrowser/parser';
     private const PATH = 'vendor/whichbrowser/parser/tests/data';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -83,15 +81,10 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'yaml') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool
@@ -273,7 +266,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
      * @param array<mixed> $data
      * @phpstan-param array<string, array<string, string>> $data
      */
-    private function isMobile(array $data): ?bool
+    private function isMobile(array $data): bool | null
     {
         if (!isset($data['device']['type'])) {
             return null;

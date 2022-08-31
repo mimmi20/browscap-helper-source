@@ -16,11 +16,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 trait OutputAwareTrait
 {
-    private ?OutputInterface $output = null;
+    private OutputInterface | null $output = null;
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function setOutput(OutputInterface $output): void
     {
         $this->output = $output;
@@ -35,7 +33,7 @@ trait OutputAwareTrait
      *
      * @throws void
      */
-    public function write($messages, bool $newline = false, int $options = 0): void
+    public function write(iterable | string $messages, bool $newline = false, int $options = 0): void
     {
         if (null === $this->output) {
             return;
@@ -52,7 +50,7 @@ trait OutputAwareTrait
      *
      * @throws void
      */
-    public function writeln($messages, int $options = 0): void
+    public function writeln(iterable | string $messages, int $options = 0): void
     {
         if (null === $this->output) {
             return;

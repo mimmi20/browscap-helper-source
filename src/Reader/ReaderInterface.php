@@ -14,9 +14,7 @@ namespace BrowscapHelper\Source\Reader;
 
 interface ReaderInterface
 {
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function addLocalFile(string $file): void;
 
     /**

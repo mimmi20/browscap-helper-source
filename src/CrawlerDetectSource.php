@@ -39,9 +39,7 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'jaybizzle/crawler-detect';
     private const PATH = 'vendor/jaybizzle/crawler-detect/tests';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {

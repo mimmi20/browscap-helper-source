@@ -14,9 +14,7 @@ namespace BrowscapHelper\Source\Helper;
 
 final class Regex
 {
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function getRegex(): string
     {
         return '/^'

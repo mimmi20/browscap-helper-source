@@ -43,19 +43,12 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'json-files';
 
-    private string $dir;
-
-    /**
-     * @throws void
-     */
-    public function __construct(string $dir)
+    /** @throws void */
+    public function __construct(private string $dir)
     {
-        $this->dir = $dir;
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists($this->dir)) {
@@ -117,7 +110,7 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             } catch (JsonException $e) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln(
-                    '<error>' . (new Exception(sprintf('file %s contains invalid json.', $filepath), 0, $e)) . '</error>'
+                    '<error>' . (new Exception(sprintf('file %s contains invalid json.', $filepath), 0, $e)) . '</error>',
                 );
 
                 continue;
