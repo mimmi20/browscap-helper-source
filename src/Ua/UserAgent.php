@@ -20,22 +20,16 @@ use function sprintf;
 
 final class UserAgent
 {
-    /** @var array<string, string> */
-    private array $header = [];
-
     /**
      * @param array<string, string> $header
      *
      * @throws void
      */
-    public function __construct(array $header)
+    public function __construct(private array $header = [])
     {
-        $this->header = $header;
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function __toString(): string
     {
         $stringHeaders = [];
@@ -57,17 +51,13 @@ final class UserAgent
         return $this->header;
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public static function fromUseragent(string $useragent): self
     {
         return new self(['user-agent' => $useragent]);
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public static function fromString(string $string): self
     {
         $stringHeaders = explode(SourceInterface::DELIMETER_HEADER, $string);

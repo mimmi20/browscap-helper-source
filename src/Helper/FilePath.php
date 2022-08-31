@@ -18,10 +18,8 @@ use function realpath;
 
 final class FilePath
 {
-    /**
-     * @throws void
-     */
-    public function getPath(SplFileInfo $file): ?string
+    /** @throws void */
+    public function getPath(SplFileInfo $file): string | null
     {
         $realpath = realpath($file->getPathname());
 

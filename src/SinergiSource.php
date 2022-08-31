@@ -47,9 +47,7 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'sinergi/browser-detector';
     private const PATH = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -79,15 +77,10 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'xml') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool
@@ -125,7 +118,7 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
             if (false === $provider) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln(
-                    '<error>' . sprintf('file %s contains invalid xml.', $filepath) . '</error>'
+                    '<error>' . sprintf('file %s contains invalid xml.', $filepath) . '</error>',
                 );
 
                 continue;

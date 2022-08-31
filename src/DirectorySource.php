@@ -44,16 +44,11 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'directory-source';
 
-    private string $dir;
-
-    public function __construct(string $dir)
+    public function __construct(private string $dir)
     {
-        $this->dir = $dir;
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists($this->dir)) {

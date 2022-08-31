@@ -44,9 +44,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'endorphin-studio/browser-detector';
     private const PATH = 'vendor/endorphin-studio/browser-detector-tests-data/data';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -121,15 +119,10 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'yaml') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool
@@ -224,7 +217,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                         [
                             'headers' => ['user-agent' => $agent],
                         ],
-                        $expected
+                        $expected,
                     );
                 } else {
                     $agents[$agent] = array_merge(
@@ -232,7 +225,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                         [
                             'headers' => ['user-agent' => $agent],
                         ],
-                        $expected
+                        $expected,
                     );
                 }
             }

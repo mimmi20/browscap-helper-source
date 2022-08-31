@@ -46,9 +46,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'ua-parser/uap-core';
     private const PATH = 'vendor/ua-parser/uap-core/tests';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -132,15 +130,10 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
         }
 
         $files = new class ($appendIter, 'yaml') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool

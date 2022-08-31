@@ -39,17 +39,13 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
 
     private string $dir;
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function __construct(string $sourcesDirectory)
     {
         $this->dir = $sourcesDirectory;
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists($this->dir)) {

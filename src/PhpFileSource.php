@@ -41,19 +41,12 @@ final class PhpFileSource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'php-files';
 
-    private string $dir;
-
-    /**
-     * @throws void
-     */
-    public function __construct(string $dir)
+    /** @throws void */
+    public function __construct(private string $dir)
     {
-        $this->dir = $dir;
     }
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists($this->dir)) {
@@ -83,15 +76,10 @@ final class PhpFileSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
         $files    = new class ($iterator, 'php') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool

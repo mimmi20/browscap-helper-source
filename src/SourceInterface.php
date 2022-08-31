@@ -48,8 +48,6 @@ interface SourceInterface
      */
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable;
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function getName(): string;
 }

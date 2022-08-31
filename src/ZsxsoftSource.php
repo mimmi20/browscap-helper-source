@@ -41,9 +41,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'zsxsoft/php-useragent';
     private const PATH = 'vendor/zsxsoft/php-useragent/lib';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {

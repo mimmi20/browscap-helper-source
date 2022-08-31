@@ -49,9 +49,7 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'donatj/phpuseragentparser';
     private const PATH = 'vendor/donatj/phpuseragentparser/tests';
 
-    /**
-     * @throws void
-     */
+    /** @throws void */
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -82,15 +80,10 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'json') extends FilterIterator {
-            private string $extension;
-
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             */
-            public function __construct(Iterator $iterator, string $extension)
+            /** @param Iterator<SplFileInfo> $iterator */
+            public function __construct(Iterator $iterator, private string $extension)
             {
                 parent::__construct($iterator);
-                $this->extension = $extension;
             }
 
             public function accept(): bool
@@ -125,7 +118,7 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
             try {
                 $provider = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException $e) {
+            } catch (JsonException) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln('    <error>parsing file content [' . $filepath . '] failed</error>', OutputInterface::VERBOSITY_NORMAL);
 
