@@ -35,7 +35,7 @@
     "jaybizzle/crawler-detect": "^v1.2.111",
     "matomo/device-detector": "dev-master",
     "mimmi20/browser-detector": "^7.0.2",
-    "mimmi20/coding-standard": "^3.0.10",
+    "mimmi20/coding-standard": "^3.0.11",
     "mobiledetect/mobiledetectlib": "^2.8.39",
     "phpstan/extension-installer": "^1.1.0",
     "phpstan/phpstan": "^1.8.5",
