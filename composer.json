@@ -24,9 +24,13 @@
     "symfony/yaml": "^v6.1.4"
   },
   "require-dev": {
+    "ext-dom": "*",
     "ext-json": "*",
     "ext-pdo": "*",
     "ext-simplexml": "*",
+    "ext-tokenizer": "*",
+    "ext-xml": "*",
+    "ext-xmlwriter": "*",
     "browscap/browscap": "^6.1.1",
     "cbschuld/browser.php": "^v1.9.6",
     "donatj/phpuseragentparser": "^v1.7.0",
