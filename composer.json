@@ -40,7 +40,7 @@
     "matomo/device-detector": "dev-master",
     "mimmi20/browser-detector": "^7.0.2",
     "mimmi20/coding-standard": "^3.0.19",
-    "mobiledetect/mobiledetectlib": "^2.8.39",
+    "mobiledetect/mobiledetectlib": "^2.8.41",
     "phpstan/extension-installer": "^1.2.0",
     "phpstan/phpstan": "^1.9.2",
     "phpstan/phpstan-deprecation-rules": "^1.0.0",
