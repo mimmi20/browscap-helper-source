@@ -45,3 +45,8 @@ categories:
     labels:
       - 'maintenance'
   # other Labels to mimmi20/browscap-helper-source
+
+commitish: master
+target_commitish: master
+filter-by-commitish: true
+include-pre-releases: true
