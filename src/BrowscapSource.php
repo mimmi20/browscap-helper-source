@@ -43,6 +43,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'browscap/browscap';
+
     private const PATH = 'vendor/browscap/browscap/tests/issues';
 
     /** @throws void */
@@ -64,8 +65,10 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -76,12 +79,19 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'php') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -94,6 +104,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
 
         foreach ($files as $file) {
             assert($file instanceof SplFileInfo);
+
             if (in_array($file->getFilename(), ['issue-000-invalids.php', 'issue-000-invalid-versions.php'], true)) {
                 continue;
             }

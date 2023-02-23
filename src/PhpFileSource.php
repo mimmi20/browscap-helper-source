@@ -64,8 +64,10 @@ final class PhpFileSource implements OutputAwareInterface, SourceInterface
      *
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
         if (mb_strlen($message) > $messageLength) {
@@ -76,12 +78,19 @@ final class PhpFileSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
         $files    = new class ($iterator, 'php') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();

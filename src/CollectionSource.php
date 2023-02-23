@@ -19,14 +19,16 @@ use function count;
 
 final class CollectionSource implements SourceInterface
 {
-    /** @var SourceInterface[] */
+    /** @var array<SourceInterface> */
     private array $collection;
 
+    /** @throws void */
     public function __construct(SourceInterface ...$collection)
     {
         $this->collection = $collection;
     }
 
+    /** @throws void */
     public function getName(): string
     {
         return 'collection';
@@ -48,8 +50,10 @@ final class CollectionSource implements SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getUserAgents(string $message, int &$messageLength = 0): iterable
-    {
+    public function getUserAgents(
+        string $message,
+        int &$messageLength = 0,
+    ): iterable {
         foreach ($this->collection as $source) {
             yield from $source->getUserAgents($message, $messageLength);
         }
@@ -61,8 +65,10 @@ final class CollectionSource implements SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getHeaders(string $message, int &$messageLength = 0): iterable
-    {
+    public function getHeaders(
+        string $message,
+        int &$messageLength = 0,
+    ): iterable {
         foreach ($this->collection as $source) {
             yield from $source->getHeaders($message, $messageLength);
         }
@@ -75,8 +81,10 @@ final class CollectionSource implements SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $message,
+        int &$messageLength = 0,
+    ): iterable {
         foreach ($this->collection as $source) {
             yield from $source->getProperties($message, $messageLength);
         }

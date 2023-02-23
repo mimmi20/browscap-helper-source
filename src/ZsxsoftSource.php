@@ -39,6 +39,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'zsxsoft/php-useragent';
+
     private const PATH = 'vendor/zsxsoft/php-useragent/lib';
 
     /** @throws void */
@@ -60,8 +61,10 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $brands = $this->getBrands();
 
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
@@ -75,6 +78,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
         $brands = [];
         $file   = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
         $file->setFlags(SplFileObject::DROP_NEW_LINE);
+
         while (!$file->eof()) {
             $line = $file->fgets();
 
@@ -187,7 +191,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
     }
 
     /**
-     * @return string[]
+     * @return array<string>
      *
      * @throws LogicException
      * @throws RuntimeException
@@ -197,8 +201,10 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
         $brands = [];
         $file   = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
         $file->setFlags(SplFileObject::DROP_NEW_LINE);
+
         while (!$file->eof()) {
             $line = $file->fgets();
+
             if (false === $line) {
                 continue;
             }
@@ -211,6 +217,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             }
 
             $brand = $matches[2];
+
             if (empty($brand)) {
                 continue;
             }

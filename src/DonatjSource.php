@@ -47,6 +47,7 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'donatj/phpuseragentparser';
+
     private const PATH = 'vendor/donatj/phpuseragentparser/tests';
 
     /** @throws void */
@@ -68,8 +69,10 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -80,12 +83,19 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'json') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();

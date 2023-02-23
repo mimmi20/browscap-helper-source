@@ -49,6 +49,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'whichbrowser/parser';
+
     private const PATH = 'vendor/whichbrowser/parser/tests/data';
 
     /** @throws void */
@@ -69,8 +70,10 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
      *
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -81,12 +84,19 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'yaml') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -265,6 +275,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
     /**
      * @param array<mixed> $data
      * @phpstan-param array<string, array<string, string>> $data
+     *
+     * @throws void
      */
     private function isMobile(array $data): bool | null
     {

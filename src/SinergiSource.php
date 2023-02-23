@@ -45,6 +45,7 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'sinergi/browser-detector';
+
     private const PATH = 'vendor/sinergi/browser-detector/tests/BrowserDetector/Tests/_files';
 
     /** @throws void */
@@ -65,8 +66,10 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
      *
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -77,12 +80,19 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'xml') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
