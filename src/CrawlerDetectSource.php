@@ -37,6 +37,7 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'jaybizzle/crawler-detect';
+
     private const PATH = 'vendor/jaybizzle/crawler-detect/tests';
 
     /** @throws void */
@@ -58,8 +59,10 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {

@@ -66,8 +66,10 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
      *
      * @throws LogicException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
         if (mb_strlen($message) > $messageLength) {

@@ -70,8 +70,10 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
      * @throws RuntimeException
      * @throws UnexpectedValueException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
         if (mb_strlen($message) > $messageLength) {
@@ -82,12 +84,19 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
         $files    = new class ($iterator, 'ctxt') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -121,16 +130,12 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
                 continue;
             }
 
-            $i = 1;
-
             while (!feof($handle)) {
                 $line = fgets($handle, 65535);
 
                 if (false === $line) {
                     continue;
                 }
-
-                ++$i;
 
                 $line = trim($line);
 

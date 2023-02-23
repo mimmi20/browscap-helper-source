@@ -41,6 +41,7 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'yaml-files';
 
+    /** @throws void */
     public function __construct(private string $dir)
     {
     }
@@ -63,8 +64,10 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
      *
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
         if (mb_strlen($message) > $messageLength) {
@@ -75,12 +78,19 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
         $files    = new class ($iterator, 'yaml') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();

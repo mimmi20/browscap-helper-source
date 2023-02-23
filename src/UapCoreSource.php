@@ -44,6 +44,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'ua-parser/uap-core';
+
     private const PATH = 'vendor/ua-parser/uap-core/tests';
 
     /** @throws void */
@@ -64,8 +65,10 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
      *
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $agents = [];
         $base   = [
             'headers' => ['user-agent' => null],
@@ -130,12 +133,19 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
         }
 
         $files = new class ($appendIter, 'yaml') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();

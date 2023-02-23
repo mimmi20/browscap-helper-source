@@ -53,6 +53,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     use OutputAwareTrait;
 
     private const NAME = 'matomo/device-detector';
+
     private const PATH = 'vendor/matomo/device-detector/Tests/fixtures';
 
     /** @throws void */
@@ -74,8 +75,10 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -86,12 +89,19 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         $files    = new class ($iterator, 'yml') extends FilterIterator {
-            /** @param Iterator<SplFileInfo> $iterator */
-            public function __construct(Iterator $iterator, private string $extension)
-            {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(
+                Iterator $iterator,
+                private string $extension,
+            ) {
                 parent::__construct($iterator);
             }
 
+            /** @throws void */
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -124,6 +134,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
             foreach ($data as $row) {
                 assert(is_array($row));
+
                 /** @phpstan-var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int, model?: string, brand?: string}} $row */
                 if (!array_key_exists('user_agent', $row) && !array_key_exists('headers', $row)) {
                     continue;
@@ -205,6 +216,8 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     /**
      * @param array<mixed> $data
      * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
+     *
+     * @throws void
      */
     private function isMobile(array $data): bool
     {
@@ -271,6 +284,8 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     /**
      * @param array<mixed> $data
      * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
+     *
+     * @throws void
      */
     private function isDesktop(array $data): bool
     {

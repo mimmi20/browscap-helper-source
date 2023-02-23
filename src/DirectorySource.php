@@ -44,8 +44,10 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'directory-source';
 
-    public function __construct(private string $dir)
+    /** @throws void */
+    public function __construct(private readonly string $dir)
     {
+        // nothing to do
     }
 
     /** @throws void */
@@ -67,8 +69,10 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
-    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
-    {
+    public function getProperties(
+        string $parentMessage,
+        int &$messageLength = 0,
+    ): iterable {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
         if (mb_strlen($message) > $messageLength) {
