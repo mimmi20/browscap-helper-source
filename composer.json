@@ -42,7 +42,7 @@
     "mimmi20/coding-standard": "4.0.0",
     "mobiledetect/mobiledetectlib": "^3.74.0",
     "phpstan/extension-installer": "^1.2.0",
-    "phpstan/phpstan": "^1.10.3",
+    "phpstan/phpstan": "^1.10.5",
     "phpstan/phpstan-deprecation-rules": "^1.1.2",
     "sinergi/browser-detector": "^6.1.4",
     "whichbrowser/parser": "^v2.1.7",
