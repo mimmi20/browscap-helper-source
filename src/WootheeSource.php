@@ -84,7 +84,7 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }
@@ -125,7 +125,7 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $agent = trim($row['target']);
+                $agent = trim((string) $row['target']);
 
                 if ('' === $agent) {
                     continue;

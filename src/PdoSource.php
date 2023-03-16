@@ -47,7 +47,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'pdo-source';
 
     /** @throws void */
-    public function __construct(private PDO $pdo)
+    public function __construct(private readonly PDO $pdo)
     {
     }
 
@@ -86,7 +86,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            $headerString = trim($row['headers']);
+            $headerString = trim((string) $row['headers']);
 
             if ('' === $headerString) {
                 continue;

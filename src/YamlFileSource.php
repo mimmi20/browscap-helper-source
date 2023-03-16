@@ -42,7 +42,7 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'yaml-files';
 
     /** @throws void */
-    public function __construct(private string $dir)
+    public function __construct(private readonly string $dir)
     {
     }
 
@@ -85,7 +85,7 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }

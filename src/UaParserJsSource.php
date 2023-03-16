@@ -133,7 +133,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }
@@ -192,7 +192,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
             $providerName = $file->getFilename();
 
             foreach ($provider as $data) {
-                $agent = trim($data['ua']);
+                $agent = trim((string) $data['ua']);
 
                 if ('' === $agent) {
                     continue;

@@ -37,12 +37,9 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
 
     private const NAME = 'log-files';
 
-    private string $dir;
-
     /** @throws void */
-    public function __construct(string $sourcesDirectory)
+    public function __construct(private readonly string $dir)
     {
-        $this->dir = $sourcesDirectory;
     }
 
     /** @throws void */

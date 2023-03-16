@@ -44,7 +44,7 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
     private const NAME = 'json-files';
 
     /** @throws void */
-    public function __construct(private string $dir)
+    public function __construct(private readonly string $dir)
     {
     }
 

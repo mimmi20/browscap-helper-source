@@ -123,7 +123,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            $agent = trim($data[0][0]);
+            $agent = trim((string) $data[0][0]);
 
             if ('' === $agent) {
                 continue;
@@ -133,8 +133,8 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             $brand = null;
 
             foreach ($brands as $brand) {
-                if (false !== mb_strpos($data[1][8], $brand)) {
-                    $model = trim(str_replace($brand, '', $data[1][8]));
+                if (false !== mb_strpos((string) $data[1][8], $brand)) {
+                    $model = trim(str_replace($brand, '', (string) $data[1][8]));
 
                     break;
                 }

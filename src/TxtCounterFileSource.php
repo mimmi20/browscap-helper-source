@@ -47,7 +47,7 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
     private const NAME = 'ctxt-files';
 
     /** @throws void */
-    public function __construct(private string $dir)
+    public function __construct(private readonly string $dir)
     {
     }
 
@@ -91,7 +91,7 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }
