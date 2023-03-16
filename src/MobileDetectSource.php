@@ -82,7 +82,7 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }
@@ -120,7 +120,7 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
                         continue;
                     }
 
-                    $agent = trim($ua);
+                    $agent = trim((string) $ua);
 
                     if ('' === $agent) {
                         continue;

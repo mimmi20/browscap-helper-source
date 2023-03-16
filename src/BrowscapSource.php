@@ -86,7 +86,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }
@@ -132,7 +132,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $agent = trim($row['ua']);
+                $agent = trim((string) $row['ua']);
 
                 if ('' === $agent) {
                     continue;

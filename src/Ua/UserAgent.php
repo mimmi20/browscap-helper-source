@@ -13,19 +13,20 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source\Ua;
 
 use BrowscapHelper\Source\SourceInterface;
+use Stringable;
 
 use function explode;
 use function implode;
 use function sprintf;
 
-final class UserAgent
+final class UserAgent implements Stringable
 {
     /**
      * @param array<string, string> $header
      *
      * @throws void
      */
-    public function __construct(private array $header = [])
+    public function __construct(private readonly array $header = [])
     {
     }
 

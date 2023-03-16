@@ -140,7 +140,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
              */
             public function __construct(
                 Iterator $iterator,
-                private string $extension,
+                private readonly string $extension,
             ) {
                 parent::__construct($iterator);
             }
@@ -193,7 +193,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $agent = addcslashes($data['user_agent_string'], "\n");
+                $agent = addcslashes((string) $data['user_agent_string'], "\n");
 
                 if ('' === $agent) {
                     continue;

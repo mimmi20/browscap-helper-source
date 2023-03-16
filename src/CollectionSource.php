@@ -20,7 +20,7 @@ use function count;
 final class CollectionSource implements SourceInterface
 {
     /** @var array<SourceInterface> */
-    private array $collection;
+    private readonly array $collection;
 
     /** @throws void */
     public function __construct(SourceInterface ...$collection)
