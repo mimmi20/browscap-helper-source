@@ -15,14 +15,14 @@ namespace BrowscapHelper\Source;
 use FilterIterator;
 use Iterator;
 use JsonException;
-use LogicException;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
+use UaDeviceType\NotFoundException;
 use UaDeviceType\TypeLoader;
+use UnexpectedValueException;
 
 use function array_change_key_case;
 use function assert;
@@ -67,8 +67,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @throws LogicException
-     * @throws RuntimeException
+     * @throws SourceException
      */
     public function getProperties(
         string $parentMessage,
@@ -82,8 +81,13 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
         $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
 
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
-        $files    = new class ($iterator, 'json') extends FilterIterator {
+        try {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        } catch (UnexpectedValueException $e) {
+            throw new SourceException($e->getMessage(), 0, $e);
+        }
+
+        $files = new class ($iterator, 'json') extends FilterIterator {
             /**
              * @param Iterator<SplFileInfo> $iterator
              *
@@ -151,6 +155,18 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
                 $uid = Uuid::uuid4()->toString();
 
+                try {
+                    $deviceType = (new TypeLoader())->load($test['device']['type']);
+                } catch (NotFoundException $e) {
+                    throw new SourceException($e->getMessage(), 0, $e);
+                }
+
+                try {
+                    $clientType = (new \UaBrowserType\TypeLoader())->load($test['browser']['type']);
+                } catch (\UaBrowserType\NotFoundException $e) {
+                    throw new SourceException($e->getMessage(), 0, $e);
+                }
+
                 yield $uid => [
                     'headers' => array_change_key_case($test['headers'], CASE_LOWER),
                     'device' => [
@@ -168,7 +184,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                         'dualOrientation' => $test['device']['dualOrientation'] ?? null,
                         'type' => $test['device']['type'],
                         'simCount' => $test['device']['simCount'] ?? null,
-                        'ismobile' => (new TypeLoader())->load($test['device']['type'])->isMobile(),
+                        'ismobile' => $deviceType->isMobile(),
                     ],
                     'client' => [
                         'name' => $test['browser']['name'],
@@ -177,7 +193,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                         'manufacturer' => $test['browser']['manufacturer'],
                         'bits' => $test['browser']['bits'],
                         'type' => $test['browser']['type'],
-                        'isbot' => (new \UaBrowserType\TypeLoader())->load($test['browser']['type'])->isBot(),
+                        'isbot' => $clientType->isBot(),
                     ],
                     'platform' => [
                         'name' => $test['os']['name'],

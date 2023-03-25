@@ -58,8 +58,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @throws LogicException
-     * @throws RuntimeException
+     * @throws SourceException
      */
     public function getProperties(
         string $parentMessage,
@@ -74,37 +73,6 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
         }
 
         $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
-
-        $brands = [];
-        $file   = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
-        $file->setFlags(SplFileObject::DROP_NEW_LINE);
-
-        while (!$file->eof()) {
-            $line = $file->fgets();
-
-            if (false === $line) {
-                continue;
-            }
-
-            $line = trim($line);
-            preg_match('/^\$brand = ("|\')(.*)("|\');$/', $line, $matches);
-
-            if (0 >= count($matches)) {
-                continue;
-            }
-
-            $brand = $matches[2];
-
-            if (empty($brand)) {
-                continue;
-            }
-
-            $brands[] = $brand;
-        }
-
-        $brands = array_unique($brands);
-
-        usort($brands, static fn ($a, $b) => mb_strlen($b) - mb_strlen($a));
 
         $filepath = 'vendor/zsxsoft/php-useragent/tests/UserAgentList.php';
 
@@ -193,14 +161,18 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
     /**
      * @return array<string>
      *
-     * @throws LogicException
-     * @throws RuntimeException
+     * @throws SourceException
      */
     private function getBrands(): array
     {
-        $brands = [];
-        $file   = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
+        try {
+            $file = new SplFileObject('vendor/zsxsoft/php-useragent/lib/useragent_detect_device.php');
+        } catch (LogicException | RuntimeException $e) {
+            throw new SourceException($e->getMessage(), 0, $e);
+        }
+
         $file->setFlags(SplFileObject::DROP_NEW_LINE);
+        $brands = [];
 
         while (!$file->eof()) {
             $line = $file->fgets();

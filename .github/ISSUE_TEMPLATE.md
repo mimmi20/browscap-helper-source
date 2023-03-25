@@ -1,7 +1,7 @@
-| Q                       | A
-| ------------------------| ---------------
-| browscap-helper-source version | x.y.z
-| PHP version             | x.y.z
+| Q                       | A |
+| ------------------------| --------------- |
+| browscap-helper-source version | x.y.z |
+| PHP version             | x.y.z |
 
 
 <!--

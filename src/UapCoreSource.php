@@ -18,10 +18,11 @@ use Iterator;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
+use UnexpectedValueException;
 
 use function addcslashes;
 use function assert;
@@ -63,7 +64,7 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
      *
-     * @throws RuntimeException
+     * @throws SourceException
      */
     public function getProperties(
         string $parentMessage,
@@ -125,11 +126,19 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
         $appendIter = new AppendIterator();
 
         if (file_exists('vendor/ua-parser/uap-core/tests')) {
-            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('vendor/ua-parser/uap-core/tests')));
+            try {
+                $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('vendor/ua-parser/uap-core/tests')));
+            } catch (UnexpectedValueException $e) {
+                throw new SourceException($e->getMessage(), 0, $e);
+            }
         }
 
         if (file_exists('vendor/ua-parser/uap-core/test_resources')) {
-            $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('vendor/ua-parser/uap-core/test_resources')));
+            try {
+                $appendIter->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('vendor/ua-parser/uap-core/test_resources')));
+            } catch (UnexpectedValueException $e) {
+                throw new SourceException($e->getMessage(), 0, $e);
+            }
         }
 
         $files = new class ($appendIter, 'yaml') extends FilterIterator {
@@ -180,7 +189,11 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            $provider = Yaml::parse($content);
+            try {
+                $provider = Yaml::parse($content);
+            } catch (ParseException $e) {
+                throw new SourceException($e->getMessage(), 0, $e);
+            }
 
             if (!is_array($provider)) {
                 continue;

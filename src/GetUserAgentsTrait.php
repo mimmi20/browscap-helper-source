@@ -12,9 +12,6 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use LogicException;
-use RuntimeException;
-
 use function array_key_exists;
 use function assert;
 use function is_string;
@@ -24,8 +21,7 @@ trait GetUserAgentsTrait
     /**
      * @return iterable<non-empty-string, non-empty-string>
      *
-     * @throws LogicException
-     * @throws RuntimeException
+     * @throws SourceException
      */
     public function getUserAgents(
         string $message,
@@ -45,8 +41,7 @@ trait GetUserAgentsTrait
     /**
      * @return iterable<non-empty-string, array<non-empty-string, non-empty-string>>
      *
-     * @throws LogicException
-     * @throws RuntimeException
+     * @throws SourceException
      */
     public function getHeaders(
         string $message,
