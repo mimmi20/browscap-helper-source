@@ -46,7 +46,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
     }
 
     /**
-     * @return array<string>|iterable
+     * @return iterable<string>
      *
      * @throws void
      */

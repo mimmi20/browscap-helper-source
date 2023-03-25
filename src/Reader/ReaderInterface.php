@@ -18,7 +18,7 @@ interface ReaderInterface
     public function addLocalFile(string $file): void;
 
     /**
-     * @return array<string>|iterable
+     * @return iterable<string>
      *
      * @throws void
      */
