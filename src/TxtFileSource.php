@@ -67,10 +67,8 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
-    public function getProperties(
-        string $parentMessage,
-        int &$messageLength = 0,
-    ): iterable {
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
+    {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
 
         if (mb_strlen($message) > $messageLength) {
@@ -91,10 +89,8 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
              *
              * @throws void
              */
-            public function __construct(
-                Iterator $iterator,
-                private readonly string $extension,
-            ) {
+            public function __construct(Iterator $iterator, private readonly string $extension)
+            {
                 parent::__construct($iterator);
             }
 

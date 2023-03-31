@@ -50,10 +50,8 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
      *
      * @throws void
      */
-    public function getAgents(
-        string $parentMessage = '',
-        int &$messageLength = 0,
-    ): iterable {
+    public function getAgents(string $parentMessage = '', int &$messageLength = 0): iterable
+    {
         $regex = (new Regex())->getRegex();
 
         foreach ($this->files as $file) {

@@ -69,10 +69,8 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
      *
      * @throws SourceException
      */
-    public function getProperties(
-        string $parentMessage,
-        int &$messageLength = 0,
-    ): iterable {
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
+    {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
 
         if (mb_strlen($message) > $messageLength) {
@@ -93,10 +91,8 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
              *
              * @throws void
              */
-            public function __construct(
-                Iterator $iterator,
-                private readonly string $extension,
-            ) {
+            public function __construct(Iterator $iterator, private readonly string $extension)
+            {
                 parent::__construct($iterator);
             }
 

@@ -60,10 +60,8 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
-    public function getProperties(
-        string $parentMessage,
-        int &$messageLength = 0,
-    ): iterable {
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
+    {
         $brands = $this->getBrands();
 
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);

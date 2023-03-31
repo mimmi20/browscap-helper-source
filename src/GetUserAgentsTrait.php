@@ -23,10 +23,8 @@ trait GetUserAgentsTrait
      *
      * @throws SourceException
      */
-    public function getUserAgents(
-        string $message,
-        int &$messageLength = 0,
-    ): iterable {
+    public function getUserAgents(string $message, int &$messageLength = 0): iterable
+    {
         foreach ($this->getHeaders($message, $messageLength) as $uid => $headers) {
             if (!array_key_exists('user-agent', $headers)) {
                 continue;
@@ -43,10 +41,8 @@ trait GetUserAgentsTrait
      *
      * @throws SourceException
      */
-    public function getHeaders(
-        string $message,
-        int &$messageLength = 0,
-    ): iterable {
+    public function getHeaders(string $message, int &$messageLength = 0): iterable
+    {
         foreach ($this->getProperties($message, $messageLength) as $uid => $row) {
             assert(is_string($uid));
 
