@@ -67,10 +67,8 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
-    public function getProperties(
-        string $parentMessage,
-        int &$messageLength = 0,
-    ): iterable {
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
+    {
         $agents = [];
         $base   = [
             'headers' => ['user-agent' => null],
@@ -136,10 +134,8 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
              *
              * @throws void
              */
-            public function __construct(
-                Iterator $iterator,
-                private readonly string $extension,
-            ) {
+            public function __construct(Iterator $iterator, private readonly string $extension)
+            {
                 parent::__construct($iterator);
             }
 

@@ -28,11 +28,7 @@ interface OutputAwareInterface
      *
      * @throws void
      */
-    public function write(
-        iterable | string $messages,
-        bool $newline = false,
-        int $options = 0,
-    ): void;
+    public function write(iterable | string $messages, bool $newline = false, int $options = 0): void;
 
     /**
      * Writes a message to the output and adds a newline at the end.
@@ -42,8 +38,5 @@ interface OutputAwareInterface
      *
      * @throws void
      */
-    public function writeln(
-        iterable | string $messages,
-        int $options = 0,
-    ): void;
+    public function writeln(iterable | string $messages, int $options = 0): void;
 }
