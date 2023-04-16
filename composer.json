@@ -18,7 +18,7 @@
     "ext-mbstring": "*",
     "psr/log": "^1.1.4 || ^2.0.0 || ^3.0.0",
     "psr/simple-cache": "^1.0.1 || ^2.0.0 || ^3.0.0",
-    "ramsey/uuid": "^4.7.3",
+    "ramsey/uuid": "^4.7.4",
     "symfony/console": "^v6.2.8",
     "symfony/finder": "^v6.2.7",
     "symfony/yaml": "^v6.2.7"
