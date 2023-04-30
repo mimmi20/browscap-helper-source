@@ -35,7 +35,7 @@ trait OutputAwareTrait
      */
     public function write(iterable | string $messages, bool $newline = false, int $options = 0): void
     {
-        if (null === $this->output) {
+        if ($this->output === null) {
             return;
         }
 
@@ -52,7 +52,7 @@ trait OutputAwareTrait
      */
     public function writeln(iterable | string $messages, int $options = 0): void
     {
-        if (null === $this->output) {
+        if ($this->output === null) {
             return;
         }
 

@@ -53,7 +53,10 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -72,7 +75,11 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -114,7 +121,11 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             try {
                 $data = Yaml::parseFile($filepath);
@@ -133,54 +144,54 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
 
                 $agent = trim((string) $row['target']);
 
-                if ('' === $agent) {
+                if ($agent === '') {
                     continue;
                 }
 
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => ['user-agent' => $agent],
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => isset($row['category']) && $row['category'] === 'crawler',
                         'manufacturer' => null,
+                        'modus' => null,
+                        'name' => $row['name'] ?? null,
+                        'type' => $row['category'] ?? null,
+                        'version' => $row['version'] ?? null,
+                    ],
+                    'device' => [
                         'brand' => null,
+                        'deviceName' => null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => !isset($row['category']) || 'crawler' === $row['category'] ? null : $row['category'],
-                        'simCount' => null,
                         'ismobile' => null,
-                    ],
-                    'client' => [
-                        'name' => $row['name'] ?? null,
-                        'modus' => null,
-                        'version' => $row['version'] ?? null,
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => $row['category'] ?? null,
-                        'isbot' => isset($row['category']) && 'crawler' === $row['category'],
-                    ],
-                    'platform' => [
-                        'name' => isset($row['os']) && 'UNKNOWN' !== $row['os'] ? $row['os'] : null,
                         'marketingName' => null,
-                        'version' => $row['os_version'] ?? null,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => !isset($row['category']) || $row['category'] === 'crawler' ? null : $row['category'],
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => null,
                         'version' => null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => ['user-agent' => $agent],
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => isset($row['os']) && $row['os'] !== 'UNKNOWN' ? $row['os'] : null,
+                        'version' => $row['os_version'] ?? null,
                     ],
                     'raw' => $row,
-                    'file' => $filepath,
                 ];
             }
         }

@@ -55,7 +55,10 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -74,7 +77,11 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         $finder = new Finder();
         $finder->files();
@@ -102,11 +109,15 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $content = file_get_contents($filepath);
 
-            if (false === $content || '' === $content || PHP_EOL === $content) {
+            if ($content === false || $content === '' || $content === PHP_EOL) {
                 continue;
             }
 
@@ -115,7 +126,11 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             } catch (JsonException $e) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln(
-                    '<error>' . (new Exception(sprintf('file %s contains invalid json.', $filepath), 0, $e)) . '</error>',
+                    '<error>' . (new Exception(
+                        sprintf('file %s contains invalid json.', $filepath),
+                        0,
+                        $e,
+                    )) . '</error>',
                 );
 
                 continue;
@@ -129,47 +144,47 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => $headers,
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => null,
                         'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
+                        'type' => null,
+                        'version' => null,
+                    ],
+                    'device' => [
                         'brand' => null,
+                        'deviceName' => null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
                         'ismobile' => null,
-                    ],
-                    'client' => [
-                        'name' => null,
-                        'modus' => null,
-                        'version' => null,
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => null,
                         'marketingName' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => null,
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => null,
                         'version' => null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => $headers,
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
                     ],
                     'raw' => $headers,
-                    'file' => $filepath,
                 ];
             }
         }

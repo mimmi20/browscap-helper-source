@@ -63,7 +63,10 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -82,7 +85,11 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -124,7 +131,11 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             try {
                 $data = Yaml::parseFile($filepath);
@@ -155,7 +166,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         $agent = trim($row['user_agent']);
                     }
 
-                    if ('' !== $agent) {
+                    if ($agent !== '') {
                         $headers = ['user-agent' => $agent];
                     }
                 }
@@ -164,54 +175,56 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                     $headers = array_merge($headers, $row['headers']);
                 }
 
-                if ([] === $headers) {
+                if ($headers === []) {
                     continue;
                 }
 
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => array_change_key_case($headers, CASE_LOWER),
-                    'device' => [
-                        'deviceName' => $row['device']['model'] ?? null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => !empty($data['bot']),
                         'manufacturer' => null,
-                        'brand' => (!empty($row['device']['brand']) ? AbstractDeviceParser::getFullName($row['device']['brand']) : null),
+                        'modus' => null,
+                        'name' => isset($data['bot']) ? ($data['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
+                        'type' => isset($data['bot']) ? ($data['bot']['category'] ?? null) : ($data['client']['type'] ?? null),
+                        'version' => isset($data['bot']) ? null : ($data['client']['version'] ?? null),
+                    ],
+                    'device' => [
+                        'brand' => (!empty($row['device']['brand']) ? AbstractDeviceParser::getFullName(
+                            $row['device']['brand'],
+                        ) : null),
+                        'deviceName' => $row['device']['model'] ?? null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => $row['device']['type'] ?? null,
-                        'simCount' => null,
                         'ismobile' => $this->isMobile($row),
-                    ],
-                    'client' => [
-                        'name' => isset($data['bot']) ? ($data['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
-                        'modus' => null,
-                        'version' => isset($data['bot']) ? null : ($data['client']['version'] ?? null),
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => isset($data['bot']) ? ($data['bot']['category'] ?? null) : ($data['client']['type'] ?? null),
-                        'isbot' => !empty($data['bot']),
-                    ],
-                    'platform' => [
-                        'name' => $row['os']['name'] ?? null,
                         'marketingName' => null,
-                        'version' => $row['os']['version'] ?? null,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => $row['device']['type'] ?? null,
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
                         'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
+                    ],
+                    'file' => $filepath,
+                    'headers' => array_change_key_case($headers, CASE_LOWER),
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => $row['os']['name'] ?? null,
+                        'version' => $row['os']['version'] ?? null,
                     ],
                     'raw' => $row,
-                    'file' => $filepath,
                 ];
             }
         }
@@ -270,7 +283,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         // Check for browsers available for mobile devices only
         if (
             isset($data['client']['type'])
-            && 'browser' === $data['client']['type']
+            && $data['client']['type'] === 'browser'
             && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
         ) {
             return true;
@@ -278,7 +291,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
         $osShort = $data['os']['short_name'] ?? null;
 
-        if (empty($osShort) || 'UNK' === $osShort) {
+        if (empty($osShort) || $osShort === 'UNK') {
             return false;
         }
 
@@ -295,19 +308,23 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     {
         $osShort = $data['os']['short_name'];
 
-        if (empty($osShort) || 'UNK' === $osShort) {
+        if (empty($osShort) || $osShort === 'UNK') {
             return false;
         }
 
         // Check for browsers available for mobile devices only
         if (
             isset($data['client']['type'])
-            && 'browser' === $data['client']['type']
+            && $data['client']['type'] === 'browser'
             && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
         ) {
             return false;
         }
 
-        return in_array($data['os_family'], ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'], true);
+        return in_array(
+            $data['os_family'],
+            ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'],
+            true,
+        );
     }
 }

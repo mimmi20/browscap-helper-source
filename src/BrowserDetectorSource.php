@@ -58,7 +58,10 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -77,7 +80,11 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -119,11 +126,15 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $content = file_get_contents($filepath);
 
-            if (false === $content || '' === $content || PHP_EOL === $content) {
+            if ($content === false || $content === '' || $content === PHP_EOL) {
                 continue;
             }
 
@@ -131,7 +142,10 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln('    <error>parsing file content [' . $filepath . '] failed</error>', OutputInterface::VERBOSITY_NORMAL);
+                $this->writeln(
+                    '    <error>parsing file content [' . $filepath . '] failed</error>',
+                    OutputInterface::VERBOSITY_NORMAL,
+                );
 
                 continue;
             }
@@ -145,7 +159,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                     continue;
                 }
 
-                if ('this is a fake ua to trigger the fallback' === $test['headers']['user-agent']) {
+                if ($test['headers']['user-agent'] === 'this is a fake ua to trigger the fallback') {
                     continue;
                 }
 
@@ -164,47 +178,47 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 }
 
                 yield $uid => [
-                    'headers' => array_change_key_case($test['headers'], CASE_LOWER),
+                    'client' => [
+                        'bits' => $test['browser']['bits'],
+                        'isbot' => $clientType->isBot(),
+                        'manufacturer' => $test['browser']['manufacturer'],
+                        'modus' => $test['browser']['modus'],
+                        'name' => $test['browser']['name'],
+                        'type' => $test['browser']['type'],
+                        'version' => $test['browser']['version'] ?? null,
+                    ],
                     'device' => [
-                        'deviceName' => $test['device']['deviceName'],
-                        'marketingName' => $test['device']['marketingName'],
-                        'manufacturer' => $test['device']['manufacturer'],
                         'brand' => $test['device']['brand'],
+                        'deviceName' => $test['device']['deviceName'],
                         'display' => [
-                            'width' => $test['device']['display']['width'],
                             'height' => $test['device']['display']['height'],
+                            'size' => $test['device']['display']['size'],
                             'touch' => $test['device']['display']['touch'],
                             'type' => $test['device']['display']['type'] ?? null,
-                            'size' => $test['device']['display']['size'],
+                            'width' => $test['device']['display']['width'],
                         ],
                         'dualOrientation' => $test['device']['dualOrientation'] ?? null,
-                        'type' => $test['device']['type'],
-                        'simCount' => $test['device']['simCount'] ?? null,
                         'ismobile' => $deviceType->isMobile(),
-                    ],
-                    'client' => [
-                        'name' => $test['browser']['name'],
-                        'modus' => $test['browser']['modus'],
-                        'version' => $test['browser']['version'] ?? null,
-                        'manufacturer' => $test['browser']['manufacturer'],
-                        'bits' => $test['browser']['bits'],
-                        'type' => $test['browser']['type'],
-                        'isbot' => $clientType->isBot(),
-                    ],
-                    'platform' => [
-                        'name' => $test['os']['name'],
-                        'marketingName' => $test['os']['marketingName'],
-                        'version' => $test['os']['version'] ?? null,
-                        'manufacturer' => $test['os']['manufacturer'],
-                        'bits' => $test['os']['bits'],
+                        'manufacturer' => $test['device']['manufacturer'],
+                        'marketingName' => $test['device']['marketingName'],
+                        'simCount' => $test['device']['simCount'] ?? null,
+                        'type' => $test['device']['type'],
                     ],
                     'engine' => [
+                        'manufacturer' => $test['engine']['manufacturer'],
                         'name' => $test['engine']['name'],
                         'version' => $test['engine']['version'],
-                        'manufacturer' => $test['engine']['manufacturer'],
+                    ],
+                    'file' => $filepath,
+                    'headers' => array_change_key_case($test['headers'], CASE_LOWER),
+                    'platform' => [
+                        'bits' => $test['os']['bits'],
+                        'manufacturer' => $test['os']['manufacturer'],
+                        'marketingName' => $test['os']['marketingName'],
+                        'name' => $test['os']['name'],
+                        'version' => $test['os']['version'] ?? null,
                     ],
                     'raw' => $test,
-                    'file' => $filepath,
                 ];
             }
         }

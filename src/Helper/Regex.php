@@ -18,23 +18,32 @@ final class Regex
     public function getRegex(): string
     {
         return '/^'
-            . '(?P<remotehost>\S+)'              // remote host (IP)
+            // remote host (IP)
+            . '(?P<remotehost>\S+)'
             . '\s+'
-            . '(?P<logname>\S+)'                 // remote logname
+            // remote logname
+            . '(?P<logname>\S+)'
             . '\s+'
-            . '(?P<user>\S+)'                    // remote user
+            // remote user
+            . '(?P<user>\S+)'
             . '[^\[]+'
-            . '\[(?P<time>[^\]]+)\]'             // date/time
+            // date/time
+            . '\[(?P<time>[^\]]+)\]'
             . '[^"]+'
-            . '\"(?P<http>.*)\"'                 // Verb(GET|POST|HEAD) Path HTTP Version
+            // Verb(GET|POST|HEAD) Path HTTP Version
+            . '\"(?P<http>.*)\"'
             . '\s+'
-            . '(?P<status>\d+)'                  // Status
+            // Status
+            . '(?P<status>\d+)'
             . '\D+'
-            . '(?P<length>\d+)'                  // Length (include Header)
+            // Length (include Header)
+            . '(?P<length>\d+)'
             . '[^\d"]+'
-            . '\"(?P<referrer>.*)\"'             // Referrer
+            // Referrer
+            . '\"(?P<referrer>.*)\"'
             . '[^"]+'
-            . '\"(?P<userAgentString>[^"]*)\".*' // User Agent
+            // User Agent
+            . '\"(?P<userAgentString>[^"]*)\".*'
             . '$/x';
     }
 }

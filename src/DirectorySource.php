@@ -56,7 +56,10 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -75,7 +78,11 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
@@ -97,22 +104,32 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $fullPath = $fileHelper->getPath($file);
 
-            if (null === $fullPath) {
+            if ($fullPath === null) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln('<error>could not detect path for file "' . $filepath . '"</error>', OutputInterface::VERBOSITY_NORMAL);
+                $this->writeln(
+                    '<error>could not detect path for file "' . $filepath . '"</error>',
+                    OutputInterface::VERBOSITY_NORMAL,
+                );
 
                 continue;
             }
 
             $handle = @fopen($fullPath, 'r');
 
-            if (false === $handle) {
+            if ($handle === false) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln('<error>reading file ' . $filepath . ' caused an error</error>', OutputInterface::VERBOSITY_NORMAL);
+                $this->writeln(
+                    '<error>reading file ' . $filepath . ' caused an error</error>',
+                    OutputInterface::VERBOSITY_NORMAL,
+                );
 
                 continue;
             }
@@ -120,60 +137,60 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
             while (!feof($handle)) {
                 $line = fgets($handle, 65535);
 
-                if (false === $line) {
+                if ($line === false) {
                     continue;
                 }
 
                 $line = trim($line);
 
-                if ('' === $line) {
+                if ($line === '') {
                     continue;
                 }
 
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => ['user-agent' => $line],
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => null,
                         'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
+                        'type' => null,
+                        'version' => null,
+                    ],
+                    'device' => [
                         'brand' => null,
+                        'deviceName' => null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
                         'ismobile' => null,
-                    ],
-                    'client' => [
-                        'name' => null,
-                        'modus' => null,
-                        'version' => null,
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => null,
                         'marketingName' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => null,
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => null,
                         'version' => null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => ['user-agent' => $line],
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
                     ],
                     'raw' => $line,
-                    'file' => $filepath,
                 ];
             }
 
