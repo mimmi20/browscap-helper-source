@@ -49,7 +49,10 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -70,7 +73,11 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         $filepath = 'vendor/zsxsoft/php-useragent/tests/UserAgentList.php';
 
@@ -80,7 +87,11 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERY_VERBOSE,
+        );
 
         $provider = include $filepath;
 
@@ -91,7 +102,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
 
             $agent = trim((string) $data[0][0]);
 
-            if ('' === $agent) {
+            if ($agent === '') {
                 continue;
             }
 
@@ -99,7 +110,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             $brand = null;
 
             foreach ($brands as $brand) {
-                if (false !== mb_strpos((string) $data[1][8], $brand)) {
+                if (mb_strpos((string) $data[1][8], $brand) !== false) {
                     $model = trim(str_replace($brand, '', (string) $data[1][8]));
 
                     break;
@@ -111,47 +122,47 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
             $uid = Uuid::uuid4()->toString();
 
             yield $uid => [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => empty($model) ? null : $model,
-                    'marketingName' => null,
+                'client' => [
+                    'bits' => null,
+                    'isbot' => null,
                     'manufacturer' => null,
+                    'modus' => null,
+                    'name' => empty($data[1][2]) ? null : $data[1][2],
+                    'type' => null,
+                    'version' => empty($data[1][3]) ? null : $data[1][3],
+                ],
+                'device' => [
                     'brand' => empty($brand) ? null : $brand,
+                    'deviceName' => empty($model) ? null : $model,
                     'display' => [
-                        'width' => null,
                         'height' => null,
+                        'size' => null,
                         'touch' => null,
                         'type' => null,
-                        'size' => null,
+                        'width' => null,
                     ],
                     'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
                     'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => empty($data[1][2]) ? null : $data[1][2],
-                    'modus' => null,
-                    'version' => empty($data[1][3]) ? null : $data[1][3],
                     'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => empty($data[1][5]) ? null : $data[1][5],
                     'marketingName' => null,
-                    'version' => empty($data[1][6]) ? null : $data[1][6],
-                    'manufacturer' => null,
-                    'bits' => null,
+                    'simCount' => null,
+                    'type' => null,
                 ],
                 'engine' => [
+                    'manufacturer' => null,
                     'name' => null,
                     'version' => null,
+                ],
+                'file' => $filepath,
+                'headers' => ['user-agent' => $agent],
+                'platform' => [
+                    'bits' => null,
                     'manufacturer' => null,
+                    'marketingName' => null,
+                    'name' => empty($data[1][5]) ? null : $data[1][5],
+                    'version' => empty($data[1][6]) ? null : $data[1][6],
                 ],
                 'raw' => $data,
-                'file' => $filepath,
             ];
         }
     }
@@ -175,7 +186,7 @@ final class ZsxsoftSource implements OutputAwareInterface, SourceInterface
         while (!$file->eof()) {
             $line = $file->fgets();
 
-            if (false === $line) {
+            if ($line === false) {
                 continue;
             }
 

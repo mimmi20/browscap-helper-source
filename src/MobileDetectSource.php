@@ -50,7 +50,10 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -69,7 +72,11 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -111,7 +118,11 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $provider = include $filepath;
 
@@ -123,54 +134,54 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
 
                     $agent = trim((string) $ua);
 
-                    if ('' === $agent) {
+                    if ($agent === '') {
                         continue;
                     }
 
                     $uid = Uuid::uuid4()->toString();
 
                     yield $uid => [
-                        'headers' => ['user-agent' => $agent],
-                        'device' => [
-                            'deviceName' => $testData['model'] ?? null,
-                            'marketingName' => null,
+                        'client' => [
+                            'bits' => null,
+                            'isbot' => null,
                             'manufacturer' => null,
+                            'modus' => null,
+                            'name' => null,
+                            'type' => null,
+                            'version' => null,
+                        ],
+                        'device' => [
                             'brand' => null,
+                            'deviceName' => $testData['model'] ?? null,
                             'display' => [
-                                'width' => null,
                                 'height' => null,
+                                'size' => null,
                                 'touch' => null,
                                 'type' => null,
-                                'size' => null,
+                                'width' => null,
                             ],
                             'dualOrientation' => null,
-                            'type' => null,
-                            'simCount' => null,
                             'ismobile' => isset($testData['isMobile']) && $testData['isMobile'],
-                        ],
-                        'client' => [
-                            'name' => null,
-                            'modus' => null,
-                            'version' => null,
                             'manufacturer' => null,
-                            'bits' => null,
-                            'type' => null,
-                            'isbot' => null,
-                        ],
-                        'platform' => [
-                            'name' => null,
                             'marketingName' => null,
-                            'version' => null,
-                            'manufacturer' => null,
-                            'bits' => null,
+                            'simCount' => null,
+                            'type' => null,
                         ],
                         'engine' => [
+                            'manufacturer' => null,
                             'name' => null,
                             'version' => null,
+                        ],
+                        'file' => $filepath,
+                        'headers' => ['user-agent' => $agent],
+                        'platform' => [
+                            'bits' => null,
                             'manufacturer' => null,
+                            'marketingName' => null,
+                            'name' => null,
+                            'version' => null,
                         ],
                         'raw' => $testData,
-                        'file' => $filepath,
                     ];
                 }
             }

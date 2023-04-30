@@ -60,7 +60,10 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -79,7 +82,11 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -121,7 +128,11 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             try {
                 $data = Yaml::parseFile($filepath);
@@ -136,7 +147,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             foreach ($data as $row) {
                 $lowerHeaders = array_change_key_case($this->getHeadersFromRow($row), CASE_LOWER);
 
-                if ([] === $lowerHeaders) {
+                if ($lowerHeaders === []) {
                     continue;
                 }
 
@@ -148,11 +159,9 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                 }
 
                 if (isset($row['result']['browser']['version'])) {
-                    if (is_array($row['result']['browser']['version'])) {
-                        $browserVersion = $row['result']['browser']['version']['value'] ?? null;
-                    } else {
-                        $browserVersion = $row['result']['browser']['version'];
-                    }
+                    $browserVersion = is_array($row['result']['browser']['version'])
+                        ? $row['result']['browser']['version']['value'] ?? null
+                        : $row['result']['browser']['version'];
                 }
 
                 $engineName    = null;
@@ -163,11 +172,9 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                 }
 
                 if (isset($row['result']['engine']['version'])) {
-                    if (is_array($row['result']['engine']['version'])) {
-                        $engineVersion = $row['result']['engine']['version']['value'] ?? null;
-                    } else {
-                        $engineVersion = $row['result']['engine']['version'];
-                    }
+                    $engineVersion = is_array($row['result']['engine']['version'])
+                        ? $row['result']['engine']['version']['value'] ?? null
+                        : $row['result']['engine']['version'];
                 }
 
                 $osName    = null;
@@ -178,57 +185,55 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                 }
 
                 if (isset($row['result']['os']['version'])) {
-                    if (is_array($row['result']['os']['version'])) {
-                        $osVersion = $row['result']['os']['version']['value'] ?? null;
-                    } else {
-                        $osVersion = $row['result']['os']['version'];
-                    }
+                    $osVersion = is_array($row['result']['os']['version'])
+                        ? $row['result']['os']['version']['value'] ?? null
+                        : $row['result']['os']['version'];
                 }
 
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => $lowerHeaders,
-                    'device' => [
-                        'deviceName' => $row['result']['device']['model'] ?? null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => isset($row['result']['device']['type']) && $row['result']['device']['type'] === 'bot',
                         'manufacturer' => null,
+                        'modus' => null,
+                        'name' => $browserName,
+                        'type' => $row['result']['browser']['type'] ?? null,
+                        'version' => $browserVersion,
+                    ],
+                    'device' => [
                         'brand' => $row['result']['device']['manufacturer'] ?? null,
+                        'deviceName' => $row['result']['device']['model'] ?? null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => $row['result']['device']['type'] ?? null,
-                        'simCount' => null,
                         'ismobile' => $this->isMobile($row['result']),
-                    ],
-                    'client' => [
-                        'name' => $browserName,
-                        'modus' => null,
-                        'version' => $browserVersion,
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => $row['result']['browser']['type'] ?? null,
-                        'isbot' => isset($row['result']['device']['type']) && 'bot' === $row['result']['device']['type'],
-                    ],
-                    'platform' => [
-                        'name' => $osName,
                         'marketingName' => null,
-                        'version' => $osVersion,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => $row['result']['device']['type'] ?? null,
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => $engineName,
                         'version' => $engineVersion,
+                    ],
+                    'file' => $filepath,
+                    'headers' => $lowerHeaders,
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => $osName,
+                        'version' => $osVersion,
                     ],
                     'raw' => $row,
-                    'file' => $filepath,
                 ];
             }
         }
@@ -264,7 +269,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             } elseif (function_exists('\http_parse_headers')) {
                 // pecl_http version 1.x
                 $headers = http_parse_headers($row['headers']);
-            } elseif (0 === mb_strpos($row['headers'], 'User-Agent: ')) {
+            } elseif (mb_strpos($row['headers'], 'User-Agent: ') === 0) {
                 return ['user-agent' => str_replace('User-Agent: ', '', $row['headers'])];
             }
 
@@ -296,8 +301,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        if ('gaming' === $data['device']['type']) {
-            if (isset($data['device']['subtype']) && 'portable' === $data['device']['subtype']) {
+        if ($data['device']['type'] === 'gaming') {
+            if (isset($data['device']['subtype']) && $data['device']['subtype'] === 'portable') {
                 return true;
             }
         }

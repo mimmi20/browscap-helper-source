@@ -65,7 +65,7 @@ final class UserAgent implements Stringable
         $headers       = [];
 
         foreach ($stringHeaders as $value) {
-            if ('' === $value) {
+            if ($value === '') {
                 continue;
             }
 

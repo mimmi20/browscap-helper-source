@@ -49,7 +49,10 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $this->dir),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -68,7 +71,11 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         $finder = new Finder();
         $finder->files();
@@ -95,7 +102,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
         $filepathHelper = new FilePath();
         $reader         = new LogFileReader();
 
-        if (null !== $this->output) {
+        if ($this->output !== null) {
             $reader->setOutput($this->output);
         }
 
@@ -103,7 +110,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
             assert($file instanceof SplFileInfo);
             $filepath = $filepathHelper->getPath($file);
 
-            if (null === $filepath) {
+            if ($filepath === null) {
                 continue;
             }
 
@@ -114,54 +121,54 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
             $ua    = UserAgent::fromUseragent($line);
             $agent = (string) $ua;
 
-            if ('' === $agent) {
+            if ($agent === '') {
                 continue;
             }
 
             $uid = Uuid::uuid4()->toString();
 
             yield $uid => [
-                'headers' => ['user-agent' => $agent],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
+                'client' => [
+                    'bits' => null,
+                    'isbot' => null,
                     'manufacturer' => null,
+                    'modus' => null,
+                    'name' => null,
+                    'type' => null,
+                    'version' => null,
+                ],
+                'device' => [
                     'brand' => null,
+                    'deviceName' => null,
                     'display' => [
-                        'width' => null,
                         'height' => null,
+                        'size' => null,
                         'touch' => null,
                         'type' => null,
-                        'size' => null,
+                        'width' => null,
                     ],
                     'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
                     'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
                     'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
                     'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
+                    'simCount' => null,
+                    'type' => null,
                 ],
                 'engine' => [
+                    'manufacturer' => null,
                     'name' => null,
                     'version' => null,
+                ],
+                'file' => $file,
+                'headers' => ['user-agent' => $agent],
+                'platform' => [
+                    'bits' => null,
                     'manufacturer' => null,
+                    'marketingName' => null,
+                    'name' => null,
+                    'version' => null,
                 ],
                 'raw' => $line,
-                'file' => $file,
             ];
         }
     }

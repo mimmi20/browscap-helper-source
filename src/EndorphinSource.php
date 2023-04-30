@@ -53,7 +53,10 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -68,47 +71,47 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
     {
         $agents = [];
         $base   = [
-            'headers' => ['user-agent' => null],
-            'device' => [
-                'deviceName' => null,
-                'marketingName' => null,
+            'client' => [
+                'bits' => null,
+                'isbot' => null,
                 'manufacturer' => null,
+                'modus' => null,
+                'name' => null,
+                'type' => null,
+                'version' => null,
+            ],
+            'device' => [
                 'brand' => null,
+                'deviceName' => null,
                 'display' => [
-                    'width' => null,
                     'height' => null,
+                    'size' => null,
                     'touch' => null,
                     'type' => null,
-                    'size' => null,
+                    'width' => null,
                 ],
                 'dualOrientation' => null,
-                'type' => null,
-                'simCount' => null,
                 'ismobile' => null,
-            ],
-            'client' => [
-                'name' => null,
-                'modus' => null,
-                'version' => null,
                 'manufacturer' => null,
-                'bits' => null,
-                'type' => null,
-                'isbot' => null,
-            ],
-            'platform' => [
-                'name' => null,
                 'marketingName' => null,
-                'version' => null,
-                'manufacturer' => null,
-                'bits' => null,
+                'simCount' => null,
+                'type' => null,
             ],
             'engine' => [
+                'manufacturer' => null,
                 'name' => null,
                 'version' => null,
+            ],
+            'file' => [],
+            'headers' => ['user-agent' => null],
+            'platform' => [
+                'bits' => null,
                 'manufacturer' => null,
+                'marketingName' => null,
+                'name' => null,
+                'version' => null,
             ],
             'raw' => [],
-            'file' => [],
         ];
 
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
@@ -117,7 +120,11 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -159,7 +166,11 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             try {
                 $provider = Yaml::parseFile($filepath);
@@ -171,7 +182,7 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            if (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/browser/')) {
+            if (isset($provider['checkList']['name']) && mb_strpos($filepath, '/browser/') !== false) {
                 $expected = [
                     'client' => [
                         'name' => $provider['checkList']['name'],
@@ -184,7 +195,10 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                         'type' => $provider['checkList']['type'],
                     ];
                 }
-            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/device/')) {
+            } elseif (
+                isset($provider['checkList']['name'])
+                && mb_strpos($filepath, '/device/') !== false
+            ) {
                 $expected = [
                     'device' => [
                         'name' => $provider['checkList']['name'],
@@ -197,22 +211,25 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                         'type' => $provider['checkList']['type'],
                     ];
                 }
-            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/os/')) {
-                if ('Windows' === $provider['checkList']['name'] && isset($provider['checkList']['version'])) {
-                    $name = $provider['checkList']['name'] . $provider['checkList']['version'];
-                } else {
-                    $name = $provider['checkList']['name'];
-                }
+            } elseif (isset($provider['checkList']['name']) && mb_strpos($filepath, '/os/') !== false) {
+                $name
+                    = $provider['checkList']['name'] === 'Windows'
+                    && isset($provider['checkList']['version'])
+                     ? $provider['checkList']['name'] . $provider['checkList']['version']
+                     : $provider['checkList']['name'];
 
                 $expected = [
                     'platform' => ['name' => $name],
                     'raw' => $provider['checkList'],
                 ];
-            } elseif (isset($provider['checkList']['name']) && false !== mb_strpos($filepath, '/robot/')) {
+            } elseif (
+                isset($provider['checkList']['name'])
+                && mb_strpos($filepath, '/robot/') !== false
+            ) {
                 $expected = [
                     'client' => [
-                        'name' => $provider['checkList']['name'],
                         'isbot' => true,
+                        'name' => $provider['checkList']['name'],
                     ],
                     'raw' => $provider['checkList'],
                 ];
@@ -227,23 +244,19 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
             foreach ($provider['uaList'] as $ua) {
                 $agent = (string) $ua;
 
-                if (isset($agents[$agent])) {
-                    $agents[$agent] = array_merge(
-                        $agents[$agent],
-                        [
-                            'headers' => ['user-agent' => $agent],
-                        ],
-                        $expected,
-                    );
-                } else {
-                    $agents[$agent] = array_merge(
-                        $base,
-                        [
-                            'headers' => ['user-agent' => $agent],
-                        ],
-                        $expected,
-                    );
-                }
+                $agents[$agent] = isset($agents[$agent]) ? array_merge(
+                    $agents[$agent],
+                    [
+                        'headers' => ['user-agent' => $agent],
+                    ],
+                    $expected,
+                ) : array_merge(
+                    $base,
+                    [
+                        'headers' => ['user-agent' => $agent],
+                    ],
+                    $expected,
+                );
             }
         }
 

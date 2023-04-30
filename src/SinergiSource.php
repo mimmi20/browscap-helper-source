@@ -55,7 +55,10 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -74,7 +77,11 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -116,17 +123,21 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $content = file_get_contents($filepath);
 
-            if (false === $content || '' === $content || PHP_EOL === $content) {
+            if ($content === false || $content === '' || $content === PHP_EOL) {
                 continue;
             }
 
             $provider = simplexml_load_string($content);
 
-            if (false === $provider) {
+            if ($provider === false) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln(
                     '<error>' . sprintf('file %s contains invalid xml.', $filepath) . '</error>',
@@ -156,47 +167,47 @@ final class SinergiSource implements OutputAwareInterface, SourceInterface
                     $uid = Uuid::uuid4()->toString();
 
                     yield $uid => [
-                        'headers' => ['user-agent' => $agent],
-                        'device' => [
-                            'deviceName' => $device,
-                            'marketingName' => null,
+                        'client' => [
+                            'bits' => null,
+                            'isbot' => null,
                             'manufacturer' => null,
+                            'modus' => null,
+                            'name' => $browser,
+                            'type' => null,
+                            'version' => $browserVersion,
+                        ],
+                        'device' => [
                             'brand' => null,
+                            'deviceName' => $device,
                             'display' => [
-                                'width' => null,
                                 'height' => null,
+                                'size' => null,
                                 'touch' => null,
                                 'type' => null,
-                                'size' => null,
+                                'width' => null,
                             ],
                             'dualOrientation' => null,
-                            'type' => null,
-                            'simCount' => null,
                             'ismobile' => null,
-                        ],
-                        'client' => [
-                            'name' => $browser,
-                            'modus' => null,
-                            'version' => $browserVersion,
                             'manufacturer' => null,
-                            'bits' => null,
-                            'type' => null,
-                            'isbot' => null,
-                        ],
-                        'platform' => [
-                            'name' => $platform,
                             'marketingName' => null,
-                            'version' => $platformVersion,
-                            'manufacturer' => null,
-                            'bits' => null,
+                            'simCount' => null,
+                            'type' => null,
                         ],
                         'engine' => [
+                            'manufacturer' => null,
                             'name' => null,
                             'version' => null,
+                        ],
+                        'file' => $filepath,
+                        'headers' => ['user-agent' => $agent],
+                        'platform' => [
+                            'bits' => null,
                             'manufacturer' => null,
+                            'marketingName' => null,
+                            'name' => $platform,
+                            'version' => $platformVersion,
                         ],
                         'raw' => $field->asXML(),
-                        'file' => $filepath,
                     ];
                 }
             }

@@ -23,6 +23,7 @@ $finder = PhpCsFixer\Finder::create()
     ->files()
     ->name('*.php')
     ->in(__DIR__ . '/src')
+    ->append([__DIR__ . '/rector.php'])
     ->append([__FILE__]);
 
 $rules = require 'vendor/mimmi20/coding-standard/src/php-cs-fixer.config.php';

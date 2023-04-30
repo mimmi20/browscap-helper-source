@@ -61,13 +61,23 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERBOSE,
+            );
 
             $handle = @fopen($file, 'r');
 
-            if (false === $handle) {
+            if ($handle === false) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- reading file %s caused an error</error>', $file), OutputInterface::VERBOSITY_NORMAL);
+                $this->writeln(
+                    "\r" . '<error>' . $parentMessage . sprintf(
+                        '- reading file %s caused an error</error>',
+                        $file,
+                    ),
+                    OutputInterface::VERBOSITY_NORMAL,
+                );
 
                 continue;
             }
@@ -75,7 +85,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
             while (!feof($handle)) {
                 $line = fgets($handle, 65535);
 
-                if (false === $line) {
+                if ($line === false) {
                     continue;
                 }
 
@@ -86,16 +96,23 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
                 $lineMatches = [];
 
                 if (!(bool) preg_match($regex, $line, $lineMatches)) {
-                    $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- no useragent found in line "%s" used regex: "%s"</error>', $line, $regex), OutputInterface::VERBOSITY_NORMAL);
+                    $this->writeln(
+                        "\r" . '<error>' . $parentMessage . sprintf(
+                            '- no useragent found in line "%s" used regex: "%s"</error>',
+                            $line,
+                            $regex,
+                        ),
+                        OutputInterface::VERBOSITY_NORMAL,
+                    );
 
                     continue;
                 }
 
-                if (array_key_exists('userAgentString', $lineMatches)) {
-                    $agentOfLine = trim($lineMatches['userAgentString']);
-                } else {
-                    $agentOfLine = trim($this->extractAgent($line));
-                }
+                $agentOfLine = array_key_exists('userAgentString', $lineMatches)
+                    ? trim($lineMatches['userAgentString'])
+                    : trim(
+                        $this->extractAgent($line),
+                    );
 
                 if (empty($agentOfLine)) {
                     continue;

@@ -91,7 +91,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
 
             $headerString = trim((string) $row['headers']);
 
-            if ('' === $headerString) {
+            if ($headerString === '') {
                 continue;
             }
 
@@ -104,47 +104,47 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
             $uid = Uuid::uuid4()->toString();
 
             yield $uid => [
-                'headers' => $headers,
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
+                'client' => [
+                    'bits' => null,
+                    'isbot' => null,
                     'manufacturer' => null,
+                    'modus' => null,
+                    'name' => null,
+                    'type' => null,
+                    'version' => null,
+                ],
+                'device' => [
                     'brand' => null,
+                    'deviceName' => null,
                     'display' => [
-                        'width' => null,
                         'height' => null,
+                        'size' => null,
                         'touch' => null,
                         'type' => null,
-                        'size' => null,
+                        'width' => null,
                     ],
                     'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
                     'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
                     'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => null,
-                ],
-                'platform' => [
-                    'name' => null,
                     'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
+                    'simCount' => null,
+                    'type' => null,
                 ],
                 'engine' => [
+                    'manufacturer' => null,
                     'name' => null,
                     'version' => null,
+                ],
+                'file' => null,
+                'headers' => $headers,
+                'platform' => [
+                    'bits' => null,
                     'manufacturer' => null,
+                    'marketingName' => null,
+                    'name' => null,
+                    'version' => null,
                 ],
                 'raw' => $row,
-                'file' => null,
             ];
         }
     }

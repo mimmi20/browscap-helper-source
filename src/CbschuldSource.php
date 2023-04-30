@@ -50,7 +50,10 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -69,7 +72,11 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -111,11 +118,15 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $lines = file($filepath);
 
-            if (false === $lines) {
+            if ($lines === false) {
                 continue;
             }
 
@@ -129,47 +140,47 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => ['user-agent' => $testData[0]],
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => null,
                         'manufacturer' => null,
+                        'modus' => null,
+                        'name' => $testData[2],
+                        'type' => null,
+                        'version' => $testData[3],
+                    ],
+                    'device' => [
                         'brand' => null,
+                        'deviceName' => null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
                         'ismobile' => null,
-                    ],
-                    'client' => [
-                        'name' => $testData[2],
-                        'modus' => null,
-                        'version' => $testData[3],
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => null,
-                    ],
-                    'platform' => [
-                        'name' => $testData[5] ?? null,
                         'marketingName' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => null,
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => null,
                         'version' => null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => ['user-agent' => $testData[0]],
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => $testData[5] ?? null,
+                        'version' => null,
                     ],
                     'raw' => $testData,
-                    'file' => $filepath,
                 ];
             }
         }

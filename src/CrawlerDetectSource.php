@@ -45,7 +45,10 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -64,7 +67,11 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         $filepath = self::PATH . '/crawlers.txt';
 
@@ -76,9 +83,13 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERY_VERBOSE,
+        );
 
-        if (false !== $lines) {
+        if ($lines !== false) {
             foreach ($lines as $ua) {
                 if (empty($ua)) {
                     continue;
@@ -87,47 +98,47 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => ['user-agent' => $ua],
-                    'device' => [
-                        'deviceName' => null,
-                        'marketingName' => null,
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => true,
                         'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
+                        'type' => null,
+                        'version' => null,
+                    ],
+                    'device' => [
                         'brand' => null,
+                        'deviceName' => null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
+                            'size' => null,
                             'touch' => null,
                             'type' => null,
-                            'size' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => null,
-                        'simCount' => null,
                         'ismobile' => null,
-                    ],
-                    'client' => [
-                        'name' => null,
-                        'modus' => null,
-                        'version' => null,
                         'manufacturer' => null,
-                        'bits' => null,
-                        'type' => null,
-                        'isbot' => true,
-                    ],
-                    'platform' => [
-                        'name' => null,
                         'marketingName' => null,
-                        'version' => null,
-                        'manufacturer' => null,
-                        'bits' => null,
+                        'simCount' => null,
+                        'type' => null,
                     ],
                     'engine' => [
+                        'manufacturer' => null,
                         'name' => null,
                         'version' => null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => ['user-agent' => $ua],
+                    'platform' => [
+                        'bits' => null,
                         'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
                     ],
                     'raw' => $ua,
-                    'file' => $filepath,
                 ];
             }
         }
@@ -144,9 +155,13 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERY_VERBOSE,
+        );
 
-        if (false === $lines) {
+        if ($lines === false) {
             return;
         }
 
@@ -158,47 +173,47 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
             $uid = Uuid::uuid4()->toString();
 
             yield $uid => [
-                'headers' => ['user-agent' => $ua],
-                'device' => [
-                    'deviceName' => null,
-                    'marketingName' => null,
+                'client' => [
+                    'bits' => null,
+                    'isbot' => false,
                     'manufacturer' => null,
+                    'modus' => null,
+                    'name' => null,
+                    'type' => null,
+                    'version' => null,
+                ],
+                'device' => [
                     'brand' => null,
+                    'deviceName' => null,
                     'display' => [
-                        'width' => null,
                         'height' => null,
+                        'size' => null,
                         'touch' => null,
                         'type' => null,
-                        'size' => null,
+                        'width' => null,
                     ],
                     'dualOrientation' => null,
-                    'type' => null,
-                    'simCount' => null,
                     'ismobile' => null,
-                ],
-                'client' => [
-                    'name' => null,
-                    'modus' => null,
-                    'version' => null,
                     'manufacturer' => null,
-                    'bits' => null,
-                    'type' => null,
-                    'isbot' => false,
-                ],
-                'platform' => [
-                    'name' => null,
                     'marketingName' => null,
-                    'version' => null,
-                    'manufacturer' => null,
-                    'bits' => null,
+                    'simCount' => null,
+                    'type' => null,
                 ],
                 'engine' => [
+                    'manufacturer' => null,
                     'name' => null,
                     'version' => null,
+                ],
+                'file' => $filepath,
+                'headers' => ['user-agent' => $ua],
+                'platform' => [
+                    'bits' => null,
                     'manufacturer' => null,
+                    'marketingName' => null,
+                    'name' => null,
+                    'version' => null,
                 ],
                 'raw' => $ua,
-                'file' => $filepath,
             ];
         }
     }

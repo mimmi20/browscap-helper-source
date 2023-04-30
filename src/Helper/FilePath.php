@@ -23,7 +23,7 @@ final class FilePath
     {
         $realpath = realpath($file->getPathname());
 
-        if (false === $realpath) {
+        if ($realpath === false) {
             return null;
         }
 

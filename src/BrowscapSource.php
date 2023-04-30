@@ -52,7 +52,10 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln("\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH), OutputInterface::VERBOSITY_NORMAL);
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
+            OutputInterface::VERBOSITY_NORMAL,
+        );
 
         return false;
     }
@@ -71,7 +74,11 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERBOSE);
+        $this->write(
+            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            false,
+            OutputInterface::VERBOSITY_VERBOSE,
+        );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
@@ -104,7 +111,13 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
         foreach ($files as $file) {
             assert($file instanceof SplFileInfo);
 
-            if (in_array($file->getFilename(), ['issue-000-invalids.php', 'issue-000-invalid-versions.php'], true)) {
+            if (
+                in_array(
+                    $file->getFilename(),
+                    ['issue-000-invalids.php', 'issue-000-invalid-versions.php'],
+                    true,
+                )
+            ) {
                 continue;
             }
 
@@ -118,7 +131,11 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write("\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>', false, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            $this->write(
+                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
 
             $data = include $filepath;
 
@@ -133,7 +150,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
 
                 $agent = trim((string) $row['ua']);
 
-                if ('' === $agent) {
+                if ($agent === '') {
                     continue;
                 }
 
@@ -158,47 +175,50 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'headers' => ['user-agent' => $agent],
+                    'client' => [
+                        'bits' => $row['properties']['Browser_Bits'] ?? null,
+                        'isbot' => array_key_exists(
+                            'Crawler',
+                            $row['properties'],
+                        ) ? $row['properties']['Crawler'] : null,
+                        'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
+                        'modus' => $row['properties']['Browser_Modus'] ?? null,
+                        'name' => $row['properties']['Browser'] ?? null,
+                        'type' => $row['properties']['Browser_Type'] ?? null,
+                        'version' => $row['properties']['Version'] ?? null,
+                    ],
                     'device' => [
-                        'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
-                        'marketingName' => $row['properties']['Device_Name'] ?? null,
-                        'manufacturer' => $row['properties']['Device_Maker'] ?? null,
                         'brand' => $row['properties']['Device_Brand_Name'] ?? null,
+                        'deviceName' => $row['properties']['Device_Code_Name'] ?? null,
                         'display' => [
-                            'width' => null,
                             'height' => null,
-                            'touch' => ('touchscreen' === $pointingMethod),
-                            'type' => null,
                             'size' => null,
+                            'touch' => ($pointingMethod === 'touchscreen'),
+                            'type' => null,
+                            'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'type' => $row['properties']['Device_Type'] ?? null,
-                        'simCount' => null,
                         'ismobile' => $isMobile,
-                    ],
-                    'client' => [
-                        'name' => $row['properties']['Browser'] ?? null,
-                        'modus' => $row['properties']['Browser_Modus'] ?? null,
-                        'version' => $row['properties']['Version'] ?? null,
-                        'manufacturer' => $row['properties']['Browser_Maker'] ?? null,
-                        'bits' => $row['properties']['Browser_Bits'] ?? null,
-                        'type' => $row['properties']['Browser_Type'] ?? null,
-                        'isbot' => array_key_exists('Crawler', $row['properties']) ? $row['properties']['Crawler'] : null,
-                    ],
-                    'platform' => [
-                        'name' => $row['properties']['Platform'] ?? null,
-                        'marketingName' => null,
-                        'version' => $row['properties']['Platform_Version'] ?? null,
-                        'manufacturer' => $row['properties']['Platform_Maker'] ?? null,
-                        'bits' => $row['properties']['Platform_Bits'] ?? null,
+                        'manufacturer' => $row['properties']['Device_Maker'] ?? null,
+                        'marketingName' => $row['properties']['Device_Name'] ?? null,
+                        'simCount' => null,
+                        'type' => $row['properties']['Device_Type'] ?? null,
                     ],
                     'engine' => [
+                        'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
                         'name' => $row['properties']['RenderingEngine_Name'] ?? null,
                         'version' => $row['properties']['RenderingEngine_Version'] ?? null,
-                        'manufacturer' => $row['properties']['RenderingEngine_Maker'] ?? null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => ['user-agent' => $agent],
+                    'platform' => [
+                        'bits' => $row['properties']['Platform_Bits'] ?? null,
+                        'manufacturer' => $row['properties']['Platform_Maker'] ?? null,
+                        'marketingName' => null,
+                        'name' => $row['properties']['Platform'] ?? null,
+                        'version' => $row['properties']['Platform_Version'] ?? null,
                     ],
                     'raw' => $row,
-                    'file' => $filepath,
                 ];
             }
         }
