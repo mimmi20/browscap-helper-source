@@ -9,7 +9,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "03:00"
-      timezone: "UTC"
+      timezone: "Europe/Berlin"
     open-pull-requests-limit: 10
     reviewers:
       - "mimmi20"
@@ -17,15 +17,16 @@ updates:
       - "mimmi20"
     labels:
       - "dependencies"
+      - "patch"
     versioning-strategy: "increase"
     target-branch: "master"
     commit-message:
       include: "scope"
       prefix: "composer"
-    ignore:
-      - dependency-name: symfony/finder
-        versions:
-          - ">= 0"
+#    ignore:
+#      - dependency-name: symfony/finder
+#        versions:
+#          - ">= 0"
 #      - dependency-name: ergebnis/json-normalizer
 #        versions:
 #          - ">= 0"
@@ -45,7 +46,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "03:00"
-      timezone: "UTC"
+      timezone: "Europe/Berlin"
     open-pull-requests-limit: 10
     reviewers:
       - "mimmi20"
@@ -53,7 +54,7 @@ updates:
       - "mimmi20"
     labels:
       - "dependencies"
+      - "patch"
     target-branch: "master"
     commit-message:
-      include: "scope"
       prefix: "github-actions"
