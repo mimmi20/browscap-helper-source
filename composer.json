@@ -50,7 +50,7 @@
     "rector/rector": "^0.17.10",
     "sinergi/browser-detector": "^6.1.4",
     "symfony/http-foundation": "^6.3.2",
-    "vimeo/psalm": "^5.14.0",
+    "vimeo/psalm": "^5.14.1",
     "whichbrowser/parser": "^v2.1.7",
     "woothee/woothee-testset": "^v1.13.0",
     "zsxsoft/php-useragent": "^1.5"
