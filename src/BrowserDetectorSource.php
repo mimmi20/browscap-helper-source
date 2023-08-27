@@ -172,7 +172,9 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 }
 
                 try {
-                    $clientType = (new \UaBrowserType\TypeLoader())->load($test['client']['type'] ?? $test['browser']['type']);
+                    $clientType = (new \UaBrowserType\TypeLoader())->load(
+                        $test['client']['type'] ?? $test['browser']['type'],
+                    );
                 } catch (\UaBrowserType\NotFoundException $e) {
                     throw new SourceException($e->getMessage(), 0, $e);
                 }
