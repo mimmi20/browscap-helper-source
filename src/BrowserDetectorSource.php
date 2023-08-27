@@ -179,10 +179,10 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
                 yield $uid => [
                     'client' => [
-                        'bits' => $test['client']['bits'] ?? $test['browser']['bits'],
+                        'bits' => $test['client']['bits'] ?? $test['browser']['bits'] ?? null,
                         'isbot' => $clientType->isBot(),
                         'manufacturer' => $test['client']['manufacturer'] ?? $test['browser']['manufacturer'],
-                        'modus' => $test['client']['modus'] ?? $test['browser']['modus'],
+                        'modus' => $test['client']['modus'] ?? $test['browser']['modus'] ?? null,
                         'name' => $test['client']['name'] ?? $test['browser']['name'],
                         'type' => $test['client']['type'] ?? $test['browser']['type'],
                         'version' => $test['client']['version'] ?? $test['browser']['version'] ?? null,
