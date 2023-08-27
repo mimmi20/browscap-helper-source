@@ -185,7 +185,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                         'isbot' => $clientType->isBot(),
                         'manufacturer' => $test['client']['manufacturer'] ?? $test['browser']['manufacturer'],
                         'modus' => $test['client']['modus'] ?? $test['browser']['modus'] ?? null,
-                        'name' => $test['client']['name'] ?? $test['browser']['name'],
+                        'name' => $test['client']['name'] ?? $test['browser']['name'] ?? null,
                         'type' => $test['client']['type'] ?? $test['browser']['type'],
                         'version' => $test['client']['version'] ?? $test['browser']['version'] ?? null,
                     ],
