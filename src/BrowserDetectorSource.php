@@ -172,20 +172,20 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 }
 
                 try {
-                    $clientType = (new \UaBrowserType\TypeLoader())->load($test['browser']['type']);
+                    $clientType = (new \UaBrowserType\TypeLoader())->load($test['client']['type'] ?? $test['browser']['type']);
                 } catch (\UaBrowserType\NotFoundException $e) {
                     throw new SourceException($e->getMessage(), 0, $e);
                 }
 
                 yield $uid => [
                     'client' => [
-                        'bits' => $test['browser']['bits'],
+                        'bits' => $test['client']['bits'] ?? $test['browser']['bits'],
                         'isbot' => $clientType->isBot(),
-                        'manufacturer' => $test['browser']['manufacturer'],
-                        'modus' => $test['browser']['modus'],
-                        'name' => $test['browser']['name'],
-                        'type' => $test['browser']['type'],
-                        'version' => $test['browser']['version'] ?? null,
+                        'manufacturer' => $test['client']['manufacturer'] ?? $test['browser']['manufacturer'],
+                        'modus' => $test['client']['modus'] ?? $test['browser']['modus'],
+                        'name' => $test['client']['name'] ?? $test['browser']['name'],
+                        'type' => $test['client']['type'] ?? $test['browser']['type'],
+                        'version' => $test['client']['version'] ?? $test['browser']['version'] ?? null,
                     ],
                     'device' => [
                         'brand' => $test['device']['brand'],
