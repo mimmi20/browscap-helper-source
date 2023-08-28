@@ -2,7 +2,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2022, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2023, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -172,20 +172,22 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 }
 
                 try {
-                    $clientType = (new \UaBrowserType\TypeLoader())->load($test['browser']['type']);
+                    $clientType = (new \UaBrowserType\TypeLoader())->load(
+                        $test['client']['type'] ?? $test['browser']['type'],
+                    );
                 } catch (\UaBrowserType\NotFoundException $e) {
                     throw new SourceException($e->getMessage(), 0, $e);
                 }
 
                 yield $uid => [
                     'client' => [
-                        'bits' => $test['browser']['bits'],
+                        'bits' => $test['client']['bits'] ?? $test['browser']['bits'] ?? null,
                         'isbot' => $clientType->isBot(),
-                        'manufacturer' => $test['browser']['manufacturer'],
-                        'modus' => $test['browser']['modus'],
-                        'name' => $test['browser']['name'],
-                        'type' => $test['browser']['type'],
-                        'version' => $test['browser']['version'] ?? null,
+                        'manufacturer' => $test['client']['manufacturer'] ?? $test['browser']['manufacturer'],
+                        'modus' => $test['client']['modus'] ?? $test['browser']['modus'] ?? null,
+                        'name' => $test['client']['name'] ?? $test['browser']['name'] ?? null,
+                        'type' => $test['client']['type'] ?? $test['browser']['type'],
+                        'version' => $test['client']['version'] ?? $test['browser']['version'] ?? null,
                     ],
                     'device' => [
                         'brand' => $test['device']['brand'],
