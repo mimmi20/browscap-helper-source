@@ -21,7 +21,7 @@ jobs:
 
     uses: "mimmi20/ci/.github/workflows/validate.yml@master"
     with:
-      extensions: "curl, iconv, mbstring, intl, dom, simplexml, tokenizer, xml, xmlwriter"
+      extensions: "curl, iconv, mbstring, ctype, dom, intl, simplexml, tokenizer, xml, xmlwriter, pdo"
       ini-values: "opcache.enable=1, opcache.fast_shutdown=0, zend.assertions=1, assert.exception=On, intl.default_locale=de, intl.use_exceptions=1, zend.exception_ignore_args=0"
       composer-options: "--optimize-autoloader --prefer-dist --prefer-stable -v"
       skip-phplint: false
@@ -33,7 +33,7 @@ jobs:
 
     uses: "mimmi20/ci/.github/workflows/install.yml@master"
     with:
-      extensions: "curl, iconv, mbstring, intl, dom, simplexml, tokenizer, xml, xmlwriter"
+      extensions: "curl, iconv, mbstring, ctype, dom, intl, simplexml, tokenizer, xml, xmlwriter, pdo"
       ini-values: "opcache.enable=1, opcache.fast_shutdown=0, zend.assertions=1, assert.exception=On, intl.default_locale=de, intl.use_exceptions=1, zend.exception_ignore_args=0"
       composer-options: "--optimize-autoloader --prefer-dist --prefer-stable -v"
       composer-outdated-option: ""
@@ -45,7 +45,7 @@ jobs:
 
     uses: "mimmi20/ci/.github/workflows/analytics.yml@master"
     with:
-      extensions: "curl, iconv, mbstring, intl, dom, simplexml, tokenizer, xml, xmlwriter"
+      extensions: "curl, iconv, mbstring, ctype, dom, intl, simplexml, tokenizer, xml, xmlwriter, pdo"
       ini-values: "opcache.enable=1, opcache.fast_shutdown=0, zend.assertions=1, assert.exception=On, intl.default_locale=de, intl.use_exceptions=1, zend.exception_ignore_args=0"
       composer-options: "--optimize-autoloader --prefer-dist --prefer-stable -v"
       skip-phpstan: false
