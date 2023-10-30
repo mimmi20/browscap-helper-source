@@ -76,10 +76,10 @@ final class CollectionSource implements SourceInterface
      *
      * @throws SourceException
      */
-    public function getProperties(string $message, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         foreach ($this->collection as $source) {
-            yield from $source->getProperties($message, $messageLength);
+            yield from $source->getProperties($parentMessage, $messageLength);
         }
     }
 
