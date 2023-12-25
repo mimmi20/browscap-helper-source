@@ -34,6 +34,7 @@
 .gitattributes            export-ignore text eol=lf
 .gitignore                export-ignore text eol=lf
 .markdown-link-check.json export-ignore text eol=lf
+.markdownlint.yaml        export-ignore text eol=lf
 .mega-linter.yml          export-ignore text eol=lf
 .php-cs-fixer.php         export-ignore text eol=lf
 .phplint.yml              export-ignore text eol=lf
