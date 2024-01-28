@@ -6,6 +6,6 @@
 
 ## Code Status
 
-[![codecov](https://codecov.io/gh/mimmi20/browscap-helper-source/branch/master/graph/badge.svg)](https://codecov.io/gh/mimmi20/browscap-helper-source)
 [![Average time to resolve an issue](https://isitmaintained.com/badge/resolution/mimmi20/browscap-helper-source.svg)](https://isitmaintained.com/project/mimmi20/browscap-helper-source "Average time to resolve an issue")
 [![Percentage of issues still open](https://isitmaintained.com/badge/open/mimmi20/browscap-helper-source.svg)](https://isitmaintained.com/project/mimmi20/browscap-helper-source "Percentage of issues still open")
+[![Maintainability](https://api.codeclimate.com/v1/badges/7231da8072b5270ed577/maintainability)](https://codeclimate.com/github/mimmi20/browser-detector-version/maintainability)
