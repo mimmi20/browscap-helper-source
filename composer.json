@@ -16,6 +16,8 @@
   "require": {
     "php": "^8.1.0",
     "ext-mbstring": "*",
+    "mimmi20/ua-browser-type": "^9.0.5",
+    "mimmi20/ua-device-type": "^9.0.5",
     "ramsey/uuid": "^4.7.5",
     "symfony/console": "^v6.4.4",
     "symfony/finder": "^v6.4.0",
