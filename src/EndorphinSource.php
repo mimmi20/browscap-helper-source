@@ -214,9 +214,9 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
             } elseif (isset($provider['checkList']['name']) && mb_strpos($filepath, '/os/') !== false) {
                 $name
                     = $provider['checkList']['name'] === 'Windows'
-                    && isset($provider['checkList']['version'])
-                     ? $provider['checkList']['name'] . $provider['checkList']['version']
-                     : $provider['checkList']['name'];
+                && isset($provider['checkList']['version'])
+                    ? $provider['checkList']['name'] . $provider['checkList']['version']
+                    : $provider['checkList']['name'];
 
                 $expected = [
                     'platform' => ['name' => $name],
