@@ -46,19 +46,29 @@ final class UserAgent implements Stringable
      * @return array<string, string>
      *
      * @throws void
+     *
+     * @api
      */
     public function getHeaders(): array
     {
         return $this->header;
     }
 
-    /** @throws void */
+    /**
+     * @throws void
+     *
+     * @api
+     */
     public static function fromUseragent(string $useragent): self
     {
         return new self(['user-agent' => $useragent]);
     }
 
-    /** @throws void */
+    /**
+     * @throws void
+     *
+     * @api
+     */
     public static function fromString(string $string): self
     {
         $stringHeaders = explode(SourceInterface::DELIMETER_HEADER, $string);
@@ -81,6 +91,8 @@ final class UserAgent implements Stringable
      * @param array<string, string> $headers
      *
      * @throws void
+     *
+     * @api
      */
     public static function fromHeaderArray(array $headers): self
     {

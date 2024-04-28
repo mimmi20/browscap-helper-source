@@ -31,7 +31,6 @@
 
 # other
 *.xml            text eol=lf
-*.lock           text eol=lf
 *.txt            text eol=lf
 *.ini            text eol=lf
 *.sh             text eol=lf

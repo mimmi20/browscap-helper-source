@@ -82,10 +82,4 @@ final class CollectionSource implements SourceInterface
             yield from $source->getProperties($parentMessage, $messageLength);
         }
     }
-
-    /** @throws void */
-    public function count(): int
-    {
-        return count($this->collection);
-    }
 }
