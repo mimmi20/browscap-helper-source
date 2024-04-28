@@ -96,6 +96,74 @@ parameters:
       missingCheckedExceptionInThrows: true
       tooWideThrowType: true
 
+  cognitive_complexity:
+    class: 74
+    function: 74
+
+  type_coverage:
+    return: 100
+    param: 100
+    property: 100
+    # also, how many files has declare strict types
+    declare: 100
+
+  unused_public:
+    methods: true
+    properties: true
+    constants: true
+    local_methods: true
+
   ignoreErrors:
     - '~Generator expects value type~'
     - '~Method BrowscapHelper\\Source\\CrawlerDetectSource::getProperties\(\) has BrowscapHelper\\Source\\SourceException in PHPDoc @throws tag but it.s not thrown~'
+
+rules:
+  # code complexity
+  - Symplify\PHPStanRules\Rules\Explicit\NoMixedPropertyFetcherRule
+  - Symplify\PHPStanRules\Rules\Explicit\NoMixedMethodCallerRule
+  - Symplify\PHPStanRules\Rules\Enum\RequireEnumDocBlockOnConstantListPassRule
+  - Symplify\PHPStanRules\Rules\NoDynamicNameRule
+  # - Symplify\PHPStanRules\Rules\Explicit\NoRelativeFilePathRule - relative paths are required
+  - Symplify\PHPStanRules\Rules\NoReturnArrayVariableListRule
+
+  - Symplify\PHPStanRules\Rules\NoProtectedClassElementRule
+  - Symplify\PHPStanRules\Rules\ForbiddenExtendOfNonAbstractClassRule
+  - Symplify\PHPStanRules\Rules\Complexity\ForbiddenSameNamedNewInstanceRule
+
+  # domain
+  # - Symplify\PHPStanRules\Rules\Domain\RequireExceptionNamespaceRule
+  - Symplify\PHPStanRules\Rules\Domain\RequireAttributeNamespaceRule
+  - Symplify\PHPStanRules\Rules\Enum\RequireUniqueEnumConstantRule
+  - Symplify\PHPStanRules\Rules\ForbiddenParamTypeRemovalRule
+  - Symplify\PHPStanRules\Rules\PreventParentMethodVisibilityOverrideRule
+
+  # paths
+  - Symplify\PHPStanRules\Rules\NoMissingDirPathRule
+  - Symplify\PHPStanRules\Rules\NoAbstractMethodRule
+  # - Symplify\PHPStanRules\Rules\NoReferenceRule - References are required
+  - Symplify\PHPStanRules\Rules\NoArrayAccessOnObjectRule
+
+  - Symplify\PHPStanRules\Rules\NoNullableArrayPropertyRule
+  # - Symplify\PHPStanRules\Rules\BoolishClassMethodPrefixRule - "accept" is not an valid function name by this rule
+
+  # dead-code
+  - Symplify\PHPStanRules\Rules\NoIssetOnObjectRule
+
+  # explicit naming
+  - Symplify\PHPStanRules\Rules\ForbiddenMultipleClassLikeInOneFileRule
+
+  # comlexity
+  - Symplify\PHPStanRules\Rules\Complexity\ForbiddenSameNamedNewInstanceRule
+  - Symplify\PHPStanRules\Rules\NarrowType\NoReturnFalseInNonBoolClassMethodRule
+
+  - Symplify\PHPStanRules\Rules\Complexity\ForbiddenArrayMethodCallRule
+  # - Symplify\PHPStanRules\Rules\CheckRequiredInterfaceInContractNamespaceRule
+  - Symplify\PHPStanRules\Rules\NoEmptyClassRule
+
+  # naming
+  - Symplify\PHPStanRules\Rules\RequireAttributeNameRule
+
+includes:
+  - vendor/symplify/phpstan-rules/config/collector-rules.neon
+  - vendor/symplify/phpstan-rules/config/naming-rules.neon
+  - vendor/symplify/phpstan-rules/config/regex-rules.neon
