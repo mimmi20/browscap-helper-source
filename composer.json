@@ -18,7 +18,7 @@
     "ext-mbstring": "*",
     "mimmi20/ua-browser-type": "^9.0.5",
     "mimmi20/ua-device-type": "^9.0.5",
-    "ramsey/uuid": "^4.7.5",
+    "ramsey/uuid": "^4.7.6",
     "symfony/console": "^v6.4.6",
     "symfony/finder": "^v6.4.0",
     "symfony/yaml": "^v6.4.3"
@@ -37,7 +37,7 @@
     "donatj/phpuseragentparser": "^v1.8.0",
     "endorphin-studio/browser-detector": "^6.0.1",
     "endorphin-studio/browser-detector-tests": "^2.2 || ^3.1",
-    "jaybizzle/crawler-detect": "^v1.2.117",
+    "jaybizzle/crawler-detect": "^v1.2.118",
     "laminas/laminas-diactoros": "^2.26.0 || ^3.3.0",
     "matomo/device-detector": "dev-master",
     "mimmi20/browser-detector": "^8.0.2",
