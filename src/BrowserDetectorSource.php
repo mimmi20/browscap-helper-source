@@ -20,7 +20,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use UaDeviceType\NotFoundException;
+use UaDeviceType\Exception\NotFoundException;
 use UaDeviceType\TypeLoader;
 use UnexpectedValueException;
 
@@ -175,7 +175,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                     $clientType = (new \UaBrowserType\TypeLoader())->load(
                         $test['client']['type'] ?? $test['browser']['type'],
                     );
-                } catch (\UaBrowserType\NotFoundException $e) {
+                } catch (\UaBrowserType\Exception\NotFoundException $e) {
                     throw new SourceException($e->getMessage(), 0, $e);
                 }
 
