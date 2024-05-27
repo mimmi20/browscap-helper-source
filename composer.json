@@ -78,6 +78,11 @@
     }
   },
   "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "phpstan/extension-installer": true
+    },
+    "lock": false,
     "preferred-install": {
       "browscap/browscap": "source",
       "cbschuld/browser.php": "source",
@@ -93,11 +98,6 @@
       "zsxsoft/php-useragent": "source",
       "*": "dist"
     },
-    "lock": false,
-    "sort-packages": true,
-    "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "phpstan/extension-installer": true
-    }
+    "sort-packages": true
   }
 }
