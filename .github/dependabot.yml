@@ -58,6 +58,10 @@ updates:
       - dependency-name: "illuminate/config"
       - dependency-name: "endorphin-studio/browser-detector-tests"
       - dependency-name: "laminas/laminas-diactoros"
+      - dependency-name: "symfony/console"
+      - dependency-name: "symfony/finder"
+      - dependency-name: "symfony/yaml"
+      - dependency-name: "symfony/http-foundation"
 
     # Disable rebasing for all pull requests
     rebase-strategy: "disabled"
@@ -112,6 +116,10 @@ updates:
   #    - dependency-name: "illuminate/config"
   #    - dependency-name: "endorphin-studio/browser-detector-tests"
   #    - dependency-name: "laminas/laminas-diactoros"
+  #    - dependency-name: "symfony/console"
+  #    - dependency-name: "symfony/finder"
+  #    - dependency-name: "symfony/yaml"
+  #    - dependency-name: "symfony/http-foundation"
   #
   #  # Disable rebasing for all pull requests
   #  rebase-strategy: "disabled"
