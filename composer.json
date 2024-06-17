@@ -48,6 +48,7 @@
     "phpstan/phpstan": "^1.11.4",
     "phpstan/phpstan-deprecation-rules": "^1.2.0",
     "rector/rector": "^1.1.0",
+    "rector/type-perfect": "^0.1.4",
     "symfony/http-foundation": "^6.4.8",
     "symplify/phpstan-rules": "^13.0.0",
     "tomasvotruba/cognitive-complexity": "^0.2.3",
