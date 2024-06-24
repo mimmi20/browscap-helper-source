@@ -20,7 +20,7 @@
     "mimmi20/ua-device-type": "^9.0.6",
     "ramsey/uuid": "^4.7.6",
     "symfony/console": "^6.4.8",
-    "symfony/finder": "^6.4.8",
+    "symfony/finder": "^6.4.8 || ^7.0.0",
     "symfony/yaml": "^6.4.8 || ^7.0.0"
   },
   "require-dev": {
