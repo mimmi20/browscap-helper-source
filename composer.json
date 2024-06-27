@@ -41,7 +41,7 @@
     "laminas/laminas-diactoros": "^2.26.0 || ^3.3.0",
     "matomo/device-detector": "dev-master",
     "mimmi20/browser-detector": "^8.0.3",
-    "mimmi20/coding-standard": "^5.2.35",
+    "mimmi20/coding-standard": "^5.2.36",
     "mobiledetect/mobiledetectlib": "^4.8.06",
     "nikic/php-parser": "^5.0.2",
     "phpstan/extension-installer": "^1.4.1",
