@@ -45,7 +45,7 @@
     "mobiledetect/mobiledetectlib": "^4.8.06",
     "nikic/php-parser": "^5.0.2",
     "phpstan/extension-installer": "^1.4.3",
-    "phpstan/phpstan": "^1.12.4",
+    "phpstan/phpstan": "^1.12.5",
     "phpstan/phpstan-deprecation-rules": "^1.2.1",
     "rector/rector": "^1.2.5",
     "rector/type-perfect": "^0.2.0",
