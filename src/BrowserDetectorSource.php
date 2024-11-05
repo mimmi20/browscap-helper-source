@@ -15,6 +15,7 @@ namespace BrowscapHelper\Source;
 use FilterIterator;
 use Iterator;
 use JsonException;
+use Override;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -31,9 +32,9 @@ use function file_get_contents;
 use function is_array;
 use function is_string;
 use function json_decode;
+use function mb_str_pad;
 use function mb_strlen;
 use function sprintf;
-use function str_pad;
 use function str_replace;
 
 use const CASE_LOWER;
@@ -47,11 +48,12 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'mimmi20/browser-detector';
+    private const string NAME = 'mimmi20/browser-detector';
 
-    private const PATH = 'vendor/mimmi20/browser-detector/tests/data';
+    private const string PATH = 'vendor/mimmi20/browser-detector/tests/data';
 
     /** @throws void */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -72,6 +74,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
      *
      * @throws SourceException
      */
+    #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
@@ -81,7 +84,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
         }
 
         $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
             false,
             OutputInterface::VERBOSITY_VERBOSE,
         );
@@ -104,6 +107,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
             }
 
             /** @throws void */
+            #[Override]
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -127,7 +131,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
             }
 
             $this->write(
-                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
                 false,
                 OutputInterface::VERBOSITY_VERY_VERBOSE,
             );

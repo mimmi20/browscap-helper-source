@@ -15,6 +15,7 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Helper\FilePath;
 use BrowscapHelper\Source\Reader\LogFileReader;
 use BrowscapHelper\Source\Ua\UserAgent;
+use Override;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
@@ -23,9 +24,9 @@ use Symfony\Component\Finder\SplFileInfo;
 
 use function assert;
 use function file_exists;
+use function mb_str_pad;
 use function mb_strlen;
 use function sprintf;
-use function str_pad;
 
 use const STR_PAD_RIGHT;
 
@@ -35,7 +36,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'log-files';
+    private const string NAME = 'log-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)
@@ -43,6 +44,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
     }
 
     /** @throws void */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         if (file_exists($this->dir)) {
@@ -63,6 +65,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
+    #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', $this->dir);
@@ -72,7 +75,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
         }
 
         $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
             false,
             OutputInterface::VERBOSITY_VERBOSE,
         );

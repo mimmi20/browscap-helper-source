@@ -13,14 +13,15 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use LogicException;
+use Override;
 use RuntimeException;
 
 use function count;
 
-final class CollectionSource implements SourceInterface
+final readonly class CollectionSource implements SourceInterface
 {
     /** @var array<SourceInterface> */
-    private readonly array $collection;
+    private array $collection;
 
     /** @throws void */
     public function __construct(SourceInterface ...$collection)
@@ -29,6 +30,7 @@ final class CollectionSource implements SourceInterface
     }
 
     /** @throws void */
+    #[Override]
     public function getName(): string
     {
         return 'collection';
@@ -39,6 +41,7 @@ final class CollectionSource implements SourceInterface
      *
      * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         return 0 < count($this->collection);
@@ -50,6 +53,7 @@ final class CollectionSource implements SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
+    #[Override]
     public function getUserAgents(string $message, int &$messageLength = 0): iterable
     {
         foreach ($this->collection as $source) {
@@ -63,6 +67,7 @@ final class CollectionSource implements SourceInterface
      * @throws LogicException
      * @throws RuntimeException
      */
+    #[Override]
     public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
         foreach ($this->collection as $source) {
@@ -76,6 +81,7 @@ final class CollectionSource implements SourceInterface
      *
      * @throws SourceException
      */
+    #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         foreach ($this->collection as $source) {

@@ -16,6 +16,7 @@ use Exception;
 use FilterIterator;
 use Iterator;
 use JsonException;
+use Override;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -29,9 +30,9 @@ use function file_get_contents;
 use function is_array;
 use function is_string;
 use function json_decode;
+use function mb_str_pad;
 use function mb_strlen;
 use function sprintf;
-use function str_pad;
 use function str_replace;
 use function trim;
 
@@ -45,11 +46,12 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'ua-parser-js';
+    private const string NAME = 'ua-parser-js';
 
-    private const PATH = 'node_modules/ua-parser-js/test';
+    private const string PATH = 'node_modules/ua-parser-js/test';
 
     /** @throws void */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -70,6 +72,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
+    #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $agents = [];
@@ -124,7 +127,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
         }
 
         $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
             false,
             OutputInterface::VERBOSITY_VERBOSE,
         );
@@ -147,6 +150,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
             }
 
             /** @throws void */
+            #[Override]
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -170,7 +174,7 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
             }
 
             $this->write(
-                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
                 false,
                 OutputInterface::VERBOSITY_VERY_VERBOSE,
             );

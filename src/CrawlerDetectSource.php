@@ -12,16 +12,23 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use FilterIterator;
+use Iterator;
+use Override;
 use Ramsey\Uuid\Uuid;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
+use UnexpectedValueException;
 
 use function assert;
 use function file;
 use function file_exists;
 use function is_string;
+use function mb_str_pad;
 use function mb_strlen;
 use function sprintf;
-use function str_pad;
 use function str_replace;
 
 use const FILE_IGNORE_NEW_LINES;
@@ -34,11 +41,12 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'jaybizzle/crawler-detect';
+    private const string NAME = 'jaybizzle/crawler-detect';
 
-    private const PATH = 'vendor/jaybizzle/crawler-detect/tests';
+    private const string PATH = 'vendor/jaybizzle/crawler-detect/tests';
 
     /** @throws void */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -59,6 +67,7 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
+    #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
@@ -68,28 +77,140 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
         }
 
         $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
             false,
             OutputInterface::VERBOSITY_VERBOSE,
         );
 
-        $filepath = self::PATH . '/crawlers.txt';
-
-        $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-        $message = $parentMessage . sprintf('- reading file %s', $filepath);
-
-        if (mb_strlen($message) > $messageLength) {
-            $messageLength = mb_strlen($message);
+        try {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+        } catch (UnexpectedValueException $e) {
+            throw new SourceException($e->getMessage(), 0, $e);
         }
 
-        $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERY_VERBOSE,
-        );
+        $files = new class ($iterator, 'txt') extends FilterIterator {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(Iterator $iterator, private readonly string $extension)
+            {
+                parent::__construct($iterator);
+            }
 
-        if ($lines !== false) {
+            /** @throws void */
+            #[Override]
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
+
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
+
+        foreach ($files as $file) {
+            assert($file instanceof SplFileInfo);
+            $pathName = $file->getPathname();
+            $filepath = str_replace('\\', '/', $pathName);
+            assert(is_string($filepath));
+
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write(
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
+
+            $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+            if ($lines !== false) {
+                foreach ($lines as $ua) {
+                    if (empty($ua)) {
+                        continue;
+                    }
+
+                    $uid        = Uuid::uuid4()->toString();
+                    $isBot      = $file->getBasename('.txt') === 'crawlers';
+                    $headerName = $file->getPathInfo()->getFilename() === 'sec_ch_ua'
+                        ? 'sec-ch-ua'
+                        : 'user-agent';
+
+                    yield $uid => [
+                        'client' => [
+                            'bits' => null,
+                            'isbot' => $isBot,
+                            'manufacturer' => null,
+                            'modus' => null,
+                            'name' => null,
+                            'type' => null,
+                            'version' => null,
+                        ],
+                        'device' => [
+                            'brand' => null,
+                            'deviceName' => null,
+                            'display' => [
+                                'height' => null,
+                                'size' => null,
+                                'touch' => null,
+                                'type' => null,
+                                'width' => null,
+                            ],
+                            'dualOrientation' => null,
+                            'ismobile' => null,
+                            'manufacturer' => null,
+                            'marketingName' => null,
+                            'simCount' => null,
+                            'type' => null,
+                        ],
+                        'engine' => [
+                            'manufacturer' => null,
+                            'name' => null,
+                            'version' => null,
+                        ],
+                        'file' => $filepath,
+                        'headers' => [$headerName => $ua],
+                        'platform' => [
+                            'bits' => null,
+                            'manufacturer' => null,
+                            'marketingName' => null,
+                            'name' => null,
+                            'version' => null,
+                        ],
+                        'raw' => $ua,
+                    ];
+                }
+            }
+
+            $filepath = self::PATH . '/devices.txt';
+            $filepath = str_replace('\\', '/', $filepath);
+            assert(is_string($filepath));
+
+            $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+            $message = $parentMessage . sprintf('- reading file %s', $filepath);
+
+            if (mb_strlen($message) > $messageLength) {
+                $messageLength = mb_strlen($message);
+            }
+
+            $this->write(
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                false,
+                OutputInterface::VERBOSITY_VERY_VERBOSE,
+            );
+
+            if ($lines === false) {
+                return;
+            }
+
             foreach ($lines as $ua) {
                 if (empty($ua)) {
                     continue;
@@ -100,7 +221,7 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
                 yield $uid => [
                     'client' => [
                         'bits' => null,
-                        'isbot' => true,
+                        'isbot' => false,
                         'manufacturer' => null,
                         'modus' => null,
                         'name' => null,
@@ -141,80 +262,6 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
                     'raw' => $ua,
                 ];
             }
-        }
-
-        $filepath = self::PATH . '/devices.txt';
-        $filepath = str_replace('\\', '/', $filepath);
-        assert(is_string($filepath));
-
-        $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-        $message = $parentMessage . sprintf('- reading file %s', $filepath);
-
-        if (mb_strlen($message) > $messageLength) {
-            $messageLength = mb_strlen($message);
-        }
-
-        $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERY_VERBOSE,
-        );
-
-        if ($lines === false) {
-            return;
-        }
-
-        foreach ($lines as $ua) {
-            if (empty($ua)) {
-                continue;
-            }
-
-            $uid = Uuid::uuid4()->toString();
-
-            yield $uid => [
-                'client' => [
-                    'bits' => null,
-                    'isbot' => false,
-                    'manufacturer' => null,
-                    'modus' => null,
-                    'name' => null,
-                    'type' => null,
-                    'version' => null,
-                ],
-                'device' => [
-                    'brand' => null,
-                    'deviceName' => null,
-                    'display' => [
-                        'height' => null,
-                        'size' => null,
-                        'touch' => null,
-                        'type' => null,
-                        'width' => null,
-                    ],
-                    'dualOrientation' => null,
-                    'ismobile' => null,
-                    'manufacturer' => null,
-                    'marketingName' => null,
-                    'simCount' => null,
-                    'type' => null,
-                ],
-                'engine' => [
-                    'manufacturer' => null,
-                    'name' => null,
-                    'version' => null,
-                ],
-                'file' => $filepath,
-                'headers' => ['user-agent' => $ua],
-                'platform' => [
-                    'bits' => null,
-                    'manufacturer' => null,
-                    'marketingName' => null,
-                    'name' => null,
-                    'version' => null,
-                ],
-                'raw' => $ua,
-            ];
         }
     }
 }
