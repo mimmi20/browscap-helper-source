@@ -15,6 +15,7 @@ namespace BrowscapHelper\Source\Reader;
 use BrowscapHelper\Source\Helper\Regex;
 use BrowscapHelper\Source\OutputAwareInterface;
 use BrowscapHelper\Source\OutputAwareTrait;
+use Override;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_key_exists;
@@ -24,10 +25,10 @@ use function fclose;
 use function feof;
 use function fgets;
 use function fopen;
+use function mb_str_pad;
 use function mb_strlen;
 use function preg_match;
 use function sprintf;
-use function str_pad;
 use function trim;
 
 use const STR_PAD_RIGHT;
@@ -40,6 +41,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
     private array $files = [];
 
     /** @throws void */
+    #[Override]
     public function addLocalFile(string $file): void
     {
         $this->files[] = $file;
@@ -50,6 +52,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
      *
      * @throws void
      */
+    #[Override]
     public function getAgents(string $parentMessage = '', int &$messageLength = 0): iterable
     {
         $regex = (new Regex())->getRegex();
@@ -62,7 +65,7 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
             }
 
             $this->write(
-                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
                 false,
                 OutputInterface::VERBOSITY_VERBOSE,
             );

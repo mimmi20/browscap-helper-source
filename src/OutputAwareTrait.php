@@ -12,6 +12,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use Override;
 use Symfony\Component\Console\Output\OutputInterface;
 
 trait OutputAwareTrait
@@ -19,6 +20,7 @@ trait OutputAwareTrait
     private OutputInterface | null $output = null;
 
     /** @throws void */
+    #[Override]
     public function setOutput(OutputInterface $output): void
     {
         $this->output = $output;
@@ -33,6 +35,7 @@ trait OutputAwareTrait
      *
      * @throws void
      */
+    #[Override]
     public function write(iterable | string $messages, bool $newline = false, int $options = 0): void
     {
         if ($this->output === null) {
@@ -50,6 +53,7 @@ trait OutputAwareTrait
      *
      * @throws void
      */
+    #[Override]
     public function writeln(iterable | string $messages, int $options = 0): void
     {
         if ($this->output === null) {

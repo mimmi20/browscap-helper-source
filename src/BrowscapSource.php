@@ -14,6 +14,7 @@ namespace BrowscapHelper\Source;
 
 use FilterIterator;
 use Iterator;
+use Override;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -27,9 +28,9 @@ use function file_exists;
 use function in_array;
 use function is_array;
 use function is_string;
+use function mb_str_pad;
 use function mb_strlen;
 use function sprintf;
-use function str_pad;
 use function str_replace;
 use function trim;
 
@@ -46,6 +47,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
     private const PATH = 'vendor/browscap/browscap/tests/issues';
 
     /** @throws void */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         if (file_exists(self::PATH)) {
@@ -66,6 +68,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
      *
      * @throws SourceException
      */
+    #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $message = $parentMessage . sprintf('- reading path %s', self::PATH);
@@ -75,7 +78,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
         }
 
         $this->write(
-            "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
             false,
             OutputInterface::VERBOSITY_VERBOSE,
         );
@@ -98,6 +101,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
             }
 
             /** @throws void */
+            #[Override]
             public function accept(): bool
             {
                 $file = $this->getInnerIterator()->current();
@@ -132,7 +136,7 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
             }
 
             $this->write(
-                "\r" . '<info>' . str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
                 false,
                 OutputInterface::VERBOSITY_VERY_VERBOSE,
             );

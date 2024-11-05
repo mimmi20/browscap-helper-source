@@ -13,6 +13,7 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source\Ua;
 
 use BrowscapHelper\Source\SourceInterface;
+use Override;
 use Stringable;
 
 use function explode;
@@ -31,6 +32,7 @@ final class UserAgent implements Stringable
     }
 
     /** @throws void */
+    #[Override]
     public function __toString(): string
     {
         $stringHeaders = [];

@@ -12,9 +12,12 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use Override;
+
 trait GetNameTrait
 {
     /** @throws void */
+    #[Override]
     public function getName(): string
     {
         return self::NAME;

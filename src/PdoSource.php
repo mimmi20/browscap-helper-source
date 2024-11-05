@@ -13,6 +13,7 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use JsonException;
+use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -56,6 +57,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      *
      * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
+    #[Override]
     public function isReady(string $parentMessage): bool
     {
         return true;
@@ -69,6 +71,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      *
      * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
+    #[Override]
     public function getProperties(string $message, int &$messageLength = 0): iterable
     {
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers`, `date`, `count`, `id` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
