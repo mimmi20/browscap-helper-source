@@ -46,9 +46,9 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'donatj/phpuseragentparser';
+    private const string NAME = 'donatj/phpuseragentparser';
 
-    private const PATH = 'vendor/donatj/phpuseragentparser/tests';
+    private const string PATH = 'vendor/donatj/phpuseragentparser/tests';
 
     /** @throws void */
     #[Override]

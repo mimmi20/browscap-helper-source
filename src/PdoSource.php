@@ -45,7 +45,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'pdo-source';
+    private const string NAME = 'pdo-source';
 
     /** @throws void */
     public function __construct(private readonly PDO $pdo)

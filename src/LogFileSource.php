@@ -36,7 +36,7 @@ final class LogFileSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'log-files';
+    private const string NAME = 'log-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)

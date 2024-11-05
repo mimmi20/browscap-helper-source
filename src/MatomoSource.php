@@ -53,9 +53,9 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'matomo/device-detector';
+    private const string NAME = 'matomo/device-detector';
 
-    private const PATH = 'vendor/matomo/device-detector/Tests/fixtures';
+    private const string PATH = 'vendor/matomo/device-detector/Tests/fixtures';
 
     /** @throws void */
     #[Override]

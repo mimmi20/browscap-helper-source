@@ -40,9 +40,9 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'mobiledetect/mobiledetectlib';
+    private const string NAME = 'mobiledetect/mobiledetectlib';
 
-    private const PATH = 'vendor/mobiledetect/mobiledetectlib/tests/providers/vendors';
+    private const string PATH = 'vendor/mobiledetect/mobiledetectlib/tests/providers/vendors';
 
     /** @throws void */
     #[Override]

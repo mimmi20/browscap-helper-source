@@ -20,14 +20,14 @@ use function explode;
 use function implode;
 use function sprintf;
 
-final class UserAgent implements Stringable
+final readonly class UserAgent implements Stringable
 {
     /**
      * @param array<string, string> $header
      *
      * @throws void
      */
-    public function __construct(private readonly array $header = [])
+    public function __construct(private array $header = [])
     {
     }
 

@@ -48,9 +48,9 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'mimmi20/browser-detector';
+    private const string NAME = 'mimmi20/browser-detector';
 
-    private const PATH = 'vendor/mimmi20/browser-detector/tests/data';
+    private const string PATH = 'vendor/mimmi20/browser-detector/tests/data';
 
     /** @throws void */
     #[Override]

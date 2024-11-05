@@ -43,9 +43,9 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'woothee/woothee-testset';
+    private const string NAME = 'woothee/woothee-testset';
 
-    private const PATH = 'vendor/woothee/woothee-testset/testsets';
+    private const string PATH = 'vendor/woothee/woothee-testset/testsets';
 
     /** @throws void */
     #[Override]

@@ -50,9 +50,9 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'whichbrowser/parser';
+    private const string NAME = 'whichbrowser/parser';
 
-    private const PATH = 'vendor/whichbrowser/parser/tests/data';
+    private const string PATH = 'vendor/whichbrowser/parser/tests/data';
 
     /** @throws void */
     #[Override]

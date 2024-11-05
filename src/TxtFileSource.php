@@ -43,7 +43,7 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'txt-files';
+    private const string NAME = 'txt-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)

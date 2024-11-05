@@ -45,9 +45,9 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'ua-parser/uap-core';
+    private const string NAME = 'ua-parser/uap-core';
 
-    private const PATH = 'vendor/ua-parser/uap-core/tests';
+    private const string PATH = 'vendor/ua-parser/uap-core/tests';
 
     /** @throws void */
     #[Override]

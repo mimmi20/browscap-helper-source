@@ -44,7 +44,7 @@ final class TxtCounterFileSource implements OutputAwareInterface, SourceInterfac
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'ctxt-files';
+    private const string NAME = 'ctxt-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)

@@ -40,7 +40,7 @@ final class PhpFileSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'php-files';
+    private const string NAME = 'php-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)

@@ -46,9 +46,9 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'ua-parser-js';
+    private const string NAME = 'ua-parser-js';
 
-    private const PATH = 'node_modules/ua-parser-js/test';
+    private const string PATH = 'node_modules/ua-parser-js/test';
 
     /** @throws void */
     #[Override]

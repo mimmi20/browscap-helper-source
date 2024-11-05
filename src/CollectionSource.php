@@ -18,10 +18,10 @@ use RuntimeException;
 
 use function count;
 
-final class CollectionSource implements SourceInterface
+final readonly class CollectionSource implements SourceInterface
 {
     /** @var array<SourceInterface> */
-    private readonly array $collection;
+    private array $collection;
 
     /** @throws void */
     public function __construct(SourceInterface ...$collection)

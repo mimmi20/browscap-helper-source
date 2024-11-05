@@ -40,9 +40,9 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'cbschuld/browser.php';
+    private const string NAME = 'cbschuld/browser.php';
 
-    private const PATH = 'vendor/cbschuld/browser.php/tests/lists';
+    private const string PATH = 'vendor/cbschuld/browser.php/tests/lists';
 
     /** @throws void */
     #[Override]

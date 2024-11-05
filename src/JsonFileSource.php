@@ -42,7 +42,7 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'json-files';
+    private const string NAME = 'json-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)

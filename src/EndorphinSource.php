@@ -43,9 +43,9 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'endorphin-studio/browser-detector';
+    private const string NAME = 'endorphin-studio/browser-detector';
 
-    private const PATH = 'vendor/endorphin-studio/browser-detector-tests-data/data';
+    private const string PATH = 'vendor/endorphin-studio/browser-detector-tests-data/data';
 
     /** @throws void */
     #[Override]

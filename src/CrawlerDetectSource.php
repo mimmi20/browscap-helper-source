@@ -41,9 +41,9 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'jaybizzle/crawler-detect';
+    private const string NAME = 'jaybizzle/crawler-detect';
 
-    private const PATH = 'vendor/jaybizzle/crawler-detect/tests';
+    private const string PATH = 'vendor/jaybizzle/crawler-detect/tests';
 
     /** @throws void */
     #[Override]

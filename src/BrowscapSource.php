@@ -42,9 +42,9 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'browscap/browscap';
+    private const string NAME = 'browscap/browscap';
 
-    private const PATH = 'vendor/browscap/browscap/tests/issues';
+    private const string PATH = 'vendor/browscap/browscap/tests/issues';
 
     /** @throws void */
     #[Override]

@@ -41,7 +41,7 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'yaml-files';
+    private const string NAME = 'yaml-files';
 
     /** @throws void */
     public function __construct(private readonly string $dir)

@@ -17,9 +17,9 @@ use RuntimeException;
 
 interface SourceInterface
 {
-    public const DELIMETER_HEADER = '{{::==::}}';
+    public const string DELIMETER_HEADER = '{{::==::}}';
 
-    public const DELIMETER_HEADER_ROW = '::==::';
+    public const string DELIMETER_HEADER_ROW = '::==::';
 
     /** @throws void */
     public function isReady(string $parentMessage): bool;

@@ -42,7 +42,7 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
     use GetUserAgentsTrait;
     use OutputAwareTrait;
 
-    private const NAME = 'directory-source';
+    private const string NAME = 'directory-source';
 
     /** @throws void */
     public function __construct(private readonly string $dir)
