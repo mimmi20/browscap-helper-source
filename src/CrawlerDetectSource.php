@@ -131,62 +131,64 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
 
             $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-            if ($lines !== false) {
-                foreach ($lines as $ua) {
-                    if (empty($ua)) {
-                        continue;
-                    }
+            if ($lines === false) {
+                continue;
+            }
 
-                    $uid        = Uuid::uuid4()->toString();
-                    $isBot      = $file->getBasename('.txt') === 'crawlers';
-                    $headerName = $file->getPathInfo()->getFilename() === 'sec_ch_ua'
-                        ? 'sec-ch-ua'
-                        : 'user-agent';
-
-                    yield $uid => [
-                        'client' => [
-                            'bits' => null,
-                            'isbot' => $isBot,
-                            'manufacturer' => null,
-                            'modus' => null,
-                            'name' => null,
-                            'type' => null,
-                            'version' => null,
-                        ],
-                        'device' => [
-                            'brand' => null,
-                            'deviceName' => null,
-                            'display' => [
-                                'height' => null,
-                                'size' => null,
-                                'touch' => null,
-                                'type' => null,
-                                'width' => null,
-                            ],
-                            'dualOrientation' => null,
-                            'ismobile' => null,
-                            'manufacturer' => null,
-                            'marketingName' => null,
-                            'simCount' => null,
-                            'type' => null,
-                        ],
-                        'engine' => [
-                            'manufacturer' => null,
-                            'name' => null,
-                            'version' => null,
-                        ],
-                        'file' => $filepath,
-                        'headers' => [$headerName => $ua],
-                        'platform' => [
-                            'bits' => null,
-                            'manufacturer' => null,
-                            'marketingName' => null,
-                            'name' => null,
-                            'version' => null,
-                        ],
-                        'raw' => $ua,
-                    ];
+            foreach ($lines as $ua) {
+                if (empty($ua)) {
+                    continue;
                 }
+
+                $uid        = Uuid::uuid4()->toString();
+                $isBot      = $file->getBasename('.txt') === 'crawlers';
+                $headerName = $file->getPathInfo()->getFilename() === 'sec_ch_ua'
+                    ? 'sec-ch-ua'
+                    : 'user-agent';
+
+                yield $uid => [
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => $isBot,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
+                        'type' => null,
+                        'version' => null,
+                    ],
+                    'device' => [
+                        'brand' => null,
+                        'deviceName' => null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'width' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'ismobile' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => null,
+                    ],
+                    'engine' => [
+                        'manufacturer' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    'file' => $filepath,
+                    'headers' => [$headerName => $ua],
+                    'platform' => [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    'raw' => $ua,
+                ];
             }
         }
     }
