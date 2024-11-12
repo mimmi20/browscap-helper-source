@@ -32,7 +32,6 @@
     "ext-tokenizer": "*",
     "ext-xml": "*",
     "ext-xmlwriter": "*",
-    "browscap/browscap": "^6.1.7",
     "cbschuld/browser.php": "^1.9.6",
     "donatj/phpuseragentparser": "^1.10.0",
     "endorphin-studio/browser-detector": "^6.0.1",
