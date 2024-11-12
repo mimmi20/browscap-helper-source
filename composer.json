@@ -14,7 +14,7 @@
     }
   ],
   "require": {
-    "php": "~8.3.0 || ~8.4.0",
+    "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
     "ext-mbstring": "*",
     "mimmi20/ua-browser-type": "^9.0.7",
     "mimmi20/ua-device-type": "^9.0.7",
@@ -32,7 +32,6 @@
     "ext-tokenizer": "*",
     "ext-xml": "*",
     "ext-xmlwriter": "*",
-    "browscap/browscap": "^6.1.7",
     "cbschuld/browser.php": "^1.9.6",
     "donatj/phpuseragentparser": "^1.10.0",
     "endorphin-studio/browser-detector": "^6.0.1",
