@@ -21,7 +21,7 @@ jobs:
 
     uses: "mimmi20/ci/.github/workflows/validate.yml@8.3"
     with:
-      extensions: "ctype, curl, dom, iconv, intl, mbstring, pdo, simplexml, tokenizer, xml, xmlwriter"
+      extensions: "ctype, curl, dom, iconv, intl, mbstring, pdo, simplexml, tokenizer, xmlwriter"
       ini-values: "opcache.enable=1, opcache.fast_shutdown=0, zend.assertions=1, assert.exception=On, intl.default_locale=de, intl.use_exceptions=1, zend.exception_ignore_args=0"
       composer-options: "--optimize-autoloader --prefer-dist --prefer-stable -v"
       skip-validate-composer: false
@@ -30,7 +30,7 @@ jobs:
       skip-phplint: false
       skip-check-composer: false
       skip-ec-checker: false
-      dependency-analyser-options: "--ignore-dev-in-prod-deps --ignore-unknown-classes --ignore-unknown-functions"
+      dependency-analyser-options: ""
 
   install:
     name: "Install Project"
@@ -39,7 +39,7 @@ jobs:
 
     uses: "mimmi20/ci/.github/workflows/install.yml@8.3"
     with:
-      extensions: "ctype, curl, dom, iconv, intl, mbstring, pdo, simplexml, tokenizer, xml, xmlwriter"
+      extensions: "ctype, curl, dom, iconv, intl, mbstring, pdo, simplexml, tokenizer, xmlwriter"
       ini-values: "opcache.enable=1, opcache.fast_shutdown=0, zend.assertions=1, assert.exception=On, intl.default_locale=de, intl.use_exceptions=1, zend.exception_ignore_args=0"
       composer-options: "--optimize-autoloader --prefer-dist --prefer-stable -v"
       skip-php-install: false
@@ -52,14 +52,13 @@ jobs:
 
     uses: "mimmi20/ci/.github/workflows/analytics.yml@8.3"
     with:
-      extensions: "ctype, curl, dom, iconv, intl, mbstring, pdo, simplexml, tokenizer, xml, xmlwriter"
+      extensions: "ctype, curl, dom, iconv, intl, mbstring, pdo, simplexml, tokenizer, xmlwriter"
       ini-values: "opcache.enable=1, opcache.fast_shutdown=0, zend.assertions=1, assert.exception=On, intl.default_locale=de, intl.use_exceptions=1, zend.exception_ignore_args=0"
       composer-options: "--optimize-autoloader --prefer-dist --prefer-stable -v"
       skip-php-cs-fixer: false
       skip-phpcs: false
       skip-phpstan: false
       skip-rector: false
-      skip-phpmd: false
       skip-eslint: true
       skip-stylelint: true
       skip-prettier: true
