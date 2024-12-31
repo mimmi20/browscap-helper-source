@@ -160,6 +160,8 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
             }
 
             foreach ($data as $test) {
+                assert(is_array($test));
+
                 if (!is_array($test['headers']) || !isset($test['headers']['user-agent'])) {
                     continue;
                 }

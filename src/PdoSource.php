@@ -22,6 +22,7 @@ use Ramsey\Uuid\Uuid;
 
 use function assert;
 use function is_array;
+use function is_scalar;
 use function json_decode;
 use function trim;
 
@@ -89,7 +90,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
         }
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if (!is_array($row)) {
+            if (!is_array($row) || !is_scalar($row['headers'])) {
                 continue;
             }
 

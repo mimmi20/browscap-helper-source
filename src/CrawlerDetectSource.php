@@ -143,7 +143,7 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
 
                 $uid        = Uuid::uuid4()->toString();
                 $isBot      = $file->getBasename('.txt') === 'crawlers';
-                $headerName = $file->getPathInfo()->getFilename() === 'sec_ch_ua'
+                $headerName = $file->getPathInfo()?->getFilename() === 'sec_ch_ua'
                     ? 'sec-ch-ua'
                     : 'user-agent';
 

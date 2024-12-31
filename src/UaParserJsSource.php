@@ -29,6 +29,7 @@ use function assert;
 use function file_exists;
 use function file_get_contents;
 use function is_array;
+use function is_scalar;
 use function is_string;
 use function json_decode;
 use function mb_str_pad;
@@ -208,6 +209,9 @@ final class UaParserJsSource implements OutputAwareInterface, SourceInterface
             $providerName = $file->getFilename();
 
             foreach ($provider as $data) {
+                assert(is_array($data));
+                assert(is_scalar($data['ua']));
+
                 $agent = trim((string) $data['ua']);
 
                 if ($agent === '') {

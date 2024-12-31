@@ -150,6 +150,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
+                assert(is_array($row));
+
                 $lowerHeaders = array_change_key_case($this->getHeadersFromRow($row), CASE_LOWER);
 
                 if ($lowerHeaders === []) {
@@ -158,6 +160,9 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
                 $browserName    = null;
                 $browserVersion = null;
+
+                assert(is_array($row['result']));
+                assert(is_array($row['result']['browser']));
 
                 if (isset($row['result']['browser']['name'])) {
                     $browserName = $row['result']['browser']['name'];
