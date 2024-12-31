@@ -25,6 +25,7 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use UnexpectedValueException;
 
+use function array_key_exists;
 use function array_merge;
 use function assert;
 use function file_exists;
@@ -183,7 +184,11 @@ final class EndorphinSource implements OutputAwareInterface, SourceInterface
                 throw new SourceException($e->getMessage(), 0, $e);
             }
 
-            if (!is_array($provider)) {
+            if (
+                !is_array($provider)
+                || !array_key_exists('checkList', $provider)
+                || !is_array($provider['checkList'])
+            ) {
                 continue;
             }
 

@@ -149,6 +149,8 @@ final class BrowscapSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
+                assert(is_array($row));
+
                 if (!array_key_exists('ua', $row)) {
                     continue;
                 }

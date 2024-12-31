@@ -27,10 +27,13 @@ use Symfony\Component\Yaml\Yaml;
 use UnexpectedValueException;
 
 use function addcslashes;
+use function array_key_exists;
 use function assert;
 use function file_exists;
 use function file_get_contents;
 use function is_array;
+use function is_iterable;
+use function is_scalar;
 use function is_string;
 use function mb_str_pad;
 use function mb_strlen;
@@ -215,7 +218,11 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
                 throw new SourceException($e->getMessage(), 0, $e);
             }
 
-            if (!is_array($provider)) {
+            if (
+                !is_array($provider)
+                || !array_key_exists('test_cases', $provider)
+                || !is_iterable($provider['test_cases'])
+            ) {
                 continue;
             }
 
@@ -225,6 +232,8 @@ final class UapCoreSource implements OutputAwareInterface, SourceInterface
                 if (!is_array($data)) {
                     continue;
                 }
+
+                assert(is_scalar($data['user_agent_string']));
 
                 $agent = addcslashes((string) $data['user_agent_string'], "\n");
 

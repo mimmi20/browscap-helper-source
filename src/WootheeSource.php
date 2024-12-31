@@ -143,6 +143,8 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
+                assert(is_array($row));
+
                 if (!array_key_exists('target', $row) || empty($row['target'])) {
                     continue;
                 }

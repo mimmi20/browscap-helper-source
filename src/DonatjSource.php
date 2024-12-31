@@ -170,6 +170,8 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
+                assert(is_array($data));
+
                 yield $uid => [
                     'client' => [
                         'bits' => null,
