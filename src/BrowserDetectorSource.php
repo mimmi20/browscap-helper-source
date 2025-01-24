@@ -22,8 +22,8 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use UaDeviceType\Exception\NotFoundException;
-use UaDeviceType\TypeLoader;
+use UaBrowserType\Type as ClientType;
+use UaDeviceType\Type as DeviceType;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -172,19 +172,8 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
                 $uid = Uuid::uuid4()->toString();
 
-                try {
-                    $deviceType = (new TypeLoader())->load($test['device']['type']);
-                } catch (NotFoundException $e) {
-                    throw new SourceException($e->getMessage(), 0, $e);
-                }
-
-                try {
-                    $clientType = (new \UaBrowserType\TypeLoader())->load(
-                        $test['client']['type'] ?? $test['browser']['type'],
-                    );
-                } catch (\UaBrowserType\Exception\NotFoundException $e) {
-                    throw new SourceException($e->getMessage(), 0, $e);
-                }
+                $deviceType = DeviceType::fromName($test['device']['type']);
+                $clientType = ClientType::fromName($test['client']['type'] ?? $test['browser']['type']);
 
                 yield $uid => [
                     'client' => [
