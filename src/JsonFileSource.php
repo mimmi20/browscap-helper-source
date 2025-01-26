@@ -14,13 +14,16 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use Exception;
+use FilterIterator;
+use Iterator;
 use JsonException;
 use Override;
 use Ramsey\Uuid\Uuid;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
-use Symfony\Component\Finder\Finder;
+use UnexpectedValueException;
 
 use function assert;
 use function file_exists;
@@ -87,21 +90,36 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             OutputInterface::VERBOSITY_VERBOSE,
         );
 
-        $finder = new Finder();
-        $finder->files();
-        $finder->name('*.json');
-        $finder->ignoreDotFiles(true);
-        $finder->ignoreVCS(true);
-        $finder->sortByName();
-        $finder->ignoreUnreadableDirs();
-
         try {
-            $finder->in($this->dir);
-        } catch (DirectoryNotFoundException $e) {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
+        } catch (UnexpectedValueException $e) {
             throw new SourceException($e->getMessage(), 0, $e);
         }
 
-        foreach ($finder as $file) {
+        $files = new class ($iterator, 'json') extends FilterIterator {
+            /**
+             * @param Iterator<SplFileInfo> $iterator
+             *
+             * @throws void
+             */
+            public function __construct(Iterator $iterator, private readonly string $extension)
+            {
+                parent::__construct($iterator);
+            }
+
+            /** @throws void */
+            #[Override]
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
+
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile() && $file->getExtension() === $this->extension;
+            }
+        };
+
+        foreach ($files as $file) {
             assert($file instanceof SplFileInfo);
             $pathName = $file->getPathname();
             $filepath = str_replace('\\', '/', $pathName);
