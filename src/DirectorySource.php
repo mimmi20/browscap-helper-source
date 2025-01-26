@@ -14,6 +14,7 @@ declare(strict_types = 1);
 namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Helper\FilePath;
+use FilterIterator;
 use Override;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
@@ -89,10 +90,23 @@ final class DirectorySource implements OutputAwareInterface, SourceInterface
         );
 
         try {
-            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
         } catch (UnexpectedValueException $e) {
             throw new SourceException($e->getMessage(), 0, $e);
         }
+
+        $files = new class ($iterator) extends FilterIterator {
+            /** @throws void */
+            #[Override]
+            public function accept(): bool
+            {
+                $file = $this->getInnerIterator()->current();
+
+                assert($file instanceof SplFileInfo);
+
+                return $file->isFile();
+            }
+        };
 
         $fileHelper = new FilePath();
 
