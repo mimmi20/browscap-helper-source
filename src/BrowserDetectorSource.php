@@ -210,7 +210,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                     'file' => $filepath,
                     'headers' => array_change_key_case($test['headers'], CASE_LOWER),
                     'platform' => [
-                        'bits' => $test['os']['bits'],
+                        'bits' => $test['os']['bits'] ?? null,
                         'manufacturer' => $test['os']['manufacturer'],
                         'marketingName' => $test['os']['marketingName'],
                         'name' => $test['os']['name'],
