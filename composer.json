@@ -19,7 +19,7 @@
     "mimmi20/ua-browser-type": "^11.0.0",
     "mimmi20/ua-device-type": "^11.0.0",
     "ramsey/uuid": "^4.7.6",
-    "symfony/console": "^7.2.5",
+    "symfony/console": "^7.2.6",
     "symfony/finder": "^7.2.2",
     "symfony/yaml": "^7.2.5"
   },
