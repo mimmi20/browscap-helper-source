@@ -80,7 +80,12 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
 
         $driverOptions = [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY];
 
-        $stmt = $this->pdo->prepare($sql, $driverOptions);
+        try {
+            $stmt = $this->pdo->prepare($sql, $driverOptions);
+        } catch (PDOException $e) {
+            throw new SourceException($e->getMessage(), 0, $e);
+        }
+
         assert($stmt instanceof PDOStatement);
 
         try {
@@ -89,68 +94,72 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
             throw new SourceException($e->getMessage(), 0, $e);
         }
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if (!is_array($row) || !is_scalar($row['headers'])) {
-                continue;
-            }
+        try {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if (!is_array($row) || !is_scalar($row['headers'])) {
+                    continue;
+                }
 
-            $headerString = trim((string) $row['headers']);
+                $headerString = trim((string) $row['headers']);
 
-            if ($headerString === '') {
-                continue;
-            }
+                if ($headerString === '') {
+                    continue;
+                }
 
-            try {
-                $headers = json_decode($headerString, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException) {
-                continue;
-            }
+                try {
+                    $headers = json_decode($headerString, true, 512, JSON_THROW_ON_ERROR);
+                } catch (JsonException) {
+                    continue;
+                }
 
-            $uid = Uuid::uuid4()->toString();
+                $uid = Uuid::uuid4()->toString();
 
-            yield $uid => [
-                'client' => [
-                    'bits' => null,
-                    'isbot' => null,
-                    'manufacturer' => null,
-                    'modus' => null,
-                    'name' => null,
-                    'type' => null,
-                    'version' => null,
-                ],
-                'device' => [
-                    'brand' => null,
-                    'deviceName' => null,
-                    'display' => [
-                        'height' => null,
-                        'size' => null,
-                        'touch' => null,
+                yield $uid => [
+                    'client' => [
+                        'bits' => null,
+                        'isbot' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
                         'type' => null,
-                        'width' => null,
+                        'version' => null,
                     ],
-                    'dualOrientation' => null,
-                    'ismobile' => null,
-                    'manufacturer' => null,
-                    'marketingName' => null,
-                    'simCount' => null,
-                    'type' => null,
-                ],
-                'engine' => [
-                    'manufacturer' => null,
-                    'name' => null,
-                    'version' => null,
-                ],
-                'file' => null,
-                'headers' => $headers,
-                'platform' => [
-                    'bits' => null,
-                    'manufacturer' => null,
-                    'marketingName' => null,
-                    'name' => null,
-                    'version' => null,
-                ],
-                'raw' => $row,
-            ];
+                    'device' => [
+                        'brand' => null,
+                        'deviceName' => null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'type' => null,
+                            'width' => null,
+                        ],
+                        'dualOrientation' => null,
+                        'ismobile' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => null,
+                    ],
+                    'engine' => [
+                        'manufacturer' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    'file' => null,
+                    'headers' => $headers,
+                    'platform' => [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    'raw' => $row,
+                ];
+            }
+        } catch (PDOException $e) {
+            throw new SourceException($e->getMessage(), 0, $e);
         }
     }
 }
