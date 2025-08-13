@@ -24,7 +24,7 @@ use function assert;
 use function is_array;
 use function is_scalar;
 use function json_decode;
-use function trim;
+use function mb_trim;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -74,7 +74,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
     #[Override]
-    public function getProperties(string $message, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers`, `date`, `count`, `id` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
 
@@ -100,7 +100,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $headerString = trim((string) $row['headers']);
+                $headerString = mb_trim((string) $row['headers']);
 
                 if ($headerString === '') {
                     continue;

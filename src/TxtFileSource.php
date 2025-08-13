@@ -32,9 +32,9 @@ use function fopen;
 use function is_string;
 use function mb_str_pad;
 use function mb_strlen;
+use function mb_trim;
 use function sprintf;
 use function str_replace;
-use function trim;
 
 use const STR_PAD_RIGHT;
 
@@ -154,7 +154,7 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $line = trim($line);
+                $line = mb_trim($line);
 
                 if ($line === '') {
                     continue;

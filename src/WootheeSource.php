@@ -32,9 +32,9 @@ use function is_array;
 use function is_string;
 use function mb_str_pad;
 use function mb_strlen;
+use function mb_trim;
 use function sprintf;
 use function str_replace;
-use function trim;
 
 use const STR_PAD_RIGHT;
 
@@ -149,7 +149,7 @@ final class WootheeSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $agent = trim((string) $row['target']);
+                $agent = mb_trim((string) $row['target']);
 
                 if ($agent === '') {
                     continue;
