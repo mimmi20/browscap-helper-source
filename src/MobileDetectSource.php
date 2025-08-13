@@ -29,9 +29,9 @@ use function is_int;
 use function is_string;
 use function mb_str_pad;
 use function mb_strlen;
+use function mb_trim;
 use function sprintf;
 use function str_replace;
-use function trim;
 
 use const STR_PAD_RIGHT;
 
@@ -137,7 +137,7 @@ final class MobileDetectSource implements OutputAwareInterface, SourceInterface
                         continue;
                     }
 
-                    $agent = trim((string) $ua);
+                    $agent = mb_trim((string) $ua);
 
                     if ($agent === '') {
                         continue;

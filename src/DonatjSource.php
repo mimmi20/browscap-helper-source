@@ -33,9 +33,9 @@ use function is_string;
 use function json_decode;
 use function mb_str_pad;
 use function mb_strlen;
+use function mb_trim;
 use function sprintf;
 use function str_replace;
-use function trim;
 
 use const JSON_THROW_ON_ERROR;
 use const PHP_EOL;
@@ -162,7 +162,7 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                $agent = trim($test);
+                $agent = mb_trim($test);
 
                 if ($agent === '') {
                     continue;

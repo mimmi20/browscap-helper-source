@@ -136,7 +136,7 @@ final class CbschuldSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($lines as $line) {
-                $testData = str_getcsv($line, "\t");
+                $testData = str_getcsv($line, "\t", escape: '\\');
 
                 if (empty($testData[0])) {
                     continue;

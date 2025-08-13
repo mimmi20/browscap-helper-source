@@ -40,10 +40,10 @@ use function is_array;
 use function is_string;
 use function mb_str_pad;
 use function mb_strlen;
+use function mb_trim;
 use function sprintf;
 use function str_contains;
 use function str_replace;
-use function trim;
 
 use const CASE_LOWER;
 use const STR_PAD_RIGHT;
@@ -166,9 +166,9 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                     if (str_contains($row['user_agent'], "\n")) {
                         $ua    = explode("\n", $row['user_agent']);
                         $ua    = array_map('trim', $ua);
-                        $agent = trim(implode(' ', $ua));
+                        $agent = mb_trim(implode(' ', $ua));
                     } else {
-                        $agent = trim($row['user_agent']);
+                        $agent = mb_trim($row['user_agent']);
                     }
 
                     if ($agent !== '') {

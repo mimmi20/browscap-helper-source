@@ -28,9 +28,9 @@ use function fgets;
 use function fopen;
 use function mb_str_pad;
 use function mb_strlen;
+use function mb_trim;
 use function preg_match;
 use function sprintf;
-use function trim;
 
 use const STR_PAD_RIGHT;
 
@@ -113,8 +113,8 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
                 }
 
                 $agentOfLine = array_key_exists('userAgentString', $lineMatches)
-                    ? trim($lineMatches['userAgentString'])
-                    : trim(
+                    ? mb_trim($lineMatches['userAgentString'])
+                    : mb_trim(
                         $this->extractAgent($line),
                     );
 
