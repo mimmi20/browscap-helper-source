@@ -74,7 +74,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
     #[Override]
-    public function getProperties(string $message, int &$messageLength = 0): iterable
+    public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers`, `date`, `count`, `id` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
 
