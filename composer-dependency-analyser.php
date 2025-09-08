@@ -38,7 +38,6 @@ $config
     ->ignoreErrorsOnPackage('mimmi20/coding-standard', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('phpstan/extension-installer', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('phpstan/phpstan-deprecation-rules', [ErrorType::UNUSED_DEPENDENCY])
-    ->ignoreErrorsOnPackage('cbschuld/browser.php', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('endorphin-studio/browser-detector-tests', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('woothee/woothee-testset', [ErrorType::UNUSED_DEPENDENCY])
 
