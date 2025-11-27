@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.13.1@1e3b7f0a8ab32b23197b91107adc0a7ed8a05b51">
+  <file src="src/BrowscapSource.php">
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'php') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArgument>
+      <code><![CDATA[$row['properties']]]></code>
+    </MixedArgument>
+    <MixedArrayAccess>
+      <code><![CDATA[$row['properties']['Browser']]]></code>
+      <code><![CDATA[$row['properties']['Browser_Bits']]]></code>
+      <code><![CDATA[$row['properties']['Browser_Maker']]]></code>
+      <code><![CDATA[$row['properties']['Browser_Modus']]]></code>
+      <code><![CDATA[$row['properties']['Browser_Type']]]></code>
+      <code><![CDATA[$row['properties']['Crawler']]]></code>
+      <code><![CDATA[$row['properties']['Device_Brand_Name']]]></code>
+      <code><![CDATA[$row['properties']['Device_Code_Name']]]></code>
+      <code><![CDATA[$row['properties']['Device_Maker']]]></code>
+      <code><![CDATA[$row['properties']['Device_Name']]]></code>
+      <code><![CDATA[$row['properties']['Device_Pointing_Method']]]></code>
+      <code><![CDATA[$row['properties']['Device_Type']]]></code>
+      <code><![CDATA[$row['properties']['Platform']]]></code>
+      <code><![CDATA[$row['properties']['Platform_Bits']]]></code>
+      <code><![CDATA[$row['properties']['Platform_Maker']]]></code>
+      <code><![CDATA[$row['properties']['Platform_Version']]]></code>
+      <code><![CDATA[$row['properties']['RenderingEngine_Maker']]]></code>
+      <code><![CDATA[$row['properties']['RenderingEngine_Name']]]></code>
+      <code><![CDATA[$row['properties']['RenderingEngine_Version']]]></code>
+      <code><![CDATA[$row['properties']['Version']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$pointingMethod]]></code>
+      <code><![CDATA[$row]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+    <UnresolvableInclude>
+      <code><![CDATA[include $filepath]]></code>
+    </UnresolvableInclude>
+  </file>
+  <file src="src/BrowserDetectorSource.php">
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'json') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArgument>
+      <code><![CDATA[$test['client']['type'] ?? $test['browser']['type']]]></code>
+      <code><![CDATA[$test['device']['type']]]></code>
+    </MixedArgument>
+    <MixedArrayAccess>
+      <code><![CDATA[$test['browser']['bits']]]></code>
+      <code><![CDATA[$test['browser']['manufacturer']]]></code>
+      <code><![CDATA[$test['browser']['modus']]]></code>
+      <code><![CDATA[$test['browser']['name']]]></code>
+      <code><![CDATA[$test['browser']['type']]]></code>
+      <code><![CDATA[$test['browser']['type']]]></code>
+      <code><![CDATA[$test['browser']['version']]]></code>
+      <code><![CDATA[$test['device']['brand']]]></code>
+      <code><![CDATA[$test['device']['deviceName']]]></code>
+      <code><![CDATA[$test['device']['display']]]></code>
+      <code><![CDATA[$test['device']['display']]]></code>
+      <code><![CDATA[$test['device']['display']]]></code>
+      <code><![CDATA[$test['device']['display']]]></code>
+      <code><![CDATA[$test['device']['display']]]></code>
+      <code><![CDATA[$test['device']['display']['height']]]></code>
+      <code><![CDATA[$test['device']['display']['size']]]></code>
+      <code><![CDATA[$test['device']['display']['touch']]]></code>
+      <code><![CDATA[$test['device']['display']['type']]]></code>
+      <code><![CDATA[$test['device']['display']['width']]]></code>
+      <code><![CDATA[$test['device']['dualOrientation']]]></code>
+      <code><![CDATA[$test['device']['manufacturer']]]></code>
+      <code><![CDATA[$test['device']['marketingName']]]></code>
+      <code><![CDATA[$test['device']['simCount']]]></code>
+      <code><![CDATA[$test['device']['type']]]></code>
+      <code><![CDATA[$test['device']['type']]]></code>
+      <code><![CDATA[$test['engine']['manufacturer']]]></code>
+      <code><![CDATA[$test['engine']['name']]]></code>
+      <code><![CDATA[$test['engine']['version']]]></code>
+      <code><![CDATA[$test['os']['bits']]]></code>
+      <code><![CDATA[$test['os']['manufacturer']]]></code>
+      <code><![CDATA[$test['os']['marketingName']]]></code>
+      <code><![CDATA[$test['os']['name']]]></code>
+      <code><![CDATA[$test['os']['version']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$test]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/CbschuldSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'txt') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+    <RiskyTruthyFalsyComparison>
+      <code><![CDATA[empty($testData[0])]]></code>
+    </RiskyTruthyFalsyComparison>
+  </file>
+  <file src="src/CollectionSource.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/CrawlerDetectSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'txt') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/DirectorySource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator) extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/DonatjSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'json') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedAssignment>
+      <code><![CDATA[$data]]></code>
+    </MixedAssignment>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/EndorphinSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'yaml') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedAssignment>
+      <code><![CDATA[$name]]></code>
+      <code><![CDATA[$ua]]></code>
+    </MixedAssignment>
+    <MixedOperand>
+      <code><![CDATA[$provider['checkList']['version']]]></code>
+    </MixedOperand>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/GetNameTrait.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/GetUserAgentsTrait.php">
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($uid))]]></code>
+      <code><![CDATA[assert(is_string($uid))]]></code>
+      <code><![CDATA[is_string($uid)]]></code>
+      <code><![CDATA[is_string($uid)]]></code>
+    </RedundantConditionGivenDocblockType>
+  </file>
+  <file src="src/Helper/FilePath.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/Helper/Regex.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/JsonFileSource.php">
+    <ImplicitToStringCast>
+      <code><![CDATA[new Exception(
+                        sprintf('file %s contains invalid json.', $filepath),
+                        0,
+                        $e,
+                    )]]></code>
+    </ImplicitToStringCast>
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'json') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedAssignment>
+      <code><![CDATA[$headers]]></code>
+    </MixedAssignment>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/LogFileSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MixedAssignment>
+      <code><![CDATA[$file]]></code>
+    </MixedAssignment>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert($file instanceof SplFileInfo)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/MatomoSource.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[$row]]></code>
+    </ArgumentTypeCoercion>
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'yml') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArrayAccess>
+      <code><![CDATA[$data['bot']['category']]]></code>
+      <code><![CDATA[$data['bot']['name']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$deviceType]]></code>
+      <code><![CDATA[$row]]></code>
+    </MixedAssignment>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_array($row['headers'])]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+      <code><![CDATA[is_string($row['user_agent'])]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+    <RiskyTruthyFalsyComparison>
+      <code><![CDATA[empty($data['device']['type'])]]></code>
+      <code><![CDATA[empty($osShort)]]></code>
+      <code><![CDATA[empty($osShort)]]></code>
+      <code><![CDATA[empty($row['client']['engine'])]]></code>
+      <code><![CDATA[empty($row['client']['engine_version'])]]></code>
+      <code><![CDATA[empty($row['device']['brand'])]]></code>
+    </RiskyTruthyFalsyComparison>
+  </file>
+  <file src="src/MobileDetectSource.php">
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'php') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArrayAccess>
+      <code><![CDATA[$testData['model']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$provider]]></code>
+      <code><![CDATA[$testData]]></code>
+      <code><![CDATA[$ua]]></code>
+      <code><![CDATA[$vendorData]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+    <UnresolvableInclude>
+      <code><![CDATA[include $filepath]]></code>
+    </UnresolvableInclude>
+  </file>
+  <file src="src/OutputAwareInterface.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/OutputAwareTrait.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/PdoSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MixedAssignment>
+      <code><![CDATA[$headers]]></code>
+    </MixedAssignment>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/PhpFileSource.php">
+    <InvalidCast>
+      <code><![CDATA[$ua]]></code>
+    </InvalidCast>
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'php') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArgument>
+      <code><![CDATA[$provider]]></code>
+    </MixedArgument>
+    <MixedAssignment>
+      <code><![CDATA[$provider]]></code>
+    </MixedAssignment>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+    <UnresolvableInclude>
+      <code><![CDATA[require $filepath]]></code>
+    </UnresolvableInclude>
+  </file>
+  <file src="src/Reader/LogFileReader.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[$regex]]></code>
+    </ArgumentTypeCoercion>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/Reader/ReaderInterface.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/SourceInterface.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/TxtCounterFileSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'ctxt') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+    <RiskyTruthyFalsyComparison>
+      <code><![CDATA[empty($parts[1])]]></code>
+    </RiskyTruthyFalsyComparison>
+  </file>
+  <file src="src/TxtFileSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'txt') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/Ua/UserAgent.php">
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/UaParserJsSource.php">
+    <ImplicitToStringCast>
+      <code><![CDATA[new Exception(
+                        sprintf('file %s contains invalid json.', $filepath),
+                        0,
+                        $e,
+                    )]]></code>
+    </ImplicitToStringCast>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'json') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArrayAccess>
+      <code><![CDATA[$data['expect']['model']]]></code>
+      <code><![CDATA[$data['expect']['name']]]></code>
+      <code><![CDATA[$data['expect']['name']]]></code>
+      <code><![CDATA[$data['expect']['name']]]></code>
+      <code><![CDATA[$data['expect']['type']]]></code>
+      <code><![CDATA[$data['expect']['vendor']]]></code>
+      <code><![CDATA[$data['expect']['version']]]></code>
+      <code><![CDATA[$data['expect']['version']]]></code>
+      <code><![CDATA[$data['expect']['version']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$agents[$agent]['client']['name']]]></code>
+      <code><![CDATA[$agents[$agent]['client']['version']]]></code>
+      <code><![CDATA[$agents[$agent]['device']['brand']]]></code>
+      <code><![CDATA[$agents[$agent]['device']['name']]]></code>
+      <code><![CDATA[$agents[$agent]['device']['type']]]></code>
+      <code><![CDATA[$agents[$agent]['engine']['name']]]></code>
+      <code><![CDATA[$agents[$agent]['engine']['version']]]></code>
+      <code><![CDATA[$agents[$agent]['platform']['name']]]></code>
+      <code><![CDATA[$agents[$agent]['platform']['version']]]></code>
+      <code><![CDATA[$agents[$agent]['raw'][$providerName]]]></code>
+      <code><![CDATA[$agents[$agent]['raw'][$providerName]]]></code>
+      <code><![CDATA[$agents[$agent]['raw'][$providerName]]]></code>
+      <code><![CDATA[$agents[$agent]['raw'][$providerName]]]></code>
+      <code><![CDATA[$data]]></code>
+    </MixedAssignment>
+    <MoreSpecificReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MoreSpecificReturnType>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/UapCoreSource.php">
+    <MissingTemplateParam>
+      <code><![CDATA[class ($appendIter, 'yaml') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$appendIter]]></code>
+    </MixedArgumentTypeCoercion>
+    <MixedAssignment>
+      <code><![CDATA[$agents[$agent]['client']['name']]]></code>
+      <code><![CDATA[$agents[$agent]['device']['brand']]]></code>
+      <code><![CDATA[$agents[$agent]['device']['name']]]></code>
+      <code><![CDATA[$agents[$agent]['platform']['name']]]></code>
+      <code><![CDATA[$data]]></code>
+    </MixedAssignment>
+    <MixedOperand>
+      <code><![CDATA[$data['major']]]></code>
+      <code><![CDATA[$data['major']]]></code>
+      <code><![CDATA[$data['minor']]]></code>
+      <code><![CDATA[$data['minor']]]></code>
+    </MixedOperand>
+    <MoreSpecificReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MoreSpecificReturnType>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantCondition>
+      <code><![CDATA[assert($file instanceof SplFileInfo)]]></code>
+    </RedundantCondition>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/WhichBrowserSource.php">
+    <DocblockTypeContradiction>
+      <code><![CDATA[is_string($row['headers'])]]></code>
+    </DocblockTypeContradiction>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'yaml') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$row]]></code>
+      <code><![CDATA[$row['result']]]></code>
+    </MixedArgumentTypeCoercion>
+    <MixedAssignment>
+      <code><![CDATA[$browserName]]></code>
+      <code><![CDATA[$browserVersion]]></code>
+      <code><![CDATA[$engineName]]></code>
+      <code><![CDATA[$engineVersion]]></code>
+      <code><![CDATA[$headers]]></code>
+      <code><![CDATA[$osName]]></code>
+      <code><![CDATA[$osVersion]]></code>
+      <code><![CDATA[$row]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[$headers]]></code>
+      <code><![CDATA[array<string, string>]]></code>
+    </MixedReturnTypeCoercion>
+    <MoreSpecificReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MoreSpecificReturnType>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/WootheeSource.php">
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'yaml') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedAssignment>
+      <code><![CDATA[$row]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+  <file src="src/YamlFileSource.php">
+    <InvalidReturnType>
+      <code><![CDATA[iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>]]></code>
+    </InvalidReturnType>
+    <MissingTemplateParam>
+      <code><![CDATA[class ($iterator, 'yaml') extends FilterIterator {]]></code>
+    </MissingTemplateParam>
+    <MixedAssignment>
+      <code><![CDATA[$headers]]></code>
+    </MixedAssignment>
+    <PossiblyNullReference>
+      <code><![CDATA[current]]></code>
+    </PossiblyNullReference>
+    <RedundantConditionGivenDocblockType>
+      <code><![CDATA[assert(is_string($filepath))]]></code>
+      <code><![CDATA[is_string($filepath)]]></code>
+    </RedundantConditionGivenDocblockType>
+    <ReservedWord>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+      <code><![CDATA[void]]></code>
+    </ReservedWord>
+  </file>
+</files>
