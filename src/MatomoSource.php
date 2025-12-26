@@ -165,7 +165,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                 if (array_key_exists('user_agent', $row) && is_string($row['user_agent'])) {
                     if (str_contains($row['user_agent'], "\n")) {
                         $ua    = explode("\n", $row['user_agent']);
-                        $ua    = array_map('trim', $ua);
+                        $ua    = array_map(mb_trim(...), $ua);
                         $agent = mb_trim(implode(' ', $ua));
                     } else {
                         $agent = mb_trim($row['user_agent']);
