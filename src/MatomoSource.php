@@ -44,6 +44,7 @@ use function mb_trim;
 use function sprintf;
 use function str_contains;
 use function str_replace;
+use function trim;
 
 use const CASE_LOWER;
 use const STR_PAD_RIGHT;
