@@ -3,7 +3,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2025, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2026, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -43,7 +43,6 @@ return $config
         array_merge(
             $rules,
             [
-                '@PHP83Migration' => true,
                 'header_comment' => [
                     'header' => $header,
                     'comment_type' => 'PHPDoc',

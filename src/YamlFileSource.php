@@ -3,7 +3,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2025, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2026, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -25,6 +25,7 @@ use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use UnexpectedValueException;
 
+use function array_key_exists;
 use function assert;
 use function file_exists;
 use function is_array;
@@ -67,7 +68,7 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
 
     /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
      * @throws SourceException
      */
@@ -143,8 +144,10 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            foreach ($data as $headers) {
+            foreach ($data as $testCase) {
                 $uid = Uuid::uuid4()->toString();
+
+                $headers = array_key_exists('headers', $testCase) ? $testCase['headers'] : $testCase;
 
                 yield $uid => [
                     'client' => [
@@ -178,8 +181,6 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
                         'name' => null,
                         'version' => null,
                     ],
-                    'file' => $filepath,
-                    'headers' => $headers,
                     'platform' => [
                         'bits' => null,
                         'manufacturer' => null,
@@ -187,7 +188,17 @@ final class YamlFileSource implements OutputAwareInterface, SourceInterface
                         'name' => null,
                         'version' => null,
                     ],
-                    'raw' => $headers,
+                    'file' => $filepath,
+                    'headers' => $headers,
+                    'date-first' => array_key_exists(
+                        'date-first',
+                        $testCase,
+                    ) ? $testCase['date-first'] : null,
+                    'date-last' => array_key_exists(
+                        'date-last',
+                        $testCase,
+                    ) ? $testCase['date-last'] : null,
+                    'raw' => $testCase,
                 ];
             }
         }
