@@ -3,7 +3,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2025, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2026, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -76,7 +76,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
     /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}}>
+     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
      * @throws SourceException
      */
@@ -220,8 +220,6 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
                         'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
                     ],
-                    'file' => $filepath,
-                    'headers' => array_change_key_case($headers, CASE_LOWER),
                     'platform' => [
                         'bits' => null,
                         'manufacturer' => null,
@@ -229,6 +227,10 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         'name' => $row['os']['name'] ?? null,
                         'version' => $row['os']['version'] ?? null,
                     ],
+                    'file' => $filepath,
+                    'headers' => array_change_key_case($headers, CASE_LOWER),
+                    'date-first' => null,
+                    'date-last' => null,
                     'raw' => $row,
                 ];
             }

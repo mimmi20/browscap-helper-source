@@ -3,7 +3,7 @@
 /**
  * This file is part of the browscap-helper-source package.
  *
- * Copyright (c) 2016-2025, Thomas Mueller <mimmi20@live.de>
+ * Copyright (c) 2016-2026, Thomas Mueller <mimmi20@live.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,6 @@ use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\If_\RemoveAlwaysTrueIfConditionRector;
 use Rector\DeadCode\Rector\If_\RemoveDeadInstanceOfRector;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
-use Rector\Php81\Rector\Array_\FirstClassCallableRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
 use Rector\Php84\Rector\MethodCall\NewMethodCallWithoutParenthesesRector;
 use Rector\Set\ValueObject\LevelSetList;
@@ -35,7 +34,6 @@ return static function (RectorConfig $rectorConfig): void {
         [
             NullToStrictStringFuncCallArgRector::class,
             RemoveDeadInstanceOfRector::class,
-            FirstClassCallableRector::class,
             RemoveAlwaysTrueIfConditionRector::class,
             RemoveParentCallWithoutParentRector::class,
             NewMethodCallWithoutParenthesesRector::class,
