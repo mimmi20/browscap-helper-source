@@ -155,7 +155,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                     ],
                     'file' => null,
                     'headers' => $headers,
-                    'date-first' => null,
+                    'date-first' => $row['date'],
                     'date-last' => $row['date'],
                     'raw' => $row,
                 ];
