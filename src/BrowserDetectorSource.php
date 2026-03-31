@@ -160,6 +160,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
             }
 
             foreach ($data as $test) {
+                /** @var array{headers: array<non-empty-string, string>, device: array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool, istv: bool, bits: int|null}, os: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, client: array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, isbot: bool, bits: int|null, modus: string|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}} $test */
                 assert(is_array($test));
 
                 if (!is_array($test['headers']) || !isset($test['headers']['user-agent'])) {
@@ -173,17 +174,17 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
                 $uid = Uuid::uuid4()->toString();
 
                 $deviceType = DeviceType::fromName($test['device']['type']);
-                $clientType = ClientType::fromName($test['client']['type'] ?? $test['browser']['type']);
+                $clientType = ClientType::fromName($test['client']['type'] ?? null);
 
                 yield $uid => [
                     'client' => [
-                        'bits' => $test['client']['bits'] ?? $test['browser']['bits'] ?? null,
+                        'bits' => $test['client']['bits'] ?? null,
                         'isbot' => $clientType->isBot(),
-                        'manufacturer' => $test['client']['manufacturer'] ?? $test['browser']['manufacturer'],
-                        'modus' => $test['client']['modus'] ?? $test['browser']['modus'] ?? null,
-                        'name' => $test['client']['name'] ?? $test['browser']['name'] ?? null,
-                        'type' => $test['client']['type'] ?? $test['browser']['type'],
-                        'version' => $test['client']['version'] ?? $test['browser']['version'] ?? null,
+                        'manufacturer' => $test['client']['manufacturer'] ?? null,
+                        'modus' => $test['client']['modus'] ?? null,
+                        'name' => $test['client']['name'] ?? null,
+                        'type' => $test['client']['type'] ?? null,
+                        'version' => $test['client']['version'] ?? null,
                     ],
                     'device' => [
                         'brand' => $test['device']['brand'],
