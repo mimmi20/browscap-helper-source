@@ -192,9 +192,9 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         'isbot' => !empty($row['bot']),
                         'manufacturer' => null,
                         'modus' => null,
-                        'name' => isset($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
-                        'type' => isset($row['bot']) ? ($row['bot']['category'] ?? null) : ($row['client']['type'] ?? null),
-                        'version' => isset($row['bot']) ? null : ($row['client']['version'] ?? null),
+                        'name' => !empty($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
+                        'type' => !empty($row['bot']) ? ($row['bot']['category'] ?? null) : ($row['client']['type'] ?? null),
+                        'version' => !empty($row['bot']) ? null : ($row['client']['version'] ?? null),
                     ],
                     'device' => [
                         'brand' => (!empty($row['device']['brand']) ? AbstractDeviceParser::getFullName(
