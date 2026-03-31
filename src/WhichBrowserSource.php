@@ -150,6 +150,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
+                /** @var array{result: array{browser: array{name?: string, version?: array{value?: string}|string, type?: string}, engine: array{name?: string, version?: array{value?: string}|string}, os: array{name?: string, version?: array{value?: string}|string}, device: array{type?: string, manufacturer?: string, model?: string}}} $row */
                 assert(is_array($row));
 
                 $lowerHeaders = array_change_key_case($this->getHeadersFromRow($row), CASE_LOWER);

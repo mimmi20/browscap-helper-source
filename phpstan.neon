@@ -108,8 +108,6 @@ parameters:
 
   ignoreErrors:
     - '~Generator expects value type~'
-    - '~will always evaluate to true~'
-    - '~of class FilterIterator~'
     - '~but returns array~'
     - '~expects array~'
 
