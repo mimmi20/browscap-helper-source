@@ -56,22 +56,38 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
     private const string NAME = 'matomo/device-detector';
 
-    private const string PATH = 'vendor/matomo/device-detector/Tests/fixtures';
+    private const array PATHS = [
+        'vendor/matomo/device-detector/Tests/fixtures',
+        'vendor/matomo/device-detector/Tests/Parser/fixtures',
+        'vendor/matomo/device-detector/Tests/Parser/Client/fixtures',
+        'vendor/matomo/device-detector/Tests/Parser/Device/fixtures',
+    ];
 
     /** @throws void */
     #[Override]
     public function isReady(string $parentMessage): bool
     {
-        if (file_exists(self::PATH)) {
-            return true;
+        $notFound = [];
+        $anyFound = false;
+
+        foreach (self::PATHS as $path) {
+            if (!file_exists($path)) {
+                $notFound[] = $path;
+
+                continue;
+            }
+
+            $anyFound = true;
         }
 
-        $this->writeln(
-            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
-            OutputInterface::VERBOSITY_NORMAL,
-        );
+        foreach ($notFound as $path) {
+            $this->writeln(
+                "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', $path),
+                OutputInterface::VERBOSITY_NORMAL,
+            );
+        }
 
-        return false;
+        return $anyFound;
     }
 
     /**
@@ -83,7 +99,24 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
     #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
-        $message = $parentMessage . sprintf('- reading path %s', self::PATH);
+        foreach (self::PATHS as $path) {
+            if (!file_exists($path)) {
+                continue;
+            }
+
+            yield from $this->getPropertiesFromFile($path, $parentMessage, $messageLength);
+        }
+    }
+
+    /**
+     * @return iterable<array<mixed>>
+     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     *
+     * @throws SourceException
+     */
+    private function getPropertiesFromFile(string $path, string $parentMessage, int &$messageLength = 0): iterable
+    {
+        $message = $parentMessage . sprintf('- reading path %s', $path);
 
         if (mb_strlen($message) > $messageLength) {
             $messageLength = mb_strlen($message);
@@ -96,7 +129,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         );
 
         try {
-            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
         } catch (UnexpectedValueException $e) {
             throw new SourceException($e->getMessage(), 0, $e);
         }
