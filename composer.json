@@ -16,12 +16,12 @@
   "require": {
     "php": "~8.5.0 || ~8.6.0",
     "ext-mbstring": "*",
-    "mimmi20/ua-browser-type": "^13.0.0",
+    "mimmi20/ua-browser-type": "^13.0.1",
     "mimmi20/ua-device-type": "^13.0.0",
-    "ramsey/uuid": "^4.9.2",
-    "symfony/console": "^8.0.11",
-    "symfony/finder": "^8.0.8",
-    "symfony/yaml": "^8.0.8"
+    "ramsey/uuid": "^4.9.3",
+    "symfony/console": "^8.1.0",
+    "symfony/finder": "^8.1.0",
+    "symfony/yaml": "^8.1.0"
   },
   "require-dev": {
     "ext-ctype": "*",
