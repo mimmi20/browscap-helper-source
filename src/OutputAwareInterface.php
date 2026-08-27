@@ -25,7 +25,7 @@ interface OutputAwareInterface
      *
      * @param iterable<string|null>|string $messages The message as an iterable of strings or a single string
      * @param bool                         $newline  Whether to add a newline
-     * @param int                          $options  A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
+     * @param int<0, 511>                  $options  A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
      *
      * @throws void
      */
@@ -35,7 +35,7 @@ interface OutputAwareInterface
      * Writes a message to the output and adds a newline at the end.
      *
      * @param iterable<string|null>|string $messages The message as an iterable of strings or a single string
-     * @param int                          $options  A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
+     * @param int<0, 511>                  $options  A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
      *
      * @throws void
      */

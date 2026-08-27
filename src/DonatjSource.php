@@ -27,6 +27,7 @@ use UnexpectedValueException;
 use function assert;
 use function file_exists;
 use function file_get_contents;
+use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -84,8 +85,8 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERBOSE,
+            newline: false,
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -131,18 +132,23 @@ final class DonatjSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                false,
-                OutputInterface::VERBOSITY_VERY_VERBOSE,
+                newline: false,
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             $content = file_get_contents($filepath);
 
-            if ($content === false || $content === '' || $content === PHP_EOL) {
+            if (in_array($content, [false, '', PHP_EOL], strict: true)) {
                 continue;
             }
 
             try {
-                $provider = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+                $provider = json_decode(
+                    $content,
+                    associative: true,
+                    depth: 512,
+                    flags: JSON_THROW_ON_ERROR,
+                );
             } catch (JsonException) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln(

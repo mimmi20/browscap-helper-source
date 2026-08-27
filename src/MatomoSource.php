@@ -124,8 +124,8 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERBOSE,
+            newline: false,
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -171,8 +171,8 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                false,
-                OutputInterface::VERBOSITY_VERY_VERBOSE,
+                newline: false,
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             try {
@@ -298,7 +298,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         AbstractDeviceParser::DEVICE_TYPE_CAMERA,
                         AbstractDeviceParser::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
                     ],
-                    true,
+                    strict: true,
                 )
             ) {
                 return true;
@@ -313,7 +313,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
                         AbstractDeviceParser::DEVICE_TYPE_SMART_DISPLAY,
                         AbstractDeviceParser::DEVICE_TYPE_CONSOLE,
                     ],
-                    true,
+                    strict: true,
                 )
             ) {
                 return false;
@@ -364,7 +364,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
         return in_array(
             $data['os_family'],
             ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'],
-            true,
+            strict: true,
         );
     }
 }

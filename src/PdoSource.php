@@ -107,7 +107,12 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                 }
 
                 try {
-                    $headers = json_decode($headerString, true, 512, JSON_THROW_ON_ERROR);
+                    $headers = json_decode(
+                        $headerString,
+                        associative: true,
+                        depth: 512,
+                        flags: JSON_THROW_ON_ERROR,
+                    );
                 } catch (JsonException) {
                     continue;
                 }
