@@ -77,12 +77,12 @@ final readonly class UserAgent implements Stringable
         $stringHeaders = explode(SourceInterface::DELIMETER_HEADER, $string);
         $headers       = [];
 
-        foreach ($stringHeaders as $value) {
-            if ($value === '') {
+        foreach ($stringHeaders as $stringHeader) {
+            if ($stringHeader === '') {
                 continue;
             }
 
-            [$name, $valueRow] = explode(SourceInterface::DELIMETER_HEADER_ROW, $value);
+            [$name, $valueRow] = explode(SourceInterface::DELIMETER_HEADER_ROW, $stringHeader);
 
             $headers[$name] = $valueRow;
         }

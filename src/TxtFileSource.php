@@ -84,8 +84,8 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERBOSE,
+            newline: false,
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -131,8 +131,8 @@ final class TxtFileSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                false,
-                OutputInterface::VERBOSITY_VERY_VERBOSE,
+                newline: false,
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             $handle = @fopen($filepath, 'r');

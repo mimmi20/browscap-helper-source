@@ -88,8 +88,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERBOSE,
+            newline: false,
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -135,8 +135,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                false,
-                OutputInterface::VERBOSITY_VERY_VERBOSE,
+                newline: false,
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             try {
@@ -310,16 +310,10 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
         $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
 
-        if (in_array($data['device']['type'], $mobileTypes, true)) {
+        if (in_array($data['device']['type'], $mobileTypes, strict: true)) {
             return true;
         }
 
-        if ($data['device']['type'] === 'gaming') {
-            if (isset($data['device']['subtype']) && $data['device']['subtype'] === 'portable') {
-                return true;
-            }
-        }
-
-        return false;
+        return $data['device']['type'] === 'gaming' && (isset($data['device']['subtype']) && $data['device']['subtype'] === 'portable');
     }
 }

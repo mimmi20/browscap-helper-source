@@ -48,10 +48,10 @@ trait GetUserAgentsTrait
     #[Override]
     public function getHeaders(string $message, int &$messageLength = 0): iterable
     {
-        foreach ($this->getProperties($message, $messageLength) as $uid => $row) {
+        foreach ($this->getProperties($message, $messageLength) as $uid => $property) {
             assert(is_string($uid));
 
-            yield $uid => $row['headers'];
+            yield $uid => $property['headers'];
         }
     }
 }

@@ -79,8 +79,8 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERBOSE,
+            newline: false,
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -126,8 +126,8 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                false,
-                OutputInterface::VERBOSITY_VERY_VERBOSE,
+                newline: false,
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -136,8 +136,8 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
                 continue;
             }
 
-            foreach ($lines as $ua) {
-                if (empty($ua)) {
+            foreach ($lines as $line) {
+                if (empty($line)) {
                     continue;
                 }
 
@@ -187,10 +187,10 @@ final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
                         'version' => null,
                     ],
                     'file' => $filepath,
-                    'headers' => [$headerName => $ua],
+                    'headers' => [$headerName => $line],
                     'date-first' => null,
                     'date-last' => null,
-                    'raw' => $ua,
+                    'raw' => $line,
                 ];
             }
         }

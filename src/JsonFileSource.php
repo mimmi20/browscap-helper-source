@@ -29,6 +29,7 @@ use function array_key_exists;
 use function assert;
 use function file_exists;
 use function file_get_contents;
+use function in_array;
 use function is_array;
 use function is_string;
 use function json_decode;
@@ -87,8 +88,8 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            false,
-            OutputInterface::VERBOSITY_VERBOSE,
+            newline: false,
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -134,18 +135,23 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                false,
-                OutputInterface::VERBOSITY_VERY_VERBOSE,
+                newline: false,
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             $content = file_get_contents($filepath);
 
-            if ($content === false || $content === '' || $content === PHP_EOL) {
+            if (in_array($content, [false, '', PHP_EOL], strict: true)) {
                 continue;
             }
 
             try {
-                $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+                $data = json_decode(
+                    $content,
+                    associative: true,
+                    depth: 512,
+                    flags: JSON_THROW_ON_ERROR,
+                );
             } catch (JsonException $e) {
                 $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
                 $this->writeln(
@@ -209,14 +215,8 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
                     ],
                     'file' => $filepath,
                     'headers' => $headers,
-                    'date-first' => array_key_exists(
-                        'date-first',
-                        $testCase,
-                    ) ? $testCase['date-first'] : null,
-                    'date-last' => array_key_exists(
-                        'date-last',
-                        $testCase,
-                    ) ? $testCase['date-last'] : null,
+                    'date-first' => $testCase['date-first'] ?? null,
+                    'date-last' => $testCase['date-last'] ?? null,
                     'raw' => $testCase,
                 ];
             }
