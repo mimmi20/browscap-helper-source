@@ -69,7 +69,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      *
      * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
@@ -83,7 +83,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
         try {
             $stmt = $this->pdo->prepare($sql, $driverOptions);
         } catch (PDOException $e) {
-            throw new SourceException($e->getMessage(), 0, $e);
+            throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
 
         assert($stmt instanceof PDOStatement);
@@ -91,7 +91,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
         try {
             $stmt->execute();
         } catch (PDOException $e) {
-            throw new SourceException($e->getMessage(), 0, $e);
+            throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
 
         try {
@@ -110,11 +110,10 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                     $headers = json_decode(
                         $headerString,
                         associative: true,
-                        depth: 512,
                         flags: JSON_THROW_ON_ERROR,
                     );
-                } catch (JsonException) {
-                    continue;
+                } catch (JsonException $e) {
+                    throw new Exception\SourceException($e->getMessage(), 0, $e);
                 }
 
                 $uid = Uuid::uuid4()->toString();
@@ -166,7 +165,7 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                 ];
             }
         } catch (PDOException $e) {
-            throw new SourceException($e->getMessage(), 0, $e);
+            throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
     }
 }

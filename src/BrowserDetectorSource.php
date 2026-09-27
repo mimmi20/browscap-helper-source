@@ -15,13 +15,14 @@ namespace BrowscapHelper\Source;
 
 use FilterIterator;
 use Iterator;
-use JsonException;
 use Override;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 use UaBrowserType\Type as ClientType;
 use UaDeviceType\Type as DeviceType;
 use UnexpectedValueException;
@@ -29,19 +30,14 @@ use UnexpectedValueException;
 use function array_change_key_case;
 use function assert;
 use function file_exists;
-use function file_get_contents;
-use function in_array;
 use function is_array;
 use function is_string;
-use function json_decode;
 use function mb_str_pad;
 use function mb_strlen;
 use function sprintf;
 use function str_replace;
 
 use const CASE_LOWER;
-use const JSON_THROW_ON_ERROR;
-use const PHP_EOL;
 use const STR_PAD_RIGHT;
 
 final class BrowserDetectorSource implements OutputAwareInterface, SourceInterface
@@ -74,7 +70,7 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      */
     #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
@@ -87,17 +83,16 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            newline: false,
             options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::PATH));
         } catch (UnexpectedValueException $e) {
-            throw new SourceException($e->getMessage(), 0, $e);
+            throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
 
-        $files = new class ($iterator, 'json') extends FilterIterator {
+        $files = new class ($iterator, 'yaml') extends FilterIterator {
             /**
              * @param Iterator<SplFileInfo> $iterator
              *
@@ -134,31 +129,13 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                newline: false,
                 options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
-            $content = file_get_contents($filepath);
-
-            if (in_array($content, [false, '', PHP_EOL], strict: true)) {
-                continue;
-            }
-
             try {
-                $data = json_decode(
-                    $content,
-                    associative: true,
-                    depth: 512,
-                    flags: JSON_THROW_ON_ERROR,
-                );
-            } catch (JsonException) {
-                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln(
-                    '    <error>parsing file content [' . $filepath . '] failed</error>',
-                    OutputInterface::VERBOSITY_NORMAL,
-                );
-
-                continue;
+                $data = Yaml::parseFile($filepath);
+            } catch (ParseException $e) {
+                throw new Exception\SourceException($e->getMessage(), 0, $e);
             }
 
             if (!is_array($data)) {
@@ -167,7 +144,9 @@ final class BrowserDetectorSource implements OutputAwareInterface, SourceInterfa
 
             foreach ($data as $test) {
                 /** @var array{headers: array<non-empty-string, string>, device: array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool, istv: bool, bits: int|null}, os: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, client: array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, isbot: bool, bits: int|null, modus: string|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}} $test */
-                assert(is_array($test));
+                if (!is_array($test)) {
+                    continue;
+                }
 
                 if (!is_array($test['headers']) || !isset($test['headers']['user-agent'])) {
                     continue;

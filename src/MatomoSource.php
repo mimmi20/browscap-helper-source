@@ -94,7 +94,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      */
     #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
@@ -112,7 +112,7 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      */
     private function getPropertiesFromFile(string $path, string $parentMessage, int &$messageLength = 0): iterable
     {
@@ -124,14 +124,13 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            newline: false,
             options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
         } catch (UnexpectedValueException $e) {
-            throw new SourceException($e->getMessage(), 0, $e);
+            throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
 
         $files = new class ($iterator, 'yml') extends FilterIterator {
@@ -171,14 +170,13 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                newline: false,
                 options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             try {
                 $data = Yaml::parseFile($filepath);
             } catch (ParseException $e) {
-                throw new SourceException($e->getMessage(), 0, $e);
+                throw new Exception\SourceException($e->getMessage(), 0, $e);
             }
 
             if (!is_array($data)) {
@@ -186,9 +184,11 @@ final class MatomoSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $row) {
-                assert(is_array($row));
+                /** @var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int, model?: string, brand?: string}} $row */
+                if (!is_array($row)) {
+                    continue;
+                }
 
-                /** @phpstan-var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int, model?: string, brand?: string}} $row */
                 if (!array_key_exists('user_agent', $row) && !array_key_exists('headers', $row)) {
                     continue;
                 }

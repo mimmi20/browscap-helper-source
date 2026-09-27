@@ -13,7 +13,6 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use Exception;
 use FilterIterator;
 use Iterator;
 use JsonException;
@@ -75,7 +74,7 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
      * @return iterable<array<mixed>>
      * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      */
     #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
@@ -88,14 +87,13 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
 
         $this->write(
             "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            newline: false,
             options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->dir));
         } catch (UnexpectedValueException $e) {
-            throw new SourceException($e->getMessage(), 0, $e);
+            throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
 
         $files = new class ($iterator, 'json') extends FilterIterator {
@@ -135,7 +133,6 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                newline: false,
                 options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
@@ -146,23 +143,9 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             }
 
             try {
-                $data = json_decode(
-                    $content,
-                    associative: true,
-                    depth: 512,
-                    flags: JSON_THROW_ON_ERROR,
-                );
+                $data = json_decode($content, associative: true, flags: JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
-                $this->writeln('', OutputInterface::VERBOSITY_VERBOSE);
-                $this->writeln(
-                    '<error>' . (new Exception(
-                        sprintf('file %s contains invalid json.', $filepath),
-                        0,
-                        $e,
-                    )) . '</error>',
-                );
-
-                continue;
+                throw new Exception\SourceException($e->getMessage(), 0, $e);
             }
 
             if (!is_array($data)) {
@@ -170,6 +153,10 @@ final class JsonFileSource implements OutputAwareInterface, SourceInterface
             }
 
             foreach ($data as $testCase) {
+                if (!is_array($testCase)) {
+                    continue;
+                }
+
                 $uid = Uuid::uuid4()->toString();
 
                 $headers = array_key_exists('headers', $testCase) ? $testCase['headers'] : $testCase;
