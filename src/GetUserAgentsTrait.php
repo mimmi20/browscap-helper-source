@@ -24,7 +24,7 @@ trait GetUserAgentsTrait
     /**
      * @return iterable<non-empty-string, non-empty-string>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      */
     #[Override]
     public function getUserAgents(string $message, int &$messageLength = 0): iterable
@@ -43,7 +43,7 @@ trait GetUserAgentsTrait
     /**
      * @return iterable<non-empty-string, array<non-empty-string, non-empty-string>>
      *
-     * @throws SourceException
+     * @throws Exception\SourceException
      */
     #[Override]
     public function getHeaders(string $message, int &$messageLength = 0): iterable

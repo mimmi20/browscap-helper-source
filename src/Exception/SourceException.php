@@ -11,7 +11,7 @@
 
 declare(strict_types = 1);
 
-namespace BrowscapHelper\Source;
+namespace BrowscapHelper\Source\Exception;
 
 use UnexpectedValueException;
 

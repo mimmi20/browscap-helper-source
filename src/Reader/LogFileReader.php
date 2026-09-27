@@ -67,7 +67,6 @@ final class LogFileReader implements OutputAwareInterface, ReaderInterface
 
             $this->write(
                 "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                newline: false,
                 options: OutputInterface::VERBOSITY_VERBOSE,
             );
 

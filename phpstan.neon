@@ -116,6 +116,12 @@ parameters:
     - '~Generator expects value type~'
     - '~but returns array~'
     - '~expects array~'
+    -
+      identifier: symplify.forbiddenNode
+    -
+      identifier: symplify.noReference
+    -
+      identifier: symplify.requiredInterfaceContractNamespace
 
 services:
   errorFormatter.sarif:
