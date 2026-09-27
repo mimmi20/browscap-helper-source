@@ -154,11 +154,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                     continue;
                 }
 
-                try {
-                    $lowerHeaders = array_change_key_case($this->getHeadersFromRow($row), CASE_LOWER);
-                } catch (ValueError $e) {
-                    throw new Exception\SourceException($e->getMessage(), 0, $e);
-                }
+                $lowerHeaders = array_change_key_case($this->getHeadersFromRow($row), CASE_LOWER);
 
                 if ($lowerHeaders === []) {
                     continue;
@@ -262,7 +258,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
      *
      * @return array<string, string>
      *
-     * @throws ValueError
+     * @throws void
      */
     private function getHeadersFromRow(array $row): array
     {
