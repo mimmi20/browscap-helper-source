@@ -19,8 +19,8 @@
     "mimmi20/ua-browser-type": "^13.0.3",
     "mimmi20/ua-device-type": "^13.0.1",
     "ramsey/uuid": "^4.9.4",
-    "symfony/console": "^8.1.7",
-    "symfony/yaml": "^8.1.6"
+    "symfony/console": "^8.1.9",
+    "symfony/yaml": "^8.1.9"
   },
   "require-dev": {
     "ext-json": "*",
