@@ -19,7 +19,6 @@ use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
 use function assert;
@@ -52,7 +51,7 @@ final readonly class PdoSource implements SourceInterface
     private const string NAME = 'pdo-source';
 
     /** @throws void */
-    public function __construct(private PDO $pdo, private LoggerInterface $consoleLogger, private string $dbName = '')
+    public function __construct(private PDO $pdo, private string $dbName = '')
     {
     }
 
@@ -150,50 +149,45 @@ final readonly class PdoSource implements SourceInterface
 
                 yield $uid => new TestProperties(
                     headers: $lowerHeaders,
-                    result: $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => null,
-                                'type' => null,
-                                'version' => null,
-                            ],
-                            'device' => [
-                                'architecture' => null,
-                                'brand' => null,
-                                'deviceName' => null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => null,
-                                'bits' => null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => null,
-                                'version' => null,
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => null,
-                                'version' => null,
-                            ],
+                    device: [
+                        'architecture' => null,
+                        'brand' => null,
+                        'deviceName' => null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: $lowerHeaders,
-                    ),
+                        'dualOrientation' => null,
+                        'ismobile' => null,
+                        'istv' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => null,
+                        'bits' => null,
+                    ],
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
+                        'type' => null,
+                        'version' => null,
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
                     file: null,
                     dateFirst: is_string($row['date']) ? $row['date'] : date('Y-m-d'),
                     dateLast: is_string($row['date']) ? $row['date'] : date('Y-m-d'),

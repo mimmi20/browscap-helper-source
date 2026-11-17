@@ -22,6 +22,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
+use UaDeviceType\Type as DeviceType;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -135,13 +136,49 @@ final readonly class BrowserDetectorSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
+                $deviceType = DeviceType::fromName($test['device']['type']);
+
                 yield $uid => new TestProperties(
                     headers: array_change_key_case($test['headers'], CASE_LOWER),
-                    result: $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: $test,
-                        headers: array_change_key_case($test['headers'], CASE_LOWER),
-                    ),
+                    device: [
+                        'architecture' => $test['device']['architecture'],
+                        'brand' => $test['device']['brand'],
+                        'deviceName' => $test['device']['deviceName'],
+                        'display' => [
+                            'height' => $test['device']['display']['height'],
+                            'size' => $test['device']['display']['size'],
+                            'touch' => $test['device']['display']['touch'],
+                            'width' => $test['device']['display']['width'],
+                        ],
+                        'dualOrientation' => $test['device']['dualOrientation'] ?? null,
+                        'ismobile' => $deviceType->isMobile(),
+                        'istv' => $deviceType->isTv(),
+                        'manufacturer' => $test['device']['manufacturer'],
+                        'marketingName' => $test['device']['marketingName'],
+                        'simCount' => $test['device']['simCount'] ?? null,
+                        'type' => $test['device']['type'],
+                        'bits' => $test['device']['bits'] ?? null,
+                    ],
+                    os: [
+                        'bits' => $test['os']['bits'] ?? null,
+                        'manufacturer' => $test['os']['manufacturer'],
+                        'marketingName' => $test['os']['marketingName'],
+                        'name' => $test['os']['name'],
+                        'version' => $test['os']['version'] ?? null,
+                    ],
+                    client: [
+                        'bits' => $test['client']['bits'] ?? null,
+                        'manufacturer' => $test['client']['manufacturer'] ?? null,
+                        'modus' => $test['client']['modus'] ?? null,
+                        'name' => $test['client']['name'] ?? null,
+                        'type' => $test['client']['type'] ?? null,
+                        'version' => $test['client']['version'] ?? null,
+                    ],
+                    engine: [
+                        'manufacturer' => $test['engine']['manufacturer'],
+                        'name' => $test['engine']['name'],
+                        'version' => $test['engine']['version'],
+                    ],
                     file: $filepath,
                     dateFirst: date('Y-m-d'),
                     dateLast: date('Y-m-d'),

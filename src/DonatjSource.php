@@ -148,54 +148,49 @@ final readonly class DonatjSource implements SourceInterface
 
                 yield $uid => new TestProperties(
                     headers: ['user-agent' => $agent],
-                    result: $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => is_string($testData['browser']) ? $testData['browser'] : null,
-                                'type' => null,
-                                'version' => is_string(
-                                    $testData['version'],
-                                ) ? $testData['version'] : null,
-                            ],
-                            'device' => [
-                                'architecture' => null,
-                                'brand' => null,
-                                'deviceName' => null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => null,
-                                'bits' => null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => null,
-                                'version' => null,
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => is_string($testData['platform'])
-                                    ? $testData['platform']
-                                    : null,
-                                'version' => null,
-                            ],
+                    device: [
+                        'architecture' => null,
+                        'brand' => null,
+                        'deviceName' => null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: ['user-agent' => $agent],
-                    ),
+                        'dualOrientation' => null,
+                        'ismobile' => null,
+                        'istv' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => null,
+                        'bits' => null,
+                    ],
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => is_string($testData['platform'])
+                            ? $testData['platform']
+                            : null,
+                        'version' => null,
+                    ],
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => is_string($testData['browser']) ? $testData['browser'] : null,
+                        'type' => null,
+                        'version' => is_string($testData['version'])
+                            ? $testData['version']
+                            : null,
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
                     file: $filepath,
                     dateFirst: date('Y-m-d'),
                     dateLast: date('Y-m-d'),

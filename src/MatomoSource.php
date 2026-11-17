@@ -199,52 +199,47 @@ final readonly class MatomoSource implements SourceInterface
 
                 yield $uid => new TestProperties(
                     headers: array_change_key_case($headers, CASE_LOWER),
-                    result: $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => !empty($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
-                                'type' => !empty($row['bot']) ? ($row['bot']['category'] ?? null) : ($row['client']['type'] ?? null),
-                                'version' => !empty($row['bot']) ? null : ($row['client']['version'] ?? null),
-                            ],
-                            'device' => [
-                                'architecture' => null,
-                                'brand' => !empty($row['device']['brand'])
-                                    ? AbstractDeviceParser::getFullName($row['device']['brand'])
-                                    : null,
-                                'deviceName' => $row['device']['model'] ?? null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => $this->isMobile($row),
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => $row['device']['type'] ?? null,
-                                'bits' => null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
-                                'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => $row['os']['name'] ?? null,
-                                'version' => $row['os']['version'] ?? null,
-                            ],
+                    device: [
+                        'architecture' => null,
+                        'brand' => !empty($row['device']['brand'])
+                            ? AbstractDeviceParser::getFullName($row['device']['brand'])
+                            : null,
+                        'deviceName' => $row['device']['model'] ?? null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: array_change_key_case($headers, CASE_LOWER),
-                    ),
+                        'dualOrientation' => null,
+                        'ismobile' => $this->isMobile($row),
+                        'istv' => $this->isTv($row),
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => $row['device']['type'] ?? null,
+                        'bits' => null,
+                    ],
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => $row['os']['name'] ?? null,
+                        'version' => $row['os']['version'] ?? null,
+                    ],
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => !empty($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
+                        'type' => !empty($row['bot']) ? ($row['bot']['category'] ?? null) : ($row['client']['type'] ?? null),
+                        'version' => !empty($row['bot']) ? null : ($row['client']['version'] ?? null),
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
+                        'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
+                    ],
                     file: $filepath,
                     dateFirst: date('Y-m-d'),
                     dateLast: date('Y-m-d'),
@@ -320,6 +315,31 @@ final readonly class MatomoSource implements SourceInterface
         }
 
         return !$this->isDesktop($data);
+    }
+
+    /**
+     * @param array<mixed> $data
+     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string}} $data
+     *
+     * @throws void
+     */
+    private function isTv(array $data): bool
+    {
+        if (empty($data['device']['type'])) {
+            return false;
+        }
+
+        $device     = $data['device']['type'];
+        $deviceType = AbstractDeviceParser::getAvailableDeviceTypes()[$device];
+
+        if (!empty($deviceType)) {
+            // non mobile device types
+            if ($deviceType === AbstractDeviceParser::DEVICE_TYPE_TV) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

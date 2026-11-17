@@ -13,18 +13,23 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source\Entity;
 
-use UaResult\Result\Result;
-
 final class TestProperties
 {
     /**
-     * @param array<non-empty-string, non-empty-string> $headers
+     * @param array<non-empty-string, non-empty-string>                                                                                                                                                                                                                                                                                                                                $headers
+     * @param array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool|null, istv: bool|null, bits: int|null} $device
+     * @param array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}                                                                                                                                                                                                                                                    $os
+     * @param array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, bits: int|null, modus: string|null}                                                                                                                                                                                                                                         $client
+     * @param array{name: string|null, version: string|null, manufacturer: string|null}                                                                                                                                                                                                                                                                                                $engine
      *
      * @throws void
      */
     public function __construct(
         private readonly array $headers,
-        private readonly Result $result,
+        private readonly array $device,
+        private readonly array $os,
+        private readonly array $client,
+        private readonly array $engine,
         private readonly string | null $file,
         private string $dateFirst,
         private string $dateLast,
@@ -46,13 +51,51 @@ final class TestProperties
     }
 
     /**
+     * @return array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool|null, istv: bool|null, bits: int|null}
+     *
      * @throws void
      *
      * @api
      */
-    public function getResult(): Result
+    public function getDevice(): array
     {
-        return $this->result;
+        return $this->device;
+    }
+
+    /**
+     * @return array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}
+     *
+     * @throws void
+     *
+     * @api
+     */
+    public function getOs(): array
+    {
+        return $this->os;
+    }
+
+    /**
+     * @return array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, bits: int|null, modus: string|null}
+     *
+     * @throws void
+     *
+     * @api
+     */
+    public function getClient(): array
+    {
+        return $this->client;
+    }
+
+    /**
+     * @return array{name: string|null, version: string|null, manufacturer: string|null}
+     *
+     * @throws void
+     *
+     * @api
+     */
+    public function getEngine(): array
+    {
+        return $this->engine;
     }
 
     /**
