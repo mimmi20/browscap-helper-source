@@ -13,17 +13,16 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
-use FilterIterator;
+use BrowserDetector\Iterator\FilterIterator;
 use Header;
-use Iterator;
 use Override;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use SplFileInfo;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
+use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -45,15 +44,20 @@ use function str_replace;
 use const CASE_LOWER;
 use const STR_PAD_RIGHT;
 
-final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
+final readonly class WhichBrowserSource implements SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
-    use OutputAwareTrait;
 
     private const string NAME = 'whichbrowser/parser';
 
     private const string PATH = 'vendor/whichbrowser/parser/tests/data';
+
+    /** @throws void */
+    public function __construct(private LoggerInterface $consoleLogger)
+    {
+        // do nothing
+    }
 
     /** @throws void */
     #[Override]
@@ -63,9 +67,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             return true;
         }
 
-        $this->writeln(
-            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found</error>', self::PATH),
-            OutputInterface::VERBOSITY_NORMAL,
+        $this->consoleLogger->error(
+            $parentMessage . sprintf('- path %s not found', self::PATH),
         );
 
         return false;
@@ -73,7 +76,7 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
 
     /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
      * @throws Exception\SourceException
      */
@@ -86,9 +89,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->write(
-            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-            options: OutputInterface::VERBOSITY_VERBOSE,
+        $this->consoleLogger->info(
+            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
         );
 
         try {
@@ -97,31 +99,9 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
             throw new Exception\SourceException($e->getMessage(), 0, $e);
         }
 
-        $files = new class ($iterator, 'yaml') extends FilterIterator {
-            /**
-             * @param Iterator<SplFileInfo> $iterator
-             *
-             * @throws void
-             */
-            public function __construct(Iterator $iterator, private readonly string $extension)
-            {
-                parent::__construct($iterator);
-            }
-
-            /** @throws void */
-            #[Override]
-            public function accept(): bool
-            {
-                $file = $this->getInnerIterator()->current();
-
-                assert($file instanceof SplFileInfo);
-
-                return $file->isFile() && $file->getExtension() === $this->extension;
-            }
-        };
+        $files = new FilterIterator($iterator, 'yaml');
 
         foreach ($files as $file) {
-            assert($file instanceof SplFileInfo);
             $pathName = $file->getPathname();
             $filepath = str_replace('\\', '/', $pathName);
             assert(is_string($filepath));
@@ -132,9 +112,8 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->write(
-                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
-                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
+            $this->consoleLogger->info(
+                mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
             );
 
             try {
@@ -204,46 +183,51 @@ final class WhichBrowserSource implements OutputAwareInterface, SourceInterface
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'client' => [
-                        'bits' => null,
-                        'isbot' => isset($row['result']['device']['type']) && $row['result']['device']['type'] === 'bot',
-                        'manufacturer' => null,
-                        'modus' => null,
-                        'name' => $browserName,
-                        'type' => $row['result']['browser']['type'] ?? null,
-                        'version' => $browserVersion,
-                    ],
-                    'device' => [
-                        'brand' => $row['result']['device']['manufacturer'] ?? null,
-                        'deviceName' => $row['result']['device']['model'] ?? null,
-                        'display' => [
-                            'height' => null,
-                            'size' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'width' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'ismobile' => $this->isMobile($row['result']),
-                        'manufacturer' => null,
-                        'marketingName' => null,
-                        'simCount' => null,
-                        'type' => $row['result']['device']['type'] ?? null,
-                    ],
-                    'engine' => [
-                        'manufacturer' => null,
-                        'name' => $engineName,
-                        'version' => $engineVersion,
-                    ],
-                    'platform' => [
-                        'bits' => null,
-                        'manufacturer' => null,
-                        'marketingName' => null,
-                        'name' => $osName,
-                        'version' => $osVersion,
-                    ],
-                    'file' => $filepath,
                     'headers' => $lowerHeaders,
+                    'result' => $this->buildResult(
+                        consoleLogger: $this->consoleLogger,
+                        data: [
+                            'client' => [
+                                'bits' => null,
+                                'isbot' => isset($row['result']['device']['type']) && $row['result']['device']['type'] === 'bot',
+                                'manufacturer' => null,
+                                'modus' => null,
+                                'name' => $browserName,
+                                'type' => $row['result']['browser']['type'] ?? null,
+                                'version' => $browserVersion,
+                            ],
+                            'device' => [
+                                'brand' => $row['result']['device']['manufacturer'] ?? null,
+                                'deviceName' => $row['result']['device']['model'] ?? null,
+                                'display' => [
+                                    'height' => null,
+                                    'size' => null,
+                                    'touch' => null,
+                                    'width' => null,
+                                ],
+                                'dualOrientation' => null,
+                                'ismobile' => $this->isMobile($row['result']),
+                                'manufacturer' => null,
+                                'marketingName' => null,
+                                'simCount' => null,
+                                'type' => $row['result']['device']['type'] ?? null,
+                            ],
+                            'engine' => [
+                                'manufacturer' => null,
+                                'name' => $engineName,
+                                'version' => $engineVersion,
+                            ],
+                            'os' => [
+                                'bits' => null,
+                                'manufacturer' => null,
+                                'marketingName' => null,
+                                'name' => $osName,
+                                'version' => $osVersion,
+                            ],
+                        ],
+                        headers: $lowerHeaders,
+                    ),
+                    'file' => $filepath,
                     'date-first' => null,
                     'date-last' => null,
                     'raw' => $row,

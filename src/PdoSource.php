@@ -18,7 +18,9 @@ use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use UaResult\Result\Result;
 
 use function assert;
 use function is_array;
@@ -41,16 +43,14 @@ use const JSON_THROW_ON_ERROR;
  * ) ENGINE=InnoDB AUTO_INCREMENT=228817 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 ROW_FORMAT=COMPACT;
  * </code>
  */
-final class PdoSource implements OutputAwareInterface, SourceInterface
+final readonly class PdoSource implements SourceInterface
 {
-    use GetNameTrait;
     use GetUserAgentsTrait;
-    use OutputAwareTrait;
 
     private const string NAME = 'pdo-source';
 
     /** @throws void */
-    public function __construct(private readonly PDO $pdo)
+    public function __construct(private PDO $pdo, private LoggerInterface $consoleLogger, private string $dbName = '')
     {
     }
 
@@ -65,9 +65,16 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
         return true;
     }
 
+    /** @throws void */
+    #[Override]
+    public function getName(): string
+    {
+        return self::NAME . '(' . $this->dbName . ')';
+    }
+
     /**
      * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, device: array{deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, display: array{width: int|null, height: int|null, touch: bool|null, type: string|null, size: float|int|null}, type: string|null, ismobile: bool|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, bits: int|null, type: string|null, isbot: bool|null}, platform: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
      *
      * @throws Exception\SourceException
      *
@@ -119,46 +126,51 @@ final class PdoSource implements OutputAwareInterface, SourceInterface
                 $uid = Uuid::uuid4()->toString();
 
                 yield $uid => [
-                    'client' => [
-                        'bits' => null,
-                        'isbot' => null,
-                        'manufacturer' => null,
-                        'modus' => null,
-                        'name' => null,
-                        'type' => null,
-                        'version' => null,
-                    ],
-                    'device' => [
-                        'brand' => null,
-                        'deviceName' => null,
-                        'display' => [
-                            'height' => null,
-                            'size' => null,
-                            'touch' => null,
-                            'type' => null,
-                            'width' => null,
-                        ],
-                        'dualOrientation' => null,
-                        'ismobile' => null,
-                        'manufacturer' => null,
-                        'marketingName' => null,
-                        'simCount' => null,
-                        'type' => null,
-                    ],
-                    'engine' => [
-                        'manufacturer' => null,
-                        'name' => null,
-                        'version' => null,
-                    ],
-                    'platform' => [
-                        'bits' => null,
-                        'manufacturer' => null,
-                        'marketingName' => null,
-                        'name' => null,
-                        'version' => null,
-                    ],
-                    'file' => null,
                     'headers' => $headers,
+                    'result' => $this->buildResult(
+                        consoleLogger: $this->consoleLogger,
+                        data: [
+                            'client' => [
+                                'bits' => null,
+                                'isbot' => null,
+                                'manufacturer' => null,
+                                'modus' => null,
+                                'name' => null,
+                                'type' => null,
+                                'version' => null,
+                            ],
+                            'device' => [
+                                'brand' => null,
+                                'deviceName' => null,
+                                'display' => [
+                                    'height' => null,
+                                    'size' => null,
+                                    'touch' => null,
+                                    'width' => null,
+                                ],
+                                'dualOrientation' => null,
+                                'ismobile' => null,
+                                'manufacturer' => null,
+                                'marketingName' => null,
+                                'simCount' => null,
+                                'type' => null,
+                            ],
+                            'engine' => [
+                                'manufacturer' => null,
+                                'name' => null,
+                                'version' => null,
+                            ],
+                            'os' => [
+                                'bits' => null,
+                                'manufacturer' => null,
+                                'marketingName' => null,
+                                'name' => null,
+                                'version' => null,
+                            ],
+                        ],
+                        headers: $headers,
+                    ),
+                    'file' => null,
                     'date-first' => $row['date'],
                     'date-last' => $row['date'],
                     'raw' => $row,
