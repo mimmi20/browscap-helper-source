@@ -48,13 +48,13 @@ trait GetUserAgentsTrait
         foreach ($this->getProperties($message, $messageLength) as $uid => $property) {
             assert(is_string($uid));
 
-            yield $uid => $property['headers'];
+            yield $uid => $property->getHeaders();
         }
     }
 
     /**
-     * @param array{device: array{architecture: string, deviceName: string|null, marketingName: string|null, manufacturer: string, brand: string, type: string, ismobile: bool, istv: bool, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null}, dualOrientation: bool|null, simCount: int|null, bits: int}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string, type: string, isbot: bool, bits: int}, os: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string, bits: int}, engine: array{name: string|null, version: string|null, manufacturer: string}, date-first?: string, date-last?: string} $data
-     * @param array<non-empty-string, non-empty-string>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        $headers
+     * @param array{device: array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, type: string|null, ismobile: bool|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null}, dualOrientation: bool|null, simCount: int|null, bits: int|null}, client: array{name: string|null, modus: string|null, version: string|null, manufacturer: string|null, type: string|null, bits: int|null}, os: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}, date-first?: string, date-last?: string} $data
+     * @param array<non-empty-string, non-empty-string>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           $headers
      *
      * @throws void
      */
@@ -116,7 +116,7 @@ trait GetUserAgentsTrait
         return new Result(
             headers: $headers,
             device: new Device(
-                architecture: Architecture::tryFrom($data['device']['architecture'])
+                architecture: Architecture::tryFrom($data['device']['architecture'] ?? '')
                     ?? Architecture::unknown,
                 deviceName: $data['device']['deviceName'] ?? null,
                 marketingName: $data['device']['marketingName'] ?? null,
@@ -132,7 +132,7 @@ trait GetUserAgentsTrait
                 dualOrientation: $data['device']['dualOrientation'] ?? null,
                 simCount: $data['device']['simCount'] ?? null,
                 bits: Bits::tryFrom($data['device']['bits'] ?? 0) ?? Bits::unknown,
-                isMobile: $data['device']['isMobile'] ?? null,
+                isMobile: $data['device']['ismobile'] ?? null,
             ),
             os: new Os(
                 name: $data['os']['name'] ?? null,

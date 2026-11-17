@@ -51,7 +51,6 @@
     "woothee/woothee-testset": "^1.13.0"
   },
   "suggest": {
-    "ext-http": "to parse headers in the WhichBrowserSource",
     "ext-json": "required for several sources",
     "ext-pdo": "required for the PdoSource",
     "ext-simplexml": "required for the EndorphinSource or the SinergiSource",

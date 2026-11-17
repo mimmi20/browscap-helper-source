@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use JsonException;
 use Override;
 use PDO;
@@ -20,12 +21,13 @@ use PDOException;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
-use UaResult\Result\Result;
 
 use function assert;
+use function date;
 use function is_array;
-use function is_scalar;
+use function is_string;
 use function json_decode;
+use function mb_strtolower;
 use function mb_trim;
 
 use const JSON_THROW_ON_ERROR;
@@ -73,8 +75,7 @@ final readonly class PdoSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      *
@@ -103,7 +104,7 @@ final readonly class PdoSource implements SourceInterface
 
         try {
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                if (!is_array($row) || !is_scalar($row['headers'])) {
+                if (!is_array($row) || !is_string($row['headers'])) {
                     continue;
                 }
 
@@ -123,16 +124,37 @@ final readonly class PdoSource implements SourceInterface
                     throw new Exception\SourceException($e->getMessage(), 0, $e);
                 }
 
+                if (!is_array($headers)) {
+                    continue;
+                }
+
+                $lowerHeaders = [];
+
+                foreach ($headers as $key => $value) {
+                    if (!is_string($key) || $key === '') {
+                        continue;
+                    }
+
+                    if (!is_string($value) || $value === '') {
+                        continue;
+                    }
+
+                    $lowerHeaders[mb_strtolower($key)] = $value;
+                }
+
+                if ($lowerHeaders === []) {
+                    continue;
+                }
+
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => $headers,
-                    'result' => $this->buildResult(
+                yield $uid => new TestProperties(
+                    headers: $lowerHeaders,
+                    result: $this->buildResult(
                         consoleLogger: $this->consoleLogger,
                         data: [
                             'client' => [
                                 'bits' => null,
-                                'isbot' => null,
                                 'manufacturer' => null,
                                 'modus' => null,
                                 'name' => null,
@@ -140,6 +162,7 @@ final readonly class PdoSource implements SourceInterface
                                 'version' => null,
                             ],
                             'device' => [
+                                'architecture' => null,
                                 'brand' => null,
                                 'deviceName' => null,
                                 'display' => [
@@ -154,6 +177,7 @@ final readonly class PdoSource implements SourceInterface
                                 'marketingName' => null,
                                 'simCount' => null,
                                 'type' => null,
+                                'bits' => null,
                             ],
                             'engine' => [
                                 'manufacturer' => null,
@@ -168,13 +192,13 @@ final readonly class PdoSource implements SourceInterface
                                 'version' => null,
                             ],
                         ],
-                        headers: $headers,
+                        headers: $lowerHeaders,
                     ),
-                    'file' => null,
-                    'date-first' => $row['date'],
-                    'date-last' => $row['date'],
-                    'raw' => $row,
-                ];
+                    file: null,
+                    dateFirst: is_string($row['date']) ? $row['date'] : date('Y-m-d'),
+                    dateLast: is_string($row['date']) ? $row['date'] : date('Y-m-d'),
+                    raw: $row,
+                );
             }
         } catch (PDOException $e) {
             throw new Exception\SourceException($e->getMessage(), 0, $e);

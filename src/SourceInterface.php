@@ -13,9 +13,9 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use LogicException;
 use RuntimeException;
-use UaResult\Result\Result;
 
 interface SourceInterface
 {
@@ -31,8 +31,7 @@ interface SourceInterface
     public function getHeaders(string $message, int &$messageLength = 0): iterable;
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */

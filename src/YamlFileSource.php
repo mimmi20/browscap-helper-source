@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -21,11 +22,11 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_key_exists;
 use function assert;
+use function date;
 use function file_exists;
 use function is_array;
 use function is_string;
@@ -65,8 +66,7 @@ final readonly class YamlFileSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -125,14 +125,13 @@ final readonly class YamlFileSource implements SourceInterface
 
                 $headers = array_key_exists('headers', $testCase) ? $testCase['headers'] : $testCase;
 
-                yield $uid => [
-                    'headers' => $headers,
-                    'result' => $this->buildResult(
+                yield $uid => new TestProperties(
+                    headers: $headers,
+                    result: $this->buildResult(
                         consoleLogger: $this->consoleLogger,
                         data: [
                             'client' => [
                                 'bits' => null,
-                                'isbot' => null,
                                 'manufacturer' => null,
                                 'modus' => null,
                                 'name' => null,
@@ -140,6 +139,7 @@ final readonly class YamlFileSource implements SourceInterface
                                 'version' => null,
                             ],
                             'device' => [
+                                'architecture' => null,
                                 'brand' => null,
                                 'deviceName' => null,
                                 'display' => [
@@ -154,6 +154,7 @@ final readonly class YamlFileSource implements SourceInterface
                                 'marketingName' => null,
                                 'simCount' => null,
                                 'type' => null,
+                                'bits' => null,
                             ],
                             'engine' => [
                                 'manufacturer' => null,
@@ -170,11 +171,11 @@ final readonly class YamlFileSource implements SourceInterface
                         ],
                         headers: $headers,
                     ),
-                    'file' => $filepath,
-                    'date-first' => $testCase['date-first'] ?? null,
-                    'date-last' => $testCase['date-last'] ?? null,
-                    'raw' => $testCase,
-                ];
+                    file: $filepath,
+                    dateFirst: $testCase['date-first'] ?? date('Y-m-d'),
+                    dateLast: $testCase['date-last'] ?? date('Y-m-d'),
+                    raw: $testCase,
+                );
             }
         }
     }

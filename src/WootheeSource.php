@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -21,11 +22,11 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_key_exists;
 use function assert;
+use function date;
 use function file_exists;
 use function is_array;
 use function is_string;
@@ -68,8 +69,7 @@ final readonly class WootheeSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -136,14 +136,13 @@ final readonly class WootheeSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => ['user-agent' => $agent],
-                    'result' => $this->buildResult(
+                yield $uid => new TestProperties(
+                    headers: ['user-agent' => $agent],
+                    result: $this->buildResult(
                         consoleLogger: $this->consoleLogger,
                         data: [
                             'client' => [
                                 'bits' => null,
-                                'isbot' => isset($row['category']) && $row['category'] === 'crawler',
                                 'manufacturer' => null,
                                 'modus' => null,
                                 'name' => $row['name'] ?? null,
@@ -151,6 +150,7 @@ final readonly class WootheeSource implements SourceInterface
                                 'version' => $row['version'] ?? null,
                             ],
                             'device' => [
+                                'architecture' => null,
                                 'brand' => null,
                                 'deviceName' => null,
                                 'display' => [
@@ -165,6 +165,7 @@ final readonly class WootheeSource implements SourceInterface
                                 'marketingName' => null,
                                 'simCount' => null,
                                 'type' => !isset($row['category']) || $row['category'] === 'crawler' ? null : $row['category'],
+                                'bits' => null,
                             ],
                             'engine' => [
                                 'manufacturer' => null,
@@ -181,11 +182,11 @@ final readonly class WootheeSource implements SourceInterface
                         ],
                         headers: ['user-agent' => $agent],
                     ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $row,
-                ];
+                    file: $filepath,
+                    dateFirst: date('Y-m-d'),
+                    dateLast: date('Y-m-d'),
+                    raw: $row,
+                );
             }
         }
     }

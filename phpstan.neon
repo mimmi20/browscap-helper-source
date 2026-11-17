@@ -132,9 +132,8 @@ parameters:
     pathStrings: true
 
   ignoreErrors:
-    - '~Generator expects value type~'
-    - '~but returns array~'
-    - '~expects array~'
+    #- '~but returns array~'
+    #- '~expects array~'
     -
       identifier: symplify.requiredInterfaceContractNamespace
 

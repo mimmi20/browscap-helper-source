@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use JsonException;
 use Override;
@@ -20,10 +21,10 @@ use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function assert;
+use function date;
 use function file_exists;
 use function file_get_contents;
 use function in_array;
@@ -72,8 +73,7 @@ final readonly class DonatjSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -146,21 +146,23 @@ final readonly class DonatjSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => ['user-agent' => $agent],
-                    'result' => $this->buildResult(
+                yield $uid => new TestProperties(
+                    headers: ['user-agent' => $agent],
+                    result: $this->buildResult(
                         consoleLogger: $this->consoleLogger,
                         data: [
                             'client' => [
                                 'bits' => null,
-                                'isbot' => null,
                                 'manufacturer' => null,
                                 'modus' => null,
-                                'name' => $testData['browser'],
+                                'name' => is_string($testData['browser']) ? $testData['browser'] : null,
                                 'type' => null,
-                                'version' => $testData['version'],
+                                'version' => is_string(
+                                    $testData['version'],
+                                ) ? $testData['version'] : null,
                             ],
                             'device' => [
+                                'architecture' => null,
                                 'brand' => null,
                                 'deviceName' => null,
                                 'display' => [
@@ -175,6 +177,7 @@ final readonly class DonatjSource implements SourceInterface
                                 'marketingName' => null,
                                 'simCount' => null,
                                 'type' => null,
+                                'bits' => null,
                             ],
                             'engine' => [
                                 'manufacturer' => null,
@@ -185,17 +188,19 @@ final readonly class DonatjSource implements SourceInterface
                                 'bits' => null,
                                 'manufacturer' => null,
                                 'marketingName' => null,
-                                'name' => $testData['platform'],
+                                'name' => is_string($testData['platform'])
+                                    ? $testData['platform']
+                                    : null,
                                 'version' => null,
                             ],
                         ],
                         headers: ['user-agent' => $agent],
                     ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $testData,
-                ];
+                    file: $filepath,
+                    dateFirst: date('Y-m-d'),
+                    dateLast: date('Y-m-d'),
+                    raw: $test,
+                );
             }
         }
     }

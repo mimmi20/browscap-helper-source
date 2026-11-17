@@ -13,16 +13,17 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function assert;
+use function date;
 use function file_exists;
 use function is_int;
 use function is_string;
@@ -65,8 +66,7 @@ final readonly class MobileDetectSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -122,14 +122,13 @@ final readonly class MobileDetectSource implements SourceInterface
 
                     $uid = Uuid::uuid4()->toString();
 
-                    yield $uid => [
-                        'headers' => ['user-agent' => $agent],
-                        'result' => $this->buildResult(
+                    yield $uid => new TestProperties(
+                        headers: ['user-agent' => $agent],
+                        result: $this->buildResult(
                             consoleLogger: $this->consoleLogger,
                             data: [
                                 'client' => [
                                     'bits' => null,
-                                    'isbot' => null,
                                     'manufacturer' => null,
                                     'modus' => null,
                                     'name' => null,
@@ -137,6 +136,7 @@ final readonly class MobileDetectSource implements SourceInterface
                                     'version' => null,
                                 ],
                                 'device' => [
+                                    'architecture' => null,
                                     'brand' => null,
                                     'deviceName' => $testData['model'] ?? null,
                                     'display' => [
@@ -151,6 +151,7 @@ final readonly class MobileDetectSource implements SourceInterface
                                     'marketingName' => null,
                                     'simCount' => null,
                                     'type' => null,
+                                    'bits' => null,
                                 ],
                                 'engine' => [
                                     'manufacturer' => null,
@@ -167,11 +168,11 @@ final readonly class MobileDetectSource implements SourceInterface
                             ],
                             headers: ['user-agent' => $agent],
                         ),
-                        'file' => $filepath,
-                        'date-first' => null,
-                        'date-last' => null,
-                        'raw' => $testData,
-                    ];
+                        file: $filepath,
+                        dateFirst: date('Y-m-d'),
+                        dateLast: date('Y-m-d'),
+                        raw: $testData,
+                    );
                 }
             }
         }

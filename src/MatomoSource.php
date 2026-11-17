@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use DeviceDetector\Parser\Client\Browser;
 use DeviceDetector\Parser\Device\AbstractDeviceParser;
@@ -23,7 +24,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -31,6 +31,7 @@ use function array_key_exists;
 use function array_map;
 use function array_merge;
 use function assert;
+use function date;
 use function explode;
 use function file_exists;
 use function implode;
@@ -94,8 +95,7 @@ final readonly class MatomoSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -112,8 +112,7 @@ final readonly class MatomoSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -163,7 +162,7 @@ final readonly class MatomoSource implements SourceInterface
             }
 
             foreach ($data as $row) {
-                /** @var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int, model?: string, brand?: string}} $row */
+                /** @var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string, model?: string, brand?: string}} $row */
                 if (!is_array($row)) {
                     continue;
                 }
@@ -198,14 +197,13 @@ final readonly class MatomoSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => array_change_key_case($headers, CASE_LOWER),
-                    'result' => $this->buildResult(
+                yield $uid => new TestProperties(
+                    headers: array_change_key_case($headers, CASE_LOWER),
+                    result: $this->buildResult(
                         consoleLogger: $this->consoleLogger,
                         data: [
                             'client' => [
                                 'bits' => null,
-                                'isbot' => !empty($row['bot']),
                                 'manufacturer' => null,
                                 'modus' => null,
                                 'name' => !empty($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
@@ -213,9 +211,10 @@ final readonly class MatomoSource implements SourceInterface
                                 'version' => !empty($row['bot']) ? null : ($row['client']['version'] ?? null),
                             ],
                             'device' => [
-                                'brand' => (!empty($row['device']['brand']) ? AbstractDeviceParser::getFullName(
-                                    $row['device']['brand'],
-                                ) : null),
+                                'architecture' => null,
+                                'brand' => !empty($row['device']['brand'])
+                                    ? AbstractDeviceParser::getFullName($row['device']['brand'])
+                                    : null,
                                 'deviceName' => $row['device']['model'] ?? null,
                                 'display' => [
                                     'height' => null,
@@ -229,6 +228,7 @@ final readonly class MatomoSource implements SourceInterface
                                 'marketingName' => null,
                                 'simCount' => null,
                                 'type' => $row['device']['type'] ?? null,
+                                'bits' => null,
                             ],
                             'engine' => [
                                 'manufacturer' => null,
@@ -245,18 +245,18 @@ final readonly class MatomoSource implements SourceInterface
                         ],
                         headers: array_change_key_case($headers, CASE_LOWER),
                     ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $row,
-                ];
+                    file: $filepath,
+                    dateFirst: date('Y-m-d'),
+                    dateLast: date('Y-m-d'),
+                    raw: $row,
+                );
             }
         }
     }
 
     /**
      * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
+     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string}} $data
      *
      * @throws void
      */
@@ -324,7 +324,7 @@ final readonly class MatomoSource implements SourceInterface
 
     /**
      * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
+     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string}} $data
      *
      * @throws void
      */
