@@ -35,7 +35,6 @@ $config
     ->ignoreErrorsOnPackage('donatj/phpuseragentparser', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('ergebnis/composer-normalize', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('jaybizzle/crawler-detect', [ErrorType::UNUSED_DEPENDENCY])
-    ->ignoreErrorsOnPackage('mimmi20/browser-detector', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('mobiledetect/mobiledetectlib', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('phpstan/phpstan', [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnPackage('rector/rector', [ErrorType::UNUSED_DEPENDENCY])
