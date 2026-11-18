@@ -19,16 +19,21 @@ use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
 use function assert;
 use function is_array;
 use function is_string;
 use function json_decode;
+use function mb_str_pad;
+use function mb_strlen;
 use function mb_strtolower;
 use function mb_trim;
+use function sprintf;
 
 use const JSON_THROW_ON_ERROR;
+use const STR_PAD_RIGHT;
 
 /**
  * use this schema
@@ -50,7 +55,7 @@ final readonly class PdoSource implements SourceInterface
     private const string NAME = 'pdo-source';
 
     /** @throws void */
-    public function __construct(private PDO $pdo, private string $dbName = '')
+    public function __construct(private PDO $pdo, private LoggerInterface $consoleLogger, private string $dbName = '')
     {
     }
 
@@ -76,12 +81,20 @@ final readonly class PdoSource implements SourceInterface
      * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
-     *
-     * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
     #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
+        $message = $parentMessage . sprintf('- reading database %s', $this->dbName);
+
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
+
+        $this->consoleLogger->info(
+            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        );
+
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers`, `date`, `count`, `id` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
 
         $driverOptions = [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY];
