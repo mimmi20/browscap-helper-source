@@ -149,8 +149,6 @@ final readonly class TxtCounterFileSource implements SourceInterface
                             'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'ismobile' => null,
-                        'istv' => null,
                         'manufacturer' => null,
                         'marketingName' => null,
                         'simCount' => null,

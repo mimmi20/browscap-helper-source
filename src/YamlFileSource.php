@@ -137,8 +137,6 @@ final readonly class YamlFileSource implements SourceInterface
                             'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'ismobile' => null,
-                        'istv' => null,
                         'manufacturer' => null,
                         'marketingName' => null,
                         'simCount' => null,

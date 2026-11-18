@@ -22,7 +22,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaDeviceType\Type as DeviceType;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -135,8 +134,6 @@ final readonly class BrowserDetectorSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                $deviceType = DeviceType::fromName($test['device']['type']);
-
                 yield $uid => new TestProperties(
                     headers: array_change_key_case($test['headers'], CASE_LOWER),
                     device: [
@@ -150,8 +147,6 @@ final readonly class BrowserDetectorSource implements SourceInterface
                             'width' => $test['device']['display']['width'],
                         ],
                         'dualOrientation' => $test['device']['dualOrientation'] ?? null,
-                        'ismobile' => $deviceType->isMobile(),
-                        'istv' => $deviceType->isTv(),
                         'manufacturer' => $test['device']['manufacturer'],
                         'marketingName' => $test['device']['marketingName'],
                         'simCount' => $test['device']['simCount'] ?? null,

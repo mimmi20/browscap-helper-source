@@ -15,7 +15,6 @@ namespace BrowscapHelper\Source;
 
 use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
-use DeviceDetector\Parser\Client\Browser;
 use DeviceDetector\Parser\Device\AbstractDeviceParser;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -34,7 +33,6 @@ use function assert;
 use function explode;
 use function file_exists;
 use function implode;
-use function in_array;
 use function is_array;
 use function is_string;
 use function mb_str_pad;
@@ -211,8 +209,6 @@ final readonly class MatomoSource implements SourceInterface
                             'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'ismobile' => $this->isMobile($row),
-                        'istv' => $this->isTv($row),
                         'manufacturer' => null,
                         'marketingName' => null,
                         'simCount' => null,
@@ -246,128 +242,5 @@ final readonly class MatomoSource implements SourceInterface
                 );
             }
         }
-    }
-
-    /**
-     * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string}} $data
-     *
-     * @throws void
-     */
-    private function isMobile(array $data): bool
-    {
-        if (empty($data['device']['type'])) {
-            return false;
-        }
-
-        $device     = $data['device']['type'];
-        $deviceType = AbstractDeviceParser::getAvailableDeviceTypes()[$device];
-
-        if (!empty($deviceType)) {
-            // Mobile device types
-            if (
-                in_array(
-                    $deviceType,
-                    [
-                        AbstractDeviceParser::DEVICE_TYPE_FEATURE_PHONE,
-                        AbstractDeviceParser::DEVICE_TYPE_SMARTPHONE,
-                        AbstractDeviceParser::DEVICE_TYPE_TABLET,
-                        AbstractDeviceParser::DEVICE_TYPE_PHABLET,
-                        AbstractDeviceParser::DEVICE_TYPE_CAMERA,
-                        AbstractDeviceParser::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
-                    ],
-                    strict: true,
-                )
-            ) {
-                return true;
-            }
-
-            // non mobile device types
-            if (
-                in_array(
-                    $deviceType,
-                    [
-                        AbstractDeviceParser::DEVICE_TYPE_TV,
-                        AbstractDeviceParser::DEVICE_TYPE_SMART_DISPLAY,
-                        AbstractDeviceParser::DEVICE_TYPE_CONSOLE,
-                    ],
-                    strict: true,
-                )
-            ) {
-                return false;
-            }
-        }
-
-        // Check for browsers available for mobile devices only
-        if (
-            isset($data['client']['type'])
-            && $data['client']['type'] === 'browser'
-            && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
-        ) {
-            return true;
-        }
-
-        $osShort = $data['os']['short_name'] ?? null;
-
-        if (empty($osShort) || $osShort === 'UNK') {
-            return false;
-        }
-
-        return !$this->isDesktop($data);
-    }
-
-    /**
-     * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string}} $data
-     *
-     * @throws void
-     */
-    private function isTv(array $data): bool
-    {
-        if (empty($data['device']['type'])) {
-            return false;
-        }
-
-        $device     = $data['device']['type'];
-        $deviceType = AbstractDeviceParser::getAvailableDeviceTypes()[$device];
-
-        if (!empty($deviceType)) {
-            // non mobile device types
-            if ($deviceType === AbstractDeviceParser::DEVICE_TYPE_TV) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string}} $data
-     *
-     * @throws void
-     */
-    private function isDesktop(array $data): bool
-    {
-        $osShort = $data['os']['short_name'];
-
-        if (empty($osShort) || $osShort === 'UNK') {
-            return false;
-        }
-
-        // Check for browsers available for mobile devices only
-        if (
-            isset($data['client']['type'])
-            && $data['client']['type'] === 'browser'
-            && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
-        ) {
-            return false;
-        }
-
-        return in_array(
-            $data['os_family'],
-            ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'],
-            strict: true,
-        );
     }
 }

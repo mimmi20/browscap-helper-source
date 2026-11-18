@@ -28,7 +28,6 @@ use function array_change_key_case;
 use function array_key_exists;
 use function assert;
 use function file_exists;
-use function in_array;
 use function is_array;
 use function is_string;
 use function mb_str_pad;
@@ -192,8 +191,6 @@ final readonly class WhichBrowserSource implements SourceInterface
                             'width' => null,
                         ],
                         'dualOrientation' => null,
-                        'ismobile' => $this->isMobile($row['result']),
-                        'istv' => null,
                         'manufacturer' => null,
                         'marketingName' => null,
                         'simCount' => null,
@@ -279,25 +276,5 @@ final readonly class WhichBrowserSource implements SourceInterface
         }
 
         return [];
-    }
-
-    /**
-     * @param array<string, array<string, array<string, string>|string>> $data
-     *
-     * @throws void
-     */
-    private function isMobile(array $data): bool | null
-    {
-        if (!isset($data['device']['type'])) {
-            return null;
-        }
-
-        $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
-
-        if (in_array($data['device']['type'], $mobileTypes, strict: true)) {
-            return true;
-        }
-
-        return $data['device']['type'] === 'gaming' && (isset($data['device']['subtype']) && $data['device']['subtype'] === 'portable');
     }
 }

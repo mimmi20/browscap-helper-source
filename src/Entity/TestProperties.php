@@ -16,11 +16,11 @@ namespace BrowscapHelper\Source\Entity;
 final class TestProperties
 {
     /**
-     * @param array<non-empty-string, non-empty-string>                                                                                                                                                                                                                                                                                                                                $headers
-     * @param array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool|null, istv: bool|null, bits: int|null} $device
-     * @param array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}                                                                                                                                                                                                                                                    $os
-     * @param array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, bits: int|null, modus: string|null}                                                                                                                                                                                                                                         $client
-     * @param array{name: string|null, version: string|null, manufacturer: string|null}                                                                                                                                                                                                                                                                                                $engine
+     * @param array<non-empty-string, non-empty-string>                                                                                                                                                                                                                                                                                          $headers
+     * @param array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, bits: int|null} $device
+     * @param array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}                                                                                                                                                                                                              $os
+     * @param array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, bits: int|null, modus: string|null}                                                                                                                                                                                                   $client
+     * @param array{name: string|null, version: string|null, manufacturer: string|null}                                                                                                                                                                                                                                                          $engine
      *
      * @throws void
      */
@@ -51,7 +51,7 @@ final class TestProperties
     }
 
     /**
-     * @return array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool|null, istv: bool|null, bits: int|null}
+     * @return array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, bits: int|null}
      *
      * @throws void
      *

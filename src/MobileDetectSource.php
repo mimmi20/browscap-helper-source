@@ -134,12 +134,10 @@ final readonly class MobileDetectSource implements SourceInterface
                                 'width' => null,
                             ],
                             'dualOrientation' => null,
-                            'ismobile' => isset($testData['isMobile']) && $testData['isMobile'],
-                            'istv' => null,
                             'manufacturer' => null,
                             'marketingName' => null,
                             'simCount' => null,
-                            'type' => null,
+                            'type' => isset($testData['isMobile']) && $testData['isMobile'] ? 'mobile-device' : null,
                             'bits' => null,
                         ],
                         os: [
