@@ -105,6 +105,8 @@ final readonly class TestProperties
     }
 
     /**
+     * @return non-empty-string|null
+     *
      * @throws void
      *
      * @api
@@ -115,6 +117,8 @@ final readonly class TestProperties
     }
 
     /**
+     * @return non-empty-string|null
+     *
      * @throws void
      *
      * @api
