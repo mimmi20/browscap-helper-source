@@ -174,9 +174,15 @@ final readonly class JsonFileSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: $testCase['date-last'] ?? null,
+                    dateFirst: $testCase['date-first'] ?? null,
                     dateLast: $testCase['date-last'] ?? null,
                     raw: $testCase,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => $testCase['date-first'] ?? null,
+                            'date-last' => $testCase['date-last'] ?? null,
+                        ],
+                    ],
                 );
             }
         }

@@ -221,6 +221,12 @@ final readonly class WhichBrowserSource implements SourceInterface
                     dateFirst: null,
                     dateLast: null,
                     raw: $row,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
                 );
             }
         }

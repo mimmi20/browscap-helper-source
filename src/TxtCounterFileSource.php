@@ -179,6 +179,12 @@ final readonly class TxtCounterFileSource implements SourceInterface
                     dateFirst: null,
                     dateLast: null,
                     raw: $parts,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
                 );
             }
 

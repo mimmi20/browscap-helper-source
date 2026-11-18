@@ -37,6 +37,10 @@ interface SourceInterface
      */
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable;
 
-    /** @throws void */
+    /**
+     * @return non-empty-string
+     *
+     * @throws void
+     */
     public function getName(): string;
 }

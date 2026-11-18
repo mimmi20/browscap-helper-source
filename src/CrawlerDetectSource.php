@@ -166,6 +166,12 @@ final readonly class CrawlerDetectSource implements SourceInterface
                     dateFirst: null,
                     dateLast: null,
                     raw: $line,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
                 );
             }
         }

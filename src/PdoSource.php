@@ -70,7 +70,11 @@ final readonly class PdoSource implements SourceInterface
         return true;
     }
 
-    /** @throws void */
+    /**
+     * @return non-empty-string
+     *
+     * @throws void
+     */
     #[Override]
     public function getName(): string
     {
@@ -199,9 +203,19 @@ final readonly class PdoSource implements SourceInterface
                         'version' => null,
                     ],
                     file: null,
-                    dateFirst: is_string($row['date']) ? $row['date'] : null,
-                    dateLast: is_string($row['date']) ? $row['date'] : null,
+                    dateFirst: is_string($row['date']) && $row['date'] !== '' ? $row['date'] : null,
+                    dateLast: is_string($row['date']) && $row['date'] !== '' ? $row['date'] : null,
                     raw: $row,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => is_string(
+                                $row['date'],
+                            ) && $row['date'] !== '' ? $row['date'] : null,
+                            'date-last' => is_string(
+                                $row['date'],
+                            ) && $row['date'] !== '' ? $row['date'] : null,
+                        ],
+                    ],
                 );
             }
         } catch (PDOException $e) {

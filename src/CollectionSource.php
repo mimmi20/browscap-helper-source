@@ -31,7 +31,11 @@ final readonly class CollectionSource implements SourceInterface
         $this->collection = $collection;
     }
 
-    /** @throws void */
+    /**
+     * @return non-empty-string
+     *
+     * @throws void
+     */
     #[Override]
     public function getName(): string
     {

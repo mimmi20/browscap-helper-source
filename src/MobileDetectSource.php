@@ -164,6 +164,12 @@ final readonly class MobileDetectSource implements SourceInterface
                         dateFirst: null,
                         dateLast: null,
                         raw: $testData,
+                        sources: [
+                            $this->getName() => [
+                                'date-first' => null,
+                                'date-last' => null,
+                            ],
+                        ],
                     );
                 }
             }

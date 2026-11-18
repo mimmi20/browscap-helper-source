@@ -192,6 +192,12 @@ final readonly class DonatjSource implements SourceInterface
                     dateFirst: null,
                     dateLast: null,
                     raw: $test,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
                 );
             }
         }
