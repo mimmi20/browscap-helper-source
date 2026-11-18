@@ -17,7 +17,11 @@ use Override;
 
 trait GetNameTrait
 {
-    /** @throws void */
+    /**
+     * @return non-empty-string
+     *
+     * @throws void
+     */
     #[Override]
     public function getName(): string
     {

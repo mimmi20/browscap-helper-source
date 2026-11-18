@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -21,7 +22,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -68,8 +68,7 @@ final readonly class BrowserDetectorSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -120,7 +119,7 @@ final readonly class BrowserDetectorSource implements SourceInterface
             }
 
             foreach ($data as $test) {
-                /** @var array{headers: array<non-empty-string, string>, device: array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool, istv: bool, bits: int|null}, os: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, client: array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, isbot: bool, bits: int|null, modus: string|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}} $test */
+                /** @var array{headers: array<non-empty-string, non-empty-string>, device: array{architecture: string|null, deviceName: string|null, marketingName: string|null, manufacturer: string|null, brand: string|null, dualOrientation: bool|null, simCount: int|null, display: array{width: int|null, height: int|null, touch: bool|null, size: float|null, type?: string|null}, type: string|null, ismobile: bool, istv: bool, bits: int|null}, os: array{name: string|null, marketingName: string|null, version: string|null, manufacturer: string|null, bits: int|null}, client: array{name: string|null, version: string|null, manufacturer: string|null, type: string|null, isbot: bool, bits: int|null, modus: string|null}, engine: array{name: string|null, version: string|null, manufacturer: string|null}} $test */
                 if (!is_array($test)) {
                     continue;
                 }
@@ -135,18 +134,56 @@ final readonly class BrowserDetectorSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => array_change_key_case($test['headers'], CASE_LOWER),
-                    'result' => $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: $test,
-                        headers: $test['headers'],
-                    ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $test,
-                ];
+                yield $uid => new TestProperties(
+                    headers: array_change_key_case($test['headers'], CASE_LOWER),
+                    device: [
+                        'architecture' => $test['device']['architecture'],
+                        'brand' => $test['device']['brand'],
+                        'deviceName' => $test['device']['deviceName'],
+                        'display' => [
+                            'height' => $test['device']['display']['height'],
+                            'size' => $test['device']['display']['size'],
+                            'touch' => $test['device']['display']['touch'],
+                            'width' => $test['device']['display']['width'],
+                        ],
+                        'dualOrientation' => $test['device']['dualOrientation'] ?? null,
+                        'manufacturer' => $test['device']['manufacturer'],
+                        'marketingName' => $test['device']['marketingName'],
+                        'simCount' => $test['device']['simCount'] ?? null,
+                        'type' => $test['device']['type'],
+                        'bits' => $test['device']['bits'] ?? null,
+                    ],
+                    os: [
+                        'bits' => $test['os']['bits'] ?? null,
+                        'manufacturer' => $test['os']['manufacturer'],
+                        'marketingName' => $test['os']['marketingName'],
+                        'name' => $test['os']['name'],
+                        'version' => $test['os']['version'] ?? null,
+                    ],
+                    client: [
+                        'bits' => $test['client']['bits'] ?? null,
+                        'manufacturer' => $test['client']['manufacturer'] ?? null,
+                        'modus' => $test['client']['modus'] ?? null,
+                        'name' => $test['client']['name'] ?? null,
+                        'type' => $test['client']['type'] ?? null,
+                        'version' => $test['client']['version'] ?? null,
+                    ],
+                    engine: [
+                        'manufacturer' => $test['engine']['manufacturer'],
+                        'name' => $test['engine']['name'],
+                        'version' => $test['engine']['version'],
+                    ],
+                    file: $filepath,
+                    dateFirst: null,
+                    dateLast: null,
+                    raw: $test,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
+                );
             }
         }
     }

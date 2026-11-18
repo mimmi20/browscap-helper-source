@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use JsonException;
 use Override;
 use PDO;
@@ -20,15 +21,19 @@ use PDOException;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
-use UaResult\Result\Result;
 
 use function assert;
 use function is_array;
-use function is_scalar;
+use function is_string;
 use function json_decode;
+use function mb_str_pad;
+use function mb_strlen;
+use function mb_strtolower;
 use function mb_trim;
+use function sprintf;
 
 use const JSON_THROW_ON_ERROR;
+use const STR_PAD_RIGHT;
 
 /**
  * use this schema
@@ -65,7 +70,11 @@ final readonly class PdoSource implements SourceInterface
         return true;
     }
 
-    /** @throws void */
+    /**
+     * @return non-empty-string
+     *
+     * @throws void
+     */
     #[Override]
     public function getName(): string
     {
@@ -73,16 +82,23 @@ final readonly class PdoSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
-     *
-     * @phpcsSuppress SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
      */
     #[Override]
     public function getProperties(string $parentMessage, int &$messageLength = 0): iterable
     {
+        $message = $parentMessage . sprintf('- reading database %s', $this->dbName);
+
+        if (mb_strlen($message) > $messageLength) {
+            $messageLength = mb_strlen($message);
+        }
+
+        $this->consoleLogger->info(
+            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        );
+
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers`, `date`, `count`, `id` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
 
         $driverOptions = [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY];
@@ -103,7 +119,7 @@ final readonly class PdoSource implements SourceInterface
 
         try {
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                if (!is_array($row) || !is_scalar($row['headers'])) {
+                if (!is_array($row) || !is_string($row['headers'])) {
                     continue;
                 }
 
@@ -123,58 +139,84 @@ final readonly class PdoSource implements SourceInterface
                     throw new Exception\SourceException($e->getMessage(), 0, $e);
                 }
 
+                if (!is_array($headers)) {
+                    continue;
+                }
+
+                $lowerHeaders = [];
+
+                foreach ($headers as $key => $value) {
+                    if (!is_string($key) || $key === '') {
+                        continue;
+                    }
+
+                    if (!is_string($value) || $value === '') {
+                        continue;
+                    }
+
+                    $lowerHeaders[mb_strtolower($key)] = $value;
+                }
+
+                if ($lowerHeaders === []) {
+                    continue;
+                }
+
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => $headers,
-                    'result' => $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'isbot' => null,
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => null,
-                                'type' => null,
-                                'version' => null,
-                            ],
-                            'device' => [
-                                'brand' => null,
-                                'deviceName' => null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => null,
-                                'version' => null,
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => null,
-                                'version' => null,
-                            ],
+                yield $uid => new TestProperties(
+                    headers: $lowerHeaders,
+                    device: [
+                        'architecture' => null,
+                        'brand' => null,
+                        'deviceName' => null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: $headers,
-                    ),
-                    'file' => null,
-                    'date-first' => $row['date'],
-                    'date-last' => $row['date'],
-                    'raw' => $row,
-                ];
+                        'dualOrientation' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => null,
+                        'bits' => null,
+                    ],
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => null,
+                        'type' => null,
+                        'version' => null,
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    file: null,
+                    dateFirst: is_string($row['date']) && $row['date'] !== '' ? $row['date'] : null,
+                    dateLast: is_string($row['date']) && $row['date'] !== '' ? $row['date'] : null,
+                    raw: $row,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => is_string(
+                                $row['date'],
+                            ) && $row['date'] !== '' ? $row['date'] : null,
+                            'date-last' => is_string(
+                                $row['date'],
+                            ) && $row['date'] !== '' ? $row['date'] : null,
+                        ],
+                    ],
+                );
             }
         } catch (PDOException $e) {
             throw new Exception\SourceException($e->getMessage(), 0, $e);

@@ -13,8 +13,8 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
-use Header;
 use Override;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
@@ -22,22 +22,19 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_change_key_case;
 use function array_key_exists;
 use function assert;
-use function class_exists;
 use function file_exists;
-use function function_exists;
-use function http_parse_headers;
-use function in_array;
 use function is_array;
 use function is_string;
 use function mb_str_pad;
 use function mb_strlen;
 use function mb_strpos;
+use function mb_strtolower;
+use function mb_trim;
 use function sprintf;
 use function str_replace;
 
@@ -75,8 +72,7 @@ final readonly class WhichBrowserSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -182,122 +178,109 @@ final readonly class WhichBrowserSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => $lowerHeaders,
-                    'result' => $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'isbot' => isset($row['result']['device']['type']) && $row['result']['device']['type'] === 'bot',
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => $browserName,
-                                'type' => $row['result']['browser']['type'] ?? null,
-                                'version' => $browserVersion,
-                            ],
-                            'device' => [
-                                'brand' => $row['result']['device']['manufacturer'] ?? null,
-                                'deviceName' => $row['result']['device']['model'] ?? null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => $this->isMobile($row['result']),
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => $row['result']['device']['type'] ?? null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => $engineName,
-                                'version' => $engineVersion,
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => $osName,
-                                'version' => $osVersion,
-                            ],
+                yield $uid => new TestProperties(
+                    headers: $lowerHeaders,
+                    device: [
+                        'architecture' => null,
+                        'brand' => $row['result']['device']['manufacturer'] ?? null,
+                        'deviceName' => $row['result']['device']['model'] ?? null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: $lowerHeaders,
-                    ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $row,
-                ];
+                        'dualOrientation' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => $row['result']['device']['type'] ?? null,
+                        'bits' => null,
+                    ],
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => $osName,
+                        'version' => $osVersion,
+                    ],
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => $browserName,
+                        'type' => $row['result']['browser']['type'] ?? null,
+                        'version' => $browserVersion,
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => $engineName,
+                        'version' => $engineVersion,
+                    ],
+                    file: $filepath,
+                    dateFirst: null,
+                    dateLast: null,
+                    raw: $row,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
+                );
             }
         }
     }
 
     /**
-     * @param array<string, array<string, string>|string> $row
+     * @param array{useragent?: mixed, headers?: mixed} $row
      *
-     * @return array<string, string>
+     * @return array<non-empty-string, non-empty-string>
      *
      * @throws void
      */
     private function getHeadersFromRow(array $row): array
     {
         if (array_key_exists('useragent', $row) && is_string($row['useragent'])) {
-            return ['user-agent' => $row['useragent']];
+            $useragent = mb_trim($row['useragent']);
+
+            if ($useragent === '') {
+                return [];
+            }
+
+            return ['user-agent' => $useragent];
         }
 
         if (array_key_exists('headers', $row)) {
             if (is_array($row['headers'])) {
-                return $row['headers'];
+                $headers = [];
+
+                foreach ($row['headers'] as $name => $value) {
+                    if (!is_string($name) || $name === '') {
+                        continue;
+                    }
+
+                    if (!is_string($value) || $value === '') {
+                        continue;
+                    }
+
+                    $headers[mb_strtolower($name)] = $value;
+                }
+
+                return $headers;
             }
 
-            if (!is_string($row['headers'])) {
-                return [];
+            if (is_string($row['headers']) && mb_strpos($row['headers'], 'User-Agent: ') === 0) {
+                $useragent = mb_trim(str_replace('User-Agent: ', '', $row['headers']));
+
+                if ($useragent === '') {
+                    return [];
+                }
+
+                return ['user-agent' => $useragent];
             }
-
-            $headers = false;
-
-            if (class_exists(Header::class)) {
-                // pecl_http versions 2.x/3.x
-                $headers = Header::parse($row['headers']);
-            } elseif (function_exists('\http_parse_headers')) {
-                // pecl_http version 1.x
-                $headers = http_parse_headers($row['headers']);
-            } elseif (mb_strpos($row['headers'], 'User-Agent: ') === 0) {
-                return ['user-agent' => str_replace('User-Agent: ', '', $row['headers'])];
-            }
-
-            if (!is_array($headers)) {
-                return [];
-            }
-
-            return $headers;
         }
 
         return [];
-    }
-
-    /**
-     * @param array<mixed> $data
-     * @phpstan-param array<string, array<string, string>> $data
-     *
-     * @throws void
-     */
-    private function isMobile(array $data): bool | null
-    {
-        if (!isset($data['device']['type'])) {
-            return null;
-        }
-
-        $mobileTypes = ['mobile', 'tablet', 'ereader', 'media', 'watch', 'camera'];
-
-        if (in_array($data['device']['type'], $mobileTypes, strict: true)) {
-            return true;
-        }
-
-        return $data['device']['type'] === 'gaming' && (isset($data['device']['subtype']) && $data['device']['subtype'] === 'portable');
     }
 }

@@ -13,8 +13,8 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
-use DeviceDetector\Parser\Client\Browser;
 use DeviceDetector\Parser\Device\AbstractDeviceParser;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -23,7 +23,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function array_change_key_case;
@@ -34,7 +33,6 @@ use function assert;
 use function explode;
 use function file_exists;
 use function implode;
-use function in_array;
 use function is_array;
 use function is_string;
 use function mb_str_pad;
@@ -94,8 +92,7 @@ final readonly class MatomoSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -112,8 +109,7 @@ final readonly class MatomoSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -163,7 +159,7 @@ final readonly class MatomoSource implements SourceInterface
             }
 
             foreach ($data as $row) {
-                /** @var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int, model?: string, brand?: string}} $row */
+                /** @var array{user_agent?: string, headers?: array<non-empty-string, non-empty-string>, os: array{name?: string, short_name: string|null, version?: string}, client?: array{name?: string, type: string, short_name?: string, engine?: string, engine_version?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: string, model?: string, brand?: string}} $row */
                 if (!is_array($row)) {
                     continue;
                 }
@@ -198,157 +194,59 @@ final readonly class MatomoSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => array_change_key_case($headers, CASE_LOWER),
-                    'result' => $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'isbot' => !empty($row['bot']),
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => !empty($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
-                                'type' => !empty($row['bot']) ? ($row['bot']['category'] ?? null) : ($row['client']['type'] ?? null),
-                                'version' => !empty($row['bot']) ? null : ($row['client']['version'] ?? null),
-                            ],
-                            'device' => [
-                                'brand' => (!empty($row['device']['brand']) ? AbstractDeviceParser::getFullName(
-                                    $row['device']['brand'],
-                                ) : null),
-                                'deviceName' => $row['device']['model'] ?? null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => $this->isMobile($row),
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => $row['device']['type'] ?? null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
-                                'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => $row['os']['name'] ?? null,
-                                'version' => $row['os']['version'] ?? null,
-                            ],
+                yield $uid => new TestProperties(
+                    headers: array_change_key_case($headers, CASE_LOWER),
+                    device: [
+                        'architecture' => null,
+                        'brand' => !empty($row['device']['brand'])
+                            ? AbstractDeviceParser::getFullName($row['device']['brand'])
+                            : null,
+                        'deviceName' => $row['device']['model'] ?? null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: array_change_key_case($headers, CASE_LOWER),
-                    ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $row,
-                ];
-            }
-        }
-    }
-
-    /**
-     * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
-     *
-     * @throws void
-     */
-    private function isMobile(array $data): bool
-    {
-        if (empty($data['device']['type'])) {
-            return false;
-        }
-
-        $device     = $data['device']['type'];
-        $deviceType = AbstractDeviceParser::getAvailableDeviceTypes()[$device];
-
-        if (!empty($deviceType)) {
-            // Mobile device types
-            if (
-                in_array(
-                    $deviceType,
-                    [
-                        AbstractDeviceParser::DEVICE_TYPE_FEATURE_PHONE,
-                        AbstractDeviceParser::DEVICE_TYPE_SMARTPHONE,
-                        AbstractDeviceParser::DEVICE_TYPE_TABLET,
-                        AbstractDeviceParser::DEVICE_TYPE_PHABLET,
-                        AbstractDeviceParser::DEVICE_TYPE_CAMERA,
-                        AbstractDeviceParser::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
+                        'dualOrientation' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => $row['device']['type'] ?? null,
+                        'bits' => null,
                     ],
-                    strict: true,
-                )
-            ) {
-                return true;
-            }
-
-            // non mobile device types
-            if (
-                in_array(
-                    $deviceType,
-                    [
-                        AbstractDeviceParser::DEVICE_TYPE_TV,
-                        AbstractDeviceParser::DEVICE_TYPE_SMART_DISPLAY,
-                        AbstractDeviceParser::DEVICE_TYPE_CONSOLE,
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => $row['os']['name'] ?? null,
+                        'version' => $row['os']['version'] ?? null,
                     ],
-                    strict: true,
-                )
-            ) {
-                return false;
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => !empty($row['bot']) ? ($row['bot']['name'] ?? null) : ($row['client']['name'] ?? null),
+                        'type' => !empty($row['bot']) ? ($row['bot']['category'] ?? null) : ($row['client']['type'] ?? null),
+                        'version' => !empty($row['bot']) ? null : ($row['client']['version'] ?? null),
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => (!empty($row['client']['engine']) ? $row['client']['engine'] : null),
+                        'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
+                    ],
+                    file: $filepath,
+                    dateFirst: null,
+                    dateLast: null,
+                    raw: $row,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
+                );
             }
         }
-
-        // Check for browsers available for mobile devices only
-        if (
-            isset($data['client']['type'])
-            && $data['client']['type'] === 'browser'
-            && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
-        ) {
-            return true;
-        }
-
-        $osShort = $data['os']['short_name'] ?? null;
-
-        if (empty($osShort) || $osShort === 'UNK') {
-            return false;
-        }
-
-        return !$this->isDesktop($data);
-    }
-
-    /**
-     * @param array<mixed> $data
-     * @phpstan-param array{os: array{short_name: string|null}, client?: array{type: string, short_name?: string}, bot?: array{name: string, category: string}, os_family: string, device: array{type?: int}} $data
-     *
-     * @throws void
-     */
-    private function isDesktop(array $data): bool
-    {
-        $osShort = $data['os']['short_name'];
-
-        if (empty($osShort) || $osShort === 'UNK') {
-            return false;
-        }
-
-        // Check for browsers available for mobile devices only
-        if (
-            isset($data['client']['type'])
-            && $data['client']['type'] === 'browser'
-            && Browser::isMobileOnlyBrowser($data['client']['short_name'] ?? 'UNK')
-        ) {
-            return false;
-        }
-
-        return in_array(
-            $data['os_family'],
-            ['AmigaOS', 'IBM', 'GNU/Linux', 'Mac', 'Unix', 'Windows', 'BeOS', 'Chrome OS'],
-            strict: true,
-        );
     }
 }

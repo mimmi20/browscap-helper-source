@@ -13,6 +13,7 @@ declare(strict_types = 1);
 
 namespace BrowscapHelper\Source;
 
+use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use JsonException;
 use Override;
@@ -20,7 +21,6 @@ use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use UaResult\Result\Result;
 use UnexpectedValueException;
 
 use function assert;
@@ -72,8 +72,7 @@ final readonly class DonatjSource implements SourceInterface
     }
 
     /**
-     * @return iterable<array<mixed>>
-     * @phpstan-return iterable<non-empty-string, array{headers: array<non-empty-string, non-empty-string>, result: Result, file: string|null, date-first: string|null, date-last: string|null, raw: mixed}>
+     * @return iterable<non-empty-string, TestProperties>
      *
      * @throws Exception\SourceException
      */
@@ -146,56 +145,60 @@ final readonly class DonatjSource implements SourceInterface
 
                 $uid = Uuid::uuid4()->toString();
 
-                yield $uid => [
-                    'headers' => ['user-agent' => $agent],
-                    'result' => $this->buildResult(
-                        consoleLogger: $this->consoleLogger,
-                        data: [
-                            'client' => [
-                                'bits' => null,
-                                'isbot' => null,
-                                'manufacturer' => null,
-                                'modus' => null,
-                                'name' => $testData['browser'],
-                                'type' => null,
-                                'version' => $testData['version'],
-                            ],
-                            'device' => [
-                                'brand' => null,
-                                'deviceName' => null,
-                                'display' => [
-                                    'height' => null,
-                                    'size' => null,
-                                    'touch' => null,
-                                    'width' => null,
-                                ],
-                                'dualOrientation' => null,
-                                'ismobile' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'simCount' => null,
-                                'type' => null,
-                            ],
-                            'engine' => [
-                                'manufacturer' => null,
-                                'name' => null,
-                                'version' => null,
-                            ],
-                            'os' => [
-                                'bits' => null,
-                                'manufacturer' => null,
-                                'marketingName' => null,
-                                'name' => $testData['platform'],
-                                'version' => null,
-                            ],
+                yield $uid => new TestProperties(
+                    headers: ['user-agent' => $agent],
+                    device: [
+                        'architecture' => null,
+                        'brand' => null,
+                        'deviceName' => null,
+                        'display' => [
+                            'height' => null,
+                            'size' => null,
+                            'touch' => null,
+                            'width' => null,
                         ],
-                        headers: ['user-agent' => $agent],
-                    ),
-                    'file' => $filepath,
-                    'date-first' => null,
-                    'date-last' => null,
-                    'raw' => $testData,
-                ];
+                        'dualOrientation' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'simCount' => null,
+                        'type' => null,
+                        'bits' => null,
+                    ],
+                    os: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'marketingName' => null,
+                        'name' => is_string($testData['platform'])
+                            ? $testData['platform']
+                            : null,
+                        'version' => null,
+                    ],
+                    client: [
+                        'bits' => null,
+                        'manufacturer' => null,
+                        'modus' => null,
+                        'name' => is_string($testData['browser']) ? $testData['browser'] : null,
+                        'type' => null,
+                        'version' => is_string($testData['version'])
+                            ? $testData['version']
+                            : null,
+                    ],
+                    engine: [
+                        'manufacturer' => null,
+                        'name' => null,
+                        'version' => null,
+                    ],
+                    file: $filepath,
+                    dateFirst: null,
+                    dateLast: null,
+                    raw: $test,
+                    sources: [
+                        $this->getName() => [
+                            'date-first' => null,
+                            'date-last' => null,
+                        ],
+                    ],
+                );
             }
         }
     }
