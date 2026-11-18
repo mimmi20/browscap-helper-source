@@ -23,7 +23,6 @@ use RecursiveIteratorIterator;
 use UnexpectedValueException;
 
 use function assert;
-use function date;
 use function file_exists;
 use function is_int;
 use function is_string;
@@ -164,8 +163,8 @@ final readonly class MobileDetectSource implements SourceInterface
                             'version' => null,
                         ],
                         file: $filepath,
-                        dateFirst: date('Y-m-d'),
-                        dateLast: date('Y-m-d'),
+                        dateFirst: null,
+                        dateLast: null,
                         raw: $testData,
                     );
                 }

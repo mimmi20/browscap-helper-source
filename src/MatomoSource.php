@@ -31,7 +31,6 @@ use function array_key_exists;
 use function array_map;
 use function array_merge;
 use function assert;
-use function date;
 use function explode;
 use function file_exists;
 use function implode;
@@ -241,8 +240,8 @@ final readonly class MatomoSource implements SourceInterface
                         'version' => (!empty($row['client']['engine_version']) ? $row['client']['engine_version'] : null),
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $row,
                 );
             }

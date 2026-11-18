@@ -31,8 +31,8 @@ final class TestProperties
         private readonly array $client,
         private readonly array $engine,
         private readonly string | null $file,
-        private string $dateFirst,
-        private string $dateLast,
+        private string | null $dateFirst,
+        private string | null $dateLast,
         private readonly mixed $raw,
     ) {
         // nothing to do
@@ -103,7 +103,7 @@ final class TestProperties
      *
      * @api
      */
-    public function getDateFirst(): string
+    public function getDateFirst(): string | null
     {
         return $this->dateFirst;
     }
@@ -113,7 +113,7 @@ final class TestProperties
      *
      * @api
      */
-    public function getDateLast(): string
+    public function getDateLast(): string | null
     {
         return $this->dateLast;
     }

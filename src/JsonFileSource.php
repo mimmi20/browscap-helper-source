@@ -25,7 +25,6 @@ use UnexpectedValueException;
 
 use function array_key_exists;
 use function assert;
-use function date;
 use function file_exists;
 use function file_get_contents;
 use function in_array;
@@ -177,8 +176,8 @@ final readonly class JsonFileSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: $testCase['date-last'] ?? date('Y-m-d'),
-                    dateLast: $testCase['date-last'] ?? date('Y-m-d'),
+                    dateFirst: $testCase['date-last'] ?? null,
+                    dateLast: $testCase['date-last'] ?? null,
                     raw: $testCase,
                 );
             }

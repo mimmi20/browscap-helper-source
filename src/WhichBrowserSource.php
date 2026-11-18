@@ -27,7 +27,6 @@ use UnexpectedValueException;
 use function array_change_key_case;
 use function array_key_exists;
 use function assert;
-use function date;
 use function file_exists;
 use function in_array;
 use function is_array;
@@ -222,8 +221,8 @@ final readonly class WhichBrowserSource implements SourceInterface
                         'version' => $engineVersion,
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $row,
                 );
             }

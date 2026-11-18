@@ -23,7 +23,6 @@ use RecursiveIteratorIterator;
 use UnexpectedValueException;
 
 use function assert;
-use function date;
 use function explode;
 use function fclose;
 use function feof;
@@ -179,8 +178,8 @@ final readonly class TxtCounterFileSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $parts,
                 );
             }

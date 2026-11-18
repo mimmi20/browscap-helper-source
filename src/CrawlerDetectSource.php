@@ -23,7 +23,6 @@ use RecursiveIteratorIterator;
 use UnexpectedValueException;
 
 use function assert;
-use function date;
 use function file;
 use function file_exists;
 use function is_string;
@@ -166,8 +165,8 @@ final readonly class CrawlerDetectSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $line,
                 );
             }

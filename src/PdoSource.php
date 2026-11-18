@@ -22,7 +22,6 @@ use PDOStatement;
 use Ramsey\Uuid\Uuid;
 
 use function assert;
-use function date;
 use function is_array;
 use function is_string;
 use function json_decode;
@@ -189,8 +188,8 @@ final readonly class PdoSource implements SourceInterface
                         'version' => null,
                     ],
                     file: null,
-                    dateFirst: is_string($row['date']) ? $row['date'] : date('Y-m-d'),
-                    dateLast: is_string($row['date']) ? $row['date'] : date('Y-m-d'),
+                    dateFirst: is_string($row['date']) ? $row['date'] : null,
+                    dateLast: is_string($row['date']) ? $row['date'] : null,
                     raw: $row,
                 );
             }

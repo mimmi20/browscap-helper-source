@@ -26,7 +26,6 @@ use UnexpectedValueException;
 
 use function array_key_exists;
 use function assert;
-use function date;
 use function file_exists;
 use function is_array;
 use function is_string;
@@ -178,8 +177,8 @@ final readonly class WootheeSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $row,
                 );
             }

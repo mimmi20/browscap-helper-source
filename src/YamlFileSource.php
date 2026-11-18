@@ -26,7 +26,6 @@ use UnexpectedValueException;
 
 use function array_key_exists;
 use function assert;
-use function date;
 use function file_exists;
 use function is_array;
 use function is_string;
@@ -167,8 +166,8 @@ final readonly class YamlFileSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: $testCase['date-first'] ?? date('Y-m-d'),
-                    dateLast: $testCase['date-last'] ?? date('Y-m-d'),
+                    dateFirst: $testCase['date-first'] ?? null,
+                    dateLast: $testCase['date-last'] ?? null,
                     raw: $testCase,
                 );
             }

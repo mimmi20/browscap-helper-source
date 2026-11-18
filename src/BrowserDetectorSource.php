@@ -27,7 +27,6 @@ use UnexpectedValueException;
 
 use function array_change_key_case;
 use function assert;
-use function date;
 use function file_exists;
 use function is_array;
 use function is_string;
@@ -180,8 +179,8 @@ final readonly class BrowserDetectorSource implements SourceInterface
                         'version' => $test['engine']['version'],
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $test,
                 );
             }

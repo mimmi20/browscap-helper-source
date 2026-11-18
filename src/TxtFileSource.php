@@ -23,7 +23,6 @@ use RecursiveIteratorIterator;
 use UnexpectedValueException;
 
 use function assert;
-use function date;
 use function fclose;
 use function feof;
 use function fgets;
@@ -172,8 +171,8 @@ final readonly class TxtFileSource implements SourceInterface
                         'version' => null,
                     ],
                     file: $filepath,
-                    dateFirst: date('Y-m-d'),
-                    dateLast: date('Y-m-d'),
+                    dateFirst: null,
+                    dateLast: null,
                     raw: $line,
                 );
             }
