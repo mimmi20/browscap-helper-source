@@ -16,10 +16,10 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\Console\Output\OutputInterface;
 use UnexpectedValueException;
 
 use function assert;
@@ -34,17 +34,18 @@ use function str_replace;
 
 use const STR_PAD_RIGHT;
 
-final readonly class MobileDetectSource implements SourceInterface
+final class MobileDetectSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
 
     private const string NAME = 'mobiledetect/mobiledetectlib';
 
     private const string PATH = 'vendor/mobiledetect/mobiledetectlib/tests/providers/vendors';
 
     /** @throws void */
-    public function __construct(private LoggerInterface $consoleLogger)
+    public function __construct()
     {
         // do nothing
     }
@@ -57,8 +58,8 @@ final readonly class MobileDetectSource implements SourceInterface
             return true;
         }
 
-        $this->consoleLogger->error(
-            $parentMessage . sprintf('- path %s not found', self::PATH),
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found', self::PATH) . '</error>',
         );
 
         return false;
@@ -78,8 +79,9 @@ final readonly class MobileDetectSource implements SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->consoleLogger->info(
-            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        $this->write(
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -101,8 +103,9 @@ final readonly class MobileDetectSource implements SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->consoleLogger->info(
-                mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+            $this->write(
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             $provider = include $filepath;

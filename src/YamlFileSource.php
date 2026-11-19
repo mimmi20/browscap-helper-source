@@ -16,10 +16,10 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use UnexpectedValueException;
@@ -36,15 +36,16 @@ use function str_replace;
 
 use const STR_PAD_RIGHT;
 
-final readonly class YamlFileSource implements SourceInterface
+final class YamlFileSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
 
     private const string NAME = 'yaml-files';
 
     /** @throws void */
-    public function __construct(private LoggerInterface $consoleLogger, private string $dir)
+    public function __construct(private string $dir)
     {
         // do nothing
     }
@@ -57,8 +58,8 @@ final readonly class YamlFileSource implements SourceInterface
             return true;
         }
 
-        $this->consoleLogger->error(
-            $parentMessage . sprintf('- path %s not found', $this->dir),
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found', $this->dir) . '</error>',
         );
 
         return false;
@@ -78,8 +79,9 @@ final readonly class YamlFileSource implements SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->consoleLogger->info(
-            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        $this->write(
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -101,8 +103,9 @@ final readonly class YamlFileSource implements SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->consoleLogger->info(
-                mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+            $this->write(
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             try {

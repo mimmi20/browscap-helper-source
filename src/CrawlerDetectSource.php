@@ -16,10 +16,10 @@ namespace BrowscapHelper\Source;
 use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use Override;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\Console\Output\OutputInterface;
 use UnexpectedValueException;
 
 use function assert;
@@ -35,17 +35,18 @@ use const FILE_IGNORE_NEW_LINES;
 use const FILE_SKIP_EMPTY_LINES;
 use const STR_PAD_RIGHT;
 
-final readonly class CrawlerDetectSource implements SourceInterface
+final class CrawlerDetectSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
 
     private const string NAME = 'jaybizzle/crawler-detect';
 
     private const string PATH = 'vendor/jaybizzle/crawler-detect/tests';
 
     /** @throws void */
-    public function __construct(private LoggerInterface $consoleLogger)
+    public function __construct()
     {
         // do nothing
     }
@@ -58,8 +59,8 @@ final readonly class CrawlerDetectSource implements SourceInterface
             return true;
         }
 
-        $this->consoleLogger->error(
-            $parentMessage . sprintf('- path %s not found', self::PATH),
+        $this->writeln(
+            "\r" . '<error>' . $parentMessage . sprintf('- path %s not found', self::PATH) . '</error>',
         );
 
         return false;
@@ -79,8 +80,9 @@ final readonly class CrawlerDetectSource implements SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->consoleLogger->info(
-            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        $this->write(
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -102,8 +104,9 @@ final readonly class CrawlerDetectSource implements SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->consoleLogger->info(
-                mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+            $this->write(
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             $lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
