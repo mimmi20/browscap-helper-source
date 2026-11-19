@@ -17,10 +17,10 @@ use BrowscapHelper\Source\Entity\TestProperties;
 use BrowserDetector\Iterator\FilterIterator;
 use DeviceDetector\Parser\Device\AbstractDeviceParser;
 use Override;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use UnexpectedValueException;
@@ -45,10 +45,11 @@ use function str_replace;
 use const CASE_LOWER;
 use const STR_PAD_RIGHT;
 
-final readonly class MatomoSource implements SourceInterface
+final class MatomoSource implements OutputAwareInterface, SourceInterface
 {
     use GetNameTrait;
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
 
     private const string NAME = 'matomo/device-detector';
 
@@ -60,7 +61,7 @@ final readonly class MatomoSource implements SourceInterface
     ];
 
     /** @throws void */
-    public function __construct(private LoggerInterface $consoleLogger)
+    public function __construct()
     {
         // do nothing
     }
@@ -83,8 +84,8 @@ final readonly class MatomoSource implements SourceInterface
         }
 
         foreach ($notFound as $path) {
-            $this->consoleLogger->error(
-                $parentMessage . sprintf('- path %s not found', $path),
+            $this->writeln(
+                "\r" . '<error>' . $parentMessage . sprintf('- path %s not found', $path) . '</error>',
             );
         }
 
@@ -121,8 +122,9 @@ final readonly class MatomoSource implements SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->consoleLogger->info(
-            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        $this->write(
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         try {
@@ -144,8 +146,9 @@ final readonly class MatomoSource implements SourceInterface
                 $messageLength = mb_strlen($message);
             }
 
-            $this->consoleLogger->info(
-                mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+            $this->write(
+                "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+                options: OutputInterface::VERBOSITY_VERY_VERBOSE,
             );
 
             try {

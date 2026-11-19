@@ -19,8 +19,8 @@ use Override;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\Console\Output\OutputInterface;
 
 use function assert;
 use function is_array;
@@ -48,14 +48,15 @@ use const STR_PAD_RIGHT;
  * ) ENGINE=InnoDB AUTO_INCREMENT=228817 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 ROW_FORMAT=COMPACT;
  * </code>
  */
-final readonly class PdoSource implements SourceInterface
+final class PdoSource implements OutputAwareInterface, SourceInterface
 {
     use GetUserAgentsTrait;
+    use OutputAwareTrait;
 
     private const string NAME = 'pdo-source';
 
     /** @throws void */
-    public function __construct(private PDO $pdo, private LoggerInterface $consoleLogger, private string $dbName = '')
+    public function __construct(private PDO $pdo, private string $dbName = '')
     {
     }
 
@@ -95,8 +96,9 @@ final readonly class PdoSource implements SourceInterface
             $messageLength = mb_strlen($message);
         }
 
-        $this->consoleLogger->info(
-            mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT),
+        $this->write(
+            "\r" . '<info>' . mb_str_pad($message, $messageLength, ' ', STR_PAD_RIGHT) . '</info>',
+            options: OutputInterface::VERBOSITY_VERBOSE,
         );
 
         $sql = 'SELECT DISTINCT SQL_BIG_RESULT HIGH_PRIORITY `headers`, `date`, `count`, `id` FROM `request` ORDER BY `date` DESC, `count` DESC, `id` DESC';
